@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Estabelecimento | NumInstante Delivery</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#FF5E1E',
+              hover: '#E64E12',
+              light: '#FFF4EE',
+              surface: '#FFF8F5'
+            },
+            surface: {
+              bg: '#F8F9FA',
+              card: '#FFFFFF',
+              border: '#E9ECEF',
+              text: '#1A1D20',
+              muted: '#6C757D'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F8F9FA;
+      color: #1A1D20;
+    }
+    button, [role="button"], a {
+      cursor: pointer;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-modal {
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes toastSlide {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-toast {
+      animation: toastSlide 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased relative">
+
+  <!-- ================= FLOATING TOAST NOTIFICATION ================= -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 pointer-events-none space-y-2"></div>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="w-full md:w-64 bg-white border-r border-[#E9ECEF] flex flex-col justify-between shrink-0 z-30 transition-all duration-300">
+    <div>
+      <!-- Brand Logo / Info -->
+      <div class="p-5 border-b border-[#E9ECEF] flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF5E1E] to-[#FF844B] flex items-center justify-center text-white font-black text-lg shadow-md shadow-[#FF5E1E]/20">
+            BB
+          </div>
+          <div>
+            <h1 class="font-bold text-sm text-[#1A1D20] leading-tight flex items-center gap-1.5">
+              Brasa Burger
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            </h1>
+            <p class="text-[11px] text-[#6C757D]">Painel do Lojista</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="p-3 space-y-1">
+        <!-- 1. Cardápio & Vitrine -->
+        <button onclick="switchTab('cardapio')" id="nav-cardapio" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all bg-[#FF5E1E] text-white shadow-sm shadow-[#FF5E1E]/25">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+            <span>Cardápio & Vitrine</span>
+          </div>
+        </button>
+
+        <!-- 2. Templates de Complementos (Abordagem 1) -->
+        <button onclick="switchTab('templates')" id="nav-templates" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg>
+            <span>Templates de Adicionais</span>
+          </div>
+        </button>
+
+        <!-- 3. Pedidos -->
+        <button onclick="switchTab('pedidos')" id="nav-pedidos" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            <span>Gestor de Pedidos</span>
+          </div>
+        </button>
+
+        <!-- 4. Horários -->
+        <button onclick="switchTab('horarios')" id="nav-horarios" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Horários da Semana</span>
+        </button>
+
+        <!-- 5. Bairros -->
+        <button onclick="switchTab('entregas')" id="nav-entregas" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>Bairros & Taxas</span>
+        </button>
+
+        <!-- 6. Pagamentos -->
+        <button onclick="switchTab('pagamentos')" id="nav-pagamentos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          <span>Pagamentos & PIX</span>
+        </button>
+
+        <!-- 7. Dados Loja -->
+        <button onclick="switchTab('loja')" id="nav-loja" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>Dados do Restaurante</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Quick Footer / Store Link -->
+    <div class="p-4 border-t border-[#E9ECEF] bg-[#F8F9FA]/60">
+      <a href="http://localhost:5173/brasa-burger" target="_blank" class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-semibold text-[#1A1D20] hover:text-[#FF5E1E] transition-all group shadow-sm">
+        <span class="flex items-center gap-2">
+          <span>Ver Cardápio Público</span>
+        </span>
+        <svg class="w-4 h-4 text-[#6C757D] group-hover:text-[#FF5E1E] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+    <!-- Topbar -->
+    <header class="h-16 bg-white border-b border-[#E9ECEF] px-6 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-4">
+        <span id="tab-title" class="font-bold text-lg text-[#1A1D20]">Cardápio & Vitrine</span>
+        <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Cardápio Online Sincronizado
+        </span>
+      </div>
+
+      <!-- Controls: Emergency Toggle + Sound -->
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSound()" id="sound-btn" class="p-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] transition-all relative" title="Som de novo pedido ativado">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500"></span>
+        </button>
+
+        <div class="flex items-center gap-2 bg-[#F8F9FA] p-1 rounded-2xl border border-[#E9ECEF]">
+          <button id="btn-status-open" onclick="setStoreStatus(true)" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-emerald-600 text-white shadow-sm transition-all">
+            🟢 Aberto
+          </button>
+          <button id="btn-status-closed" onclick="setStoreStatus(false)" class="px-3 py-1.5 rounded-xl font-bold text-xs text-[#6C757D] hover:text-[#1A1D20] transition-all">
+            🔴 Pausar Loja
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Dynamic Tab Content Container -->
+    <div class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[#F8F9FA]">
+
+      <!-- ================= 1. TAB: CARDÁPIO & PRODUTOS ================= -->
+      <section id="tab-cardapio-content" class="tab-pane space-y-6 max-w-6xl mx-auto">
+
+        <!-- Top Header Cardápio -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+              Gestão do Cardápio & Vitrine de Produtos
+              <span class="text-xs font-normal text-[#6C757D] bg-[#F8F9FA] px-2.5 py-0.5 rounded-full border border-[#E9ECEF]">Tempo Real</span>
+            </h2>
+            <p class="text-xs text-[#6C757D] mt-0.5">
+              Organize as categorias que os clientes veem na tela e defina qual <strong>Template de Adicionais</strong> cada item usa.
+            </p>
+          </div>
+
+          <!-- Ações Principais -->
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button onclick="switchTab('templates')" class="px-3.5 py-2.5 rounded-xl bg-orange-50 border border-orange-200 text-[#FF5E1E] text-xs font-bold hover:bg-orange-100 transition-all flex items-center gap-2">
+              <span>🧩 Templates de Adicionais</span>
+            </button>
+            <button onclick="openModalCategory()" class="px-3.5 py-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-[#1A1D20] hover:text-[#FF5E1E] text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+              <svg class="w-4 h-4 text-[#FF5E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+              <span>Nova Categoria na Vitrine</span>
+            </button>
+            <button onclick="openModalProduct()" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              <span>+ Novo Produto</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtro de Categorias da Vitrine + Barra de Busca -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 custom-scrollbar" id="category-filter-chips"></div>
+          <div class="relative w-full sm:w-64 shrink-0">
+            <svg class="w-4 h-4 text-[#6C757D] absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="search-product-input" onkeyup="filterProducts()" placeholder="Buscar produto..." class="w-full bg-white border border-[#E9ECEF] rounded-xl pl-9 pr-3 py-2 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E] transition-colors">
+          </div>
+        </div>
+
+        <!-- Lista de Produtos Agrupados por Categoria de Vitrine -->
+        <div id="products-container" class="space-y-6"></div>
+
+      </section>
+
+      <!-- ================= 2. TAB: TEMPLATES DE ADICIONAIS (ABORDAGEM 1) ================= -->
+      <section id="tab-templates-content" class="tab-pane hidden space-y-6 max-w-6xl mx-auto">
+        
+        <!-- Header da Seção com Banner Explicativo -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-orange-100 text-[#FF5E1E] flex items-center justify-center font-bold text-base">🧩</span>
+                <h2 class="text-base font-extrabold text-[#1A1D20]">Templates de Complementos & Adicionais</h2>
+              </div>
+              <p class="text-xs text-[#6C757D] mt-1">
+                Configure os pacotes de adicionais por tipo de comida (Hambúrguer, Pizza, Açaí, etc.). Qualquer produto pode usar esse modelo, mesmo se estiver na categoria <em>"Novidade do Mês"</em>!
+              </p>
+            </div>
+
+            <button onclick="openModalTemplate()" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-2 self-start md:self-auto">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              <span>+ Novo Template de Adicionais</span>
+            </button>
+          </div>
+
+          <!-- Card Didático da Abordagem 1 -->
+          <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-3">
+            <span class="text-xl">💡</span>
+            <div class="text-xs text-emerald-950 leading-relaxed">
+              <strong class="font-bold">A Lógica Perfeita da Abordagem 1:</strong>
+              A <strong>Categoria</strong> é onde o produto aparece na tela para o cliente navegar (ex: <em>"Novidade do Mês"</em>, <em>"Hambúrgueres"</em>, <em>"Promoções"</em>). Já o <strong>Template</strong> é a receita de adicionais daquele tipo de comida. Assim, se você colocar um hambúrguer em <em>"Novidade do Mês"</em>, basta selecionar o template <strong>"🍔 Hambúrguer"</strong> e ele já herda ponto da carne e bacon automaticamente!
+            </div>
+          </div>
+        </div>
+
+        <!-- Grade de Templates Cadastrados -->
+        <div id="templates-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+      </section>
+
+      <!-- ================= 3. TAB: GESTOR DE PEDIDOS (KANBAN) ================= -->
+      <section id="tab-pedidos-content" class="tab-pane hidden space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-[#6C757D] font-medium">Pedidos Hoje</p>
+              <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">28</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-bold">🛵</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-[#6C757D] font-medium">Faturamento Estimado</p>
+              <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">R$ 1.240,50</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">💰</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-[#6C757D] font-medium">Tempo Médio Cozinha</p>
+              <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">18 min</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">⏱️</div>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs text-[#6C757D] font-medium">Ticket Médio</p>
+              <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">R$ 44,30</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">📊</div>
+          </div>
+        </div>
+
+        <!-- Kanban Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+          <div class="bg-amber-50/50 rounded-2xl p-3 border border-amber-200">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <span class="font-bold text-xs uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Novos Pedidos
+              </span>
+              <span class="bg-amber-200 text-amber-900 font-extrabold text-xs px-2 py-0.5 rounded-full">1</span>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-amber-200 shadow-sm space-y-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-[#1A1D20]">#1042</span>
+                  <p class="text-xs font-bold text-[#1A1D20]">Lucas Silva</p>
+                  <p class="text-[11px] text-[#6C757D]">há 4 min • Entrega (Centro)</p>
+                </div>
+                <span class="text-[11px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">PIX Pago</span>
+              </div>
+              <div class="text-xs space-y-1 py-2 border-y border-[#F1F3F5]">
+                <div class="flex justify-between font-semibold text-[#1A1D20]">
+                  <span>1x Brasa Master Picanha</span>
+                  <span>R$ 38,90</span>
+                </div>
+                <p class="text-[11px] text-[#6C757D] pl-2">• Carne ao ponto, Bacon Extra (+R$ 4,00)</p>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-xs font-bold text-[#1A1D20]">Total: R$ 48,90</span>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="showToast('Imprimindo comanda térmica 80mm...')" class="p-1.5 bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1D20] rounded-lg text-xs" title="Imprimir Comanda">🖨️</button>
+                  <button onclick="showToast('Pedido #1042 avançado para Cozinha!')" class="px-2.5 py-1.5 bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold rounded-lg transition-all">Aceitar ➔</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-blue-50/50 rounded-2xl p-3 border border-blue-200">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <span class="font-bold text-xs uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                Em Preparo
+              </span>
+              <span class="bg-blue-200 text-blue-900 font-extrabold text-xs px-2 py-0.5 rounded-full">1</span>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-blue-100 shadow-sm space-y-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-[#1A1D20]">#1041</span>
+                  <p class="text-xs font-bold text-[#1A1D20]">Mariana Costa</p>
+                  <p class="text-[11px] text-[#6C757D]">há 14 min • Retirada</p>
+                </div>
+                <span class="text-[11px] font-extrabold px-2 py-0.5 rounded bg-blue-100 text-blue-800">Cartão</span>
+              </div>
+              <div class="text-xs space-y-1 py-2 border-y border-[#F1F3F5]">
+                <div class="flex justify-between font-semibold text-[#1A1D20]">
+                  <span>2x Smash Bacon Duplo</span>
+                  <span>R$ 57,80</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-xs font-bold text-[#1A1D20]">Total: R$ 57,80</span>
+                <button onclick="showToast('Pedido #1041 pronto!')" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all">Pronto ➔</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-purple-50/50 rounded-2xl p-3 border border-purple-200">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <span class="font-bold text-xs uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                Saiu p/ Entrega
+              </span>
+              <span class="bg-purple-200 text-purple-900 font-extrabold text-xs px-2 py-0.5 rounded-full">1</span>
+            </div>
+            <div class="bg-white rounded-xl p-4 border border-purple-100 shadow-sm space-y-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-xs font-black text-[#1A1D20]">#1040</span>
+                  <p class="text-xs font-bold text-[#1A1D20]">Carlos Eduardo</p>
+                  <p class="text-[11px] text-[#6C757D]">Motoboy: Rafael • Jardim América</p>
+                </div>
+                <span class="text-[11px] font-extrabold px-2 py-0.5 rounded bg-amber-100 text-amber-900">Dinheiro (R$ 50)</span>
+              </div>
+              <div class="text-xs space-y-1 py-2 border-y border-[#F1F3F5]">
+                <div class="flex justify-between font-semibold text-[#1A1D20]">
+                  <span>1x Combo Casal Smash</span>
+                  <span>R$ 64,90</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-xs font-bold text-[#1A1D20]">Total: R$ 72,40</span>
+                <button onclick="showToast('Pedido #1040 finalizado!')" class="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg transition-all">Concluir ✓</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-emerald-50/50 rounded-2xl p-3 border border-emerald-200 opacity-80">
+            <div class="flex items-center justify-between mb-3 px-1">
+              <span class="font-bold text-xs uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                Concluídos
+              </span>
+              <span class="bg-emerald-200 text-emerald-900 font-extrabold text-xs px-2 py-0.5 rounded-full">25</span>
+            </div>
+            <p class="text-[11px] text-[#6C757D] text-center py-6">25 pedidos entregues com sucesso hoje.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. TAB: HORÁRIOS DA SEMANA ================= -->
+      <section id="tab-horarios-content" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-[#1A1D20]">Programação de Horários Semanais</h2>
+            <p class="text-xs text-[#6C757D]">Defina os horários em que seu estabelecimento aceita pedidos a cada dia da semana.</p>
+          </div>
+          <div class="space-y-3 divide-y divide-[#F1F3F5]" id="schedule-days-list"></div>
+          <div class="pt-4 flex justify-end">
+            <button onclick="showToast('Horários salvos com sucesso!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
+              Salvar Horários
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. TAB: BAIRROS & TAXAS ================= -->
+      <section id="tab-entregas-content" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-base font-bold text-[#1A1D20]">Taxas de Entrega por Bairro</h2>
+              <p class="text-xs text-[#6C757D]">Cadastre as regiões atendidas pelo seu delivery e o valor correspondente de entrega.</p>
+            </div>
+            <button onclick="addBairroPrompt()" class="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-sm">
+              + Adicionar Bairro
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF]">
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tempo estimado de Entrega</label>
+              <input type="text" value="40 - 50 min" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tempo estimado de Retirada</label>
+              <input type="text" value="20 - 30 min" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-[#F8F9FA] text-[#6C757D] font-bold border-y border-[#E9ECEF]">
+                <tr>
+                  <th class="py-3 px-4">Bairro / Região</th>
+                  <th class="py-3 px-4">Taxa de Entrega</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="bairros-tbody" class="divide-y divide-[#E9ECEF]">
+                <tr class="hover:bg-[#F8F9FA]/50 transition-colors">
+                  <td class="py-3.5 px-4 font-bold text-[#1A1D20]">Centro</td>
+                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 5,00</td>
+                  <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Ativo</span></td>
+                  <td class="py-3.5 px-4 text-right"><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Remover</button></td>
+                </tr>
+                <tr class="hover:bg-[#F8F9FA]/50 transition-colors">
+                  <td class="py-3.5 px-4 font-bold text-[#1A1D20]">Jardim América</td>
+                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 7,50</td>
+                  <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Ativo</span></td>
+                  <td class="py-3.5 px-4 text-right"><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Remover</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. TAB: PAGAMENTOS & PIX ================= -->
+      <section id="tab-pagamentos-content" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-[#1A1D20]">Configuração do PIX & Meios de Pagamento</h2>
+            <p class="text-xs text-[#6C757D]">Configure a chave PIX onde você recebe os pagamentos dos clientes.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tipo de Chave PIX</label>
+              <select class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+                <option>CNPJ</option>
+                <option>CPF</option>
+                <option>Telefone / WhatsApp</option>
+                <option>E-mail</option>
+                <option>Chave Aleatória</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Chave PIX</label>
+              <input type="text" value="00000000000" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold font-mono">
+            </div>
+          </div>
+          <div class="pt-4 flex justify-end">
+            <button onclick="showToast('Configurações de pagamento salvas!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
+              Salvar Pagamentos
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. TAB: DADOS DA LOJA ================= -->
+      <section id="tab-loja-content" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-[#1A1D20]">Dados do Restaurante</h2>
+            <p class="text-xs text-[#6C757D]">Essas informações alimentam o cabeçalho e rodapé do seu cardápio público.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome do Estabelecimento</label>
+              <input type="text" value="Brasa Burger" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Pedido Mínimo (R$)</label>
+              <input type="text" value="25,00" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">WhatsApp para Pedidos</label>
+              <input type="text" value="(00) 00000-0000" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Instagram (@usuario)</label>
+              <input type="text" value="@brasaburger" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
+          </div>
+          <div class="pt-4 flex justify-end">
+            <button onclick="showToast('Dados da loja salvos com sucesso!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
+              Salvar Alterações
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== MODAL 1: NOVA CATEGORIA NA VITRINE ================= -->
+  <!-- ========================================================================= -->
+  <div id="modal-category" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#E9ECEF] animate-modal space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-[#E9ECEF]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-bold text-base">📁</div>
+          <div>
+            <h3 class="font-extrabold text-base text-[#1A1D20]" id="modal-category-title">Nova Categoria na Vitrine</h3>
+            <p class="text-xs text-[#6C757D]">Como os clientes encontrarão seus produtos no menu</p>
+          </div>
+        </div>
+        <button onclick="closeModalCategory()" class="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveCategory(event)" class="space-y-4">
+        <input type="hidden" id="cat-form-id" value="">
+        <div>
+          <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome da Categoria no Menu *</label>
+          <input type="text" id="cat-form-name" required placeholder="Ex: ✨ Novidades do Mês, 🔥 Mais Vendidos, Lanches, Pizzas" class="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-semibold outline-none transition-all">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#1A1D20] mb-1">Ordem no Menu *</label>
+          <input type="number" id="cat-form-order" value="1" min="1" max="99" class="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold outline-none">
+          <span class="text-[10px] text-[#6C757D] mt-1 block">Posição 1 aparece primeiro no menu</span>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#1A1D20] mb-1.5">Status na Vitrine</label>
+          <div onclick="toggleCatModalStatus()" id="cat-status-container" class="p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 bg-emerald-50/50 border-emerald-300">
+            <div>
+              <div class="flex items-center gap-2">
+                <span id="cat-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span id="cat-status-label" class="text-xs font-extrabold text-emerald-900">Categoria Ativa</span>
+              </div>
+              <p id="cat-status-desc" class="text-[11px] text-[#6C757D] mt-0.5">Visível para os clientes no cardápio</p>
+            </div>
+            <!-- Switch bolinha deslizante (verde ativa, cinza desativa) -->
+            <button type="button" role="switch" id="cat-status-switch" class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-emerald-500">
+              <span id="cat-status-knob" class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out translate-x-5"></span>
+            </button>
+            <input type="hidden" id="cat-form-status" value="active">
+          </div>
+        </div>
+        <div class="pt-3 border-t border-[#E9ECEF] flex items-center justify-end gap-2.5">
+          <button type="button" onclick="closeModalCategory()" class="px-4 py-2.5 rounded-xl border border-[#E9ECEF] text-xs font-bold text-[#6C757D] hover:bg-[#F8F9FA] transition-all">Cancelar</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all">Salvar Categoria</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== MODAL 2: NOVO PRODUTO (COM TEMPLATE) =============== -->
+  <!-- ========================================================================= -->
+  <div id="modal-product" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#E9ECEF] animate-modal overflow-hidden">
+      <div class="p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-bold text-lg">🍔</div>
+          <div>
+            <h3 class="font-extrabold text-base text-[#1A1D20]" id="modal-product-title">Cadastrar Novo Produto</h3>
+            <p class="text-xs text-[#6C757D]">Selecione a categoria de vitrine e o Template de Adicionais</p>
+          </div>
+        </div>
+        <button onclick="closeModalProduct()" class="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors">✕</button>
+      </div>
+
+      <form id="product-form" onsubmit="handleSaveProduct(event)" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <input type="hidden" id="prod-form-id" value="">
+
+        <!-- Seção 1: Dados Principais & Foto -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-1 space-y-2">
+            <label class="block text-xs font-bold text-[#1A1D20]">Foto do Produto</label>
+            <div onclick="document.getElementById('prod-file-input').click()" class="w-full aspect-square rounded-2xl border-2 border-dashed border-[#E9ECEF] hover:border-[#FF5E1E] bg-[#F8F9FA] overflow-hidden flex flex-col items-center justify-center relative group transition-all cursor-pointer">
+              <img id="prod-preview-img" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" class="w-full h-full object-cover">
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[11px] font-bold transition-opacity">📸 Escolher Foto</div>
+            </div>
+            <input type="file" id="prod-file-input" accept="image/*" onchange="handleProductFileUpload(event)" class="hidden">
+            <div id="prod-compress-badge" class="hidden text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg text-center font-bold"></div>
+            <input type="text" id="prod-form-image" value="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400" onchange="updateImgPreview(this.value)" placeholder="Ou cole a URL da Foto..." class="w-full bg-[#F8F9FA] border border-[#E9ECEF] rounded-lg px-2.5 py-1.5 text-[11px] text-[#6C757D] outline-none">
+          </div>
+
+          <div class="sm:col-span-2 space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome do Produto *</label>
+              <input type="text" id="prod-form-name" required placeholder="Ex: Burger Vulcão Supremo" class="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold outline-none transition-all">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Custom Dropdown Categoria da Vitrine -->
+              <div class="relative">
+                <label class="block text-xs font-bold text-[#1A1D20] mb-1">Categoria na Vitrine *</label>
+                <button type="button" onclick="toggleCustomDropdown('dropdown-cat-menu')" id="btn-custom-category" class="w-full bg-[#F8F9FA] hover:bg-white border border-[#E9ECEF] hover:border-slate-300 focus:border-[#FF5E1E] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold flex items-center justify-between gap-2 transition-all cursor-pointer">
+                  <span id="label-custom-category" class="truncate">Selecione uma categoria...</span>
+                  <svg class="w-4 h-4 text-[#6C757D] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="dropdown-cat-menu" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-[#E9ECEF] rounded-2xl shadow-xl overflow-hidden py-1.5 max-h-56 overflow-y-auto custom-scrollbar"></div>
+                <input type="hidden" id="prod-form-category" value="">
+                <span class="text-[10px] text-[#6C757D] mt-1 block">Onde aparece no menu</span>
+              </div>
+
+              <!-- Custom Dropdown Template de Adicionais -->
+              <div class="relative">
+                <label class="block text-xs font-bold text-[#FF5E1E] mb-1 flex items-center gap-1">
+                  <span>🧩 Template de Adicionais *</span>
+                </label>
+                <button type="button" onclick="toggleCustomDropdown('dropdown-tmpl-menu')" id="btn-custom-template" class="w-full bg-orange-50/70 hover:bg-orange-50 border border-orange-200 hover:border-orange-300 focus:border-[#FF5E1E] rounded-xl px-3.5 py-2.5 text-xs text-orange-950 font-bold flex items-center justify-between gap-2 transition-all cursor-pointer">
+                  <span id="label-custom-template" class="truncate">Selecione o template...</span>
+                  <svg class="w-4 h-4 text-[#FF5E1E] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div id="dropdown-tmpl-menu" class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-[#E9ECEF] rounded-2xl shadow-xl overflow-hidden py-1.5 max-h-56 overflow-y-auto custom-scrollbar"></div>
+                <input type="hidden" id="prod-form-template" value="">
+                <span class="text-[10px] text-[#6C757D] mt-1 block">Qual o tipo de comida / adicionais</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Descrição e Ingredientes</label>
+              <textarea id="prod-form-desc" rows="2" placeholder="Ex: Blend especial de 180g na brasa, queijo cheddar inglês derretido, fatias crocantes de bacon e molho no pão brioche." class="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl p-3 text-xs text-[#1A1D20] outline-none transition-all resize-none"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção 2: Preço e Ordem -->
+        <div class="p-4 rounded-2xl bg-[#F8F9FA] border border-[#E9ECEF] grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#1A1D20] mb-1">Preço (R$) *</label>
+            <input type="number" id="prod-form-price" step="0.10" min="0" required placeholder="38.90" class="w-full bg-white border border-[#E9ECEF] focus:border-[#FF5E1E] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-extrabold outline-none">
+            <span class="text-[10px] text-[#6C757D] mt-1 block">Valor exibido para o cliente no cardápio</span>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#1A1D20] mb-1">Ordem na Vitrine *</label>
+            <input type="number" id="prod-form-order" value="1" min="1" max="99" required class="w-full bg-white border border-[#E9ECEF] focus:border-[#FF5E1E] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-bold text-center outline-none">
+            <span class="text-[10px] text-[#6C757D] mt-1 block text-center">Posição dentro desta categoria</span>
+          </div>
+        </div>
+
+        <!-- Seção 3: Pré-visualização dos Adicionais Herdados do Template -->
+        <div class="p-4 rounded-2xl border border-orange-200 bg-orange-50/40 space-y-2">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-xs text-orange-950 flex items-center gap-2">
+              <span>🧩 Grupos de Adicionais que este produto terá (Herdados do Template):</span>
+            </h4>
+            <span id="prod-template-name-badge" class="text-[11px] font-extrabold bg-[#FF5E1E] text-white px-2 py-0.5 rounded-full">
+              Hambúrguer
+            </span>
+          </div>
+          <div id="prod-template-preview-groups" class="text-xs text-[#6C757D] space-y-1">
+            <!-- Gerado via JS de acordo com o template selecionado -->
+          </div>
+        </div>
+
+        <!-- Seção 4: Disponibilidade -->
+        <div class="p-4 rounded-2xl border border-[#E9ECEF] bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h4 class="font-bold text-xs text-[#1A1D20] flex items-center gap-2">
+              Disponibilidade no Cardápio
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">Tempo Real</span>
+            </h4>
+            <p class="text-[11px] text-[#6C757D]">Pause o produto se o estoque acabar sem precisar deletar.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="prod-form-avail-label" class="text-xs font-extrabold text-emerald-700">🟢 Disponível Sempre</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="prod-form-available" checked onchange="updateAvailFormLabel(this.checked)" class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-4 border-t border-[#E9ECEF] flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModalProduct()" class="px-5 py-2.5 rounded-xl border border-[#E9ECEF] text-xs font-bold text-[#6C757D] hover:bg-[#F8F9FA] transition-all">Cancelar</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all">Salvar Produto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ============= MODAL 3: NOVO/EDITAR TEMPLATE DE COMPLEMENTOS ============= -->
+  <!-- ========================================================================= -->
+  <div id="modal-template" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#E9ECEF] animate-modal overflow-hidden">
+      <div class="p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-orange-100 text-[#FF5E1E] flex items-center justify-center font-bold text-lg">🧩</div>
+          <div>
+            <h3 class="font-extrabold text-base text-[#1A1D20]" id="modal-template-title">Novo Template de Complementos</h3>
+            <p class="text-xs text-[#6C757D]">Ex: Template Hambúrguer, Template Pizza, Template Açaí</p>
+          </div>
+        </div>
+        <button onclick="closeModalTemplate()" class="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors">✕</button>
+      </div>
+
+      <form id="template-form" onsubmit="handleSaveTemplate(event)" class="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar">
+        <input type="hidden" id="tmpl-form-id" value="">
+
+        <div>
+          <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome do Template *</label>
+          <input type="text" id="tmpl-form-name" required placeholder="Ex: Hambúrgueres Tradicionais & Especiais" class="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold outline-none transition-all">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#1A1D20] mb-1">Descrição</label>
+          <input type="text" id="tmpl-form-desc" placeholder="Ex: Pacote completo com ponto da carne, bacon extra e sem cebola" class="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] outline-none transition-all">
+        </div>
+
+        <!-- Grupos de Opcionais deste Template -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-[#1A1D20]">Grupos que compõem este Template:</label>
+            <button type="button" onclick="addTemplateGroupRow()" class="text-xs font-bold text-[#FF5E1E] hover:underline flex items-center gap-1">
+              + Adicionar Grupo
+            </button>
+          </div>
+
+          <div id="tmpl-groups-list" class="space-y-3">
+            <!-- Linhas de grupos geradas dinamicamente -->
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-[#E9ECEF] flex items-center justify-end gap-3">
+          <button type="button" onclick="closeModalTemplate()" class="px-5 py-2.5 rounded-xl border border-[#E9ECEF] text-xs font-bold text-[#6C757D] hover:bg-[#F8F9FA] transition-all">Cancelar</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all">Salvar Template</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== LOGIC JAVASCRIPT =================================== -->
+  <!-- ========================================================================= -->
+  <script>
+    // 1. CATEGORIAS DE VITRINE NO MENU (O QUE O CLIENTE VÊ COMO ABAS/FILTRO)
+    let categories = [
+      { id: 'cat-novidades', name: '✨ Novidades do Mês', desc: 'Lançamentos exclusivos que acabaram de chegar!', order: 1, status: 'active' },
+      { id: 'cat-lanches', name: '🍔 Hambúrgueres', desc: 'Blend artesanal 180g feito na brasa', order: 2, status: 'active' },
+      { id: 'cat-bebidas', name: '🥤 Bebidas Geladas', desc: 'Refrigerantes, sucos e cervejas trincando', order: 3, status: 'active' }
+    ];
+
+    // 2. TEMPLATES DE COMPLEMENTOS (ABORDAGEM 1 - DESACOPLADO DA VITRINE)
+    let templates = [
+      {
+        id: 'tmpl-burger',
+        name: '🍔 Template Hambúrguer',
+        desc: 'Ponto da carne, adicionais pagos e preferências sem ingrediente',
+        groups: [
+          {
+            name: 'Ponto da Carne',
+            required: true,
+            min: 1,
+            max: 1,
+            items: [
+              { name: 'Ao ponto (Vermelhinho por dentro)', price: 0 },
+              { name: 'Bem passado', price: 0 }
+            ]
+          },
+          {
+            name: 'Deixe ainda melhor (Adicionais)',
+            required: false,
+            min: 0,
+            max: 5,
+            items: [
+              { name: 'Bacon Artesanal Crocante', price: 4.00 },
+              { name: 'Cheddar Inglês Derretido', price: 3.50 },
+              { name: 'Cebola Caramelizada', price: 3.00 }
+            ]
+          },
+          {
+            name: 'Preferências / Do seu jeito',
+            required: false,
+            min: 0,
+            max: 3,
+            items: [
+              { name: 'Sem cebola', price: 0 },
+              { name: 'Sem picles', price: 0 },
+              { name: 'Molho à parte', price: 0 }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'tmpl-pizza',
+        name: '🍕 Template Pizza',
+        desc: 'Bordas recheadas e tipo de massa',
+        groups: [
+          {
+            name: 'Borda Recheada',
+            required: false,
+            min: 0,
+            max: 1,
+            items: [
+              { name: 'Catupiry Original', price: 8.00 },
+              { name: 'Cheddar Cremoso', price: 8.00 },
+              { name: 'Borda Vulcão 4 Queijos', price: 14.00 }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'tmpl-acai',
+        name: '🍧 Template Açaí',
+        desc: 'Tamanho e acompanhamentos grátis',
+        groups: [
+          {
+            name: 'Acompanhamentos Grátis (Escolha até 3)',
+            required: false,
+            min: 0,
+            max: 3,
+            items: [
+              { name: 'Leite Ninho', price: 0 },
+              { name: 'Granola', price: 0 },
+              { name: 'Banana fatiada', price: 0 },
+              { name: 'Morango fresco', price: 0 }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'tmpl-none',
+        name: '🚫 Nenhum (Item Simples / Bebida)',
+        desc: 'Sem adicionais, vai direto para a sacola',
+        groups: []
+      }
+    ];
+
+    // 3. PRODUTOS (PRODUTO -> CATEGORIA DE VITRINE + TEMPLATE DE ADICIONAIS)
+    let products = [
+      {
+        id: 1,
+        name: 'Burger Vulcão Supremo',
+        categoryId: 'cat-novidades', // ESTÁ EM NOVIDADES DO MÊS!
+        templateId: 'tmpl-burger',   // MAS USA O TEMPLATE DE HAMBÚRGUER!
+        price: 44.90,
+        oldPrice: 49.00,
+        desc: 'Blend de 200g, anel de cebola gigante recheado com cheddar em cascata e bacon artesanal.',
+        image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400',
+        available: true,
+        order: 1,
+        badge: 'Novidade ✨'
+      },
+      {
+        id: 2,
+        name: 'Brasa Master Picanha',
+        categoryId: 'cat-lanches',
+        templateId: 'tmpl-burger',
+        price: 38.90,
+        oldPrice: 42.00,
+        desc: 'Hambúrguer de picanha 180g na brasa, queijo prato derretido, bacon crocante e maionese defumada.',
+        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+        available: true,
+        order: 1,
+        badge: 'Mais vendido 🔥'
+      },
+      {
+        id: 3,
+        name: 'Smash Bacon Duplo',
+        categoryId: 'cat-lanches',
+        templateId: 'tmpl-burger',
+        price: 28.90,
+        oldPrice: null,
+        desc: 'Dois smash burgers de 90g com crostinha perfeita, queijo cheddar cremoso e fatias de bacon.',
+        image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+        available: false, // Esgotado hoje
+        order: 2,
+        badge: 'Destaque ⭐'
+      },
+      {
+        id: 4,
+        name: 'Coca-Cola Zero Lata 350ml',
+        categoryId: 'cat-bebidas',
+        templateId: 'tmpl-none', // Bebida simples sem adicionais
+        price: 6.00,
+        oldPrice: null,
+        desc: 'Lata 350ml trincando de gelada.',
+        image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400',
+        available: true,
+        order: 1,
+        badge: null
+      }
+    ];
+
+    let currentCategoryFilter = 'all';
+
+    // RENDERIZAÇÃO INICIAL
+    window.addEventListener('DOMContentLoaded', () => {
+      renderCategoryFilters();
+      renderProducts();
+      renderTemplatesList();
+      renderScheduleDays();
+      populateCategorySelect();
+      populateTemplateSelect();
+    });
+
+    // ==========================================
+    // TOAST NOTIFIER (FEEDBACK VISUAL)
+    // ==========================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColors = {
+        success: 'bg-[#1A1D20] text-white border-l-4 border-[#FF5E1E]',
+        info: 'bg-blue-900 text-white border-l-4 border-blue-400',
+        danger: 'bg-rose-900 text-white border-l-4 border-rose-400'
+      };
+      toast.className = `p-3.5 rounded-xl shadow-xl border border-white/10 flex items-center gap-3 text-xs font-semibold ${bgColors[type] || bgColors.success} animate-toast`;
+      toast.innerHTML = `<span class="text-sm">⚡</span><span class="flex-1">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.transition = 'all 0.2s ease-out';
+        setTimeout(() => toast.remove(), 200);
+      }, 3500);
+    }
+
+    // ==========================================
+    // RENDERIZAÇÃO DE CATEGORIAS E PRODUTOS
+    // ==========================================
+    function renderCategoryFilters() {
+      const container = document.getElementById('category-filter-chips');
+      let html = `
+        <button onclick="setCategoryFilter('all')" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${currentCategoryFilter === 'all' ? 'bg-[#FF5E1E] text-white shadow-xs' : 'bg-white border border-[#E9ECEF] text-[#6C757D] hover:text-[#1A1D20]'}">
+          Todas as Categorias (${products.length})
+        </button>
+      `;
+
+      categories.sort((a, b) => a.order - b.order).forEach(cat => {
+        const count = products.filter(p => p.categoryId === cat.id).length;
+        const isSelected = currentCategoryFilter === cat.id;
+        html += `
+          <button onclick="setCategoryFilter('${cat.id}')" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${isSelected ? 'bg-[#FF5E1E] text-white shadow-xs' : 'bg-white border border-[#E9ECEF] text-[#6C757D] hover:text-[#1A1D20]'}">
+            <span>${cat.name}</span>
+            <span class="opacity-70 text-[11px]">(${count})</span>
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+      const totalProdEl = document.getElementById('sidebar-total-products');
+      if (totalProdEl) totalProdEl.innerText = products.length;
+      const totalTmplEl = document.getElementById('sidebar-total-templates');
+      if (totalTmplEl) totalTmplEl.innerText = templates.filter(t => t.id !== 'tmpl-none').length;
+    }
+
+    function setCategoryFilter(catId) {
+      currentCategoryFilter = catId;
+      renderCategoryFilters();
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const container = document.getElementById('products-container');
+      const searchTerm = (document.getElementById('search-product-input')?.value || '').toLowerCase();
+
+      const catsToRender = currentCategoryFilter === 'all' 
+        ? categories.slice().sort((a, b) => a.order - b.order) 
+        : categories.filter(c => c.id === currentCategoryFilter);
+
+      let outputHtml = '';
+
+      catsToRender.forEach(cat => {
+        let catProds = products
+          .filter(p => p.categoryId === cat.id)
+          .filter(p => p.name.toLowerCase().includes(searchTerm) || p.desc.toLowerCase().includes(searchTerm))
+          .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id));
+
+        // Normalização garantida: se houver duplicatas como #1 e #1, corrige automaticamente para #1, #2, #3...
+        catProds.forEach((p, idx) => {
+          p.order = idx + 1;
+        });
+
+        if (catProds.length === 0 && searchTerm) return;
+
+        outputHtml += `
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] overflow-hidden shadow-xs">
+            <!-- Header Categoria de Vitrine -->
+            <div class="p-4 bg-[#F8F9FA]/70 border-b border-[#E9ECEF] flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-6 h-6 rounded-lg bg-orange-100 text-[#FF5E1E] font-extrabold text-xs flex items-center justify-center">
+                  #${cat.order}
+                </span>
+                <div>
+                  <h3 class="font-extrabold text-sm text-[#1A1D20] flex items-center gap-2">
+                    ${cat.name}
+                    <span class="text-[11px] font-normal text-[#6C757D]">(${catProds.length} ${catProds.length === 1 ? 'item' : 'itens'})</span>
+                  </h3>
+                  <p class="text-[11px] text-[#6C757D]">${cat.desc || 'Sem descrição'}</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <!-- Switch Ativa / Desativada com bolinha deslizante -->
+                <button onclick="toggleCategoryLive('${cat.id}')" title="Clique para alternar o status da categoria" class="flex items-center gap-2 px-2.5 py-1 rounded-xl border border-[#E9ECEF] hover:bg-white text-xs font-bold transition-all cursor-pointer">
+                  <div class="relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${cat.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'}">
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform duration-200 ${cat.status === 'active' ? 'translate-x-4' : 'translate-x-0'}"></span>
+                  </div>
+                  <span class="${cat.status === 'active' ? 'text-emerald-700 font-extrabold' : 'text-[#6C757D] font-extrabold'}">${cat.status === 'active' ? 'Ativa' : 'Desativada'}</span>
+                </button>
+                <div class="flex items-center gap-1">
+                  <button onclick="changeCategoryOrder('${cat.id}', -1)" title="Subir Categoria" class="p-1 rounded-lg border border-[#E9ECEF] hover:bg-white text-xs text-[#6C757D] cursor-pointer">▲</button>
+                  <button onclick="changeCategoryOrder('${cat.id}', 1)" title="Descer Categoria" class="p-1 rounded-lg border border-[#E9ECEF] hover:bg-white text-xs text-[#6C757D] cursor-pointer">▼</button>
+                </div>
+                <button onclick="editCategory('${cat.id}')" class="text-xs font-bold text-[#FF5E1E] hover:underline px-1 cursor-pointer">Editar Vitrine</button>
+              </div>
+            </div>
+
+            <!-- Lista de Produtos -->
+            <div class="divide-y divide-[#E9ECEF]">
+        `;
+
+        if (catProds.length === 0) {
+          outputHtml += `
+            <div class="p-8 text-center text-xs text-[#6C757D]">
+              Nenhum produto cadastrado nesta categoria de vitrine ainda.
+              <button onclick="openModalProduct('${cat.id}')" class="block mx-auto mt-2 text-[#FF5E1E] font-bold hover:underline">+ Adicionar Produto aqui</button>
+            </div>
+          `;
+        } else {
+          catProds.forEach(prod => {
+            const tmpl = templates.find(t => t.id === prod.templateId) || templates[0];
+            const hasGroups = tmpl.groups && tmpl.groups.length > 0;
+
+            outputHtml += `
+              <div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${prod.available ? 'bg-white hover:bg-[#F8F9FA]/40' : 'bg-rose-50/20'}">
+                
+                <div class="flex items-center gap-3.5">
+                  <div class="flex flex-col items-center justify-center gap-0.5 bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-2 py-1.5 shrink-0">
+                    <button onclick="changeProductOrder(${prod.id}, -1)" title="Subir ordem" class="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] leading-none">▲</button>
+                    <span class="text-xs font-black text-[#1A1D20]">#${prod.order}</span>
+                    <button onclick="changeProductOrder(${prod.id}, 1)" title="Descer ordem" class="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] leading-none">▼</button>
+                  </div>
+
+                  <div class="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-[#E9ECEF]">
+                    <img src="${prod.image}" alt="${prod.name}" class="w-full h-full object-cover ${prod.available ? '' : 'grayscale opacity-60'}">
+                    ${!prod.available ? '<div class="absolute inset-0 bg-rose-900/40 flex items-center justify-center text-white font-extrabold text-[9px] uppercase tracking-wider text-center px-1">Esgotado</div>' : ''}
+                  </div>
+
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h4 class="font-extrabold text-sm ${prod.available ? 'text-[#1A1D20]' : 'text-[#6C757D] line-through'}">${prod.name}</h4>
+                      ${prod.badge ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-[#FF5E1E]">${prod.badge}</span>` : ''}
+                    </div>
+                    <p class="text-xs text-[#6C757D] line-clamp-1 max-w-md mt-0.5">${prod.desc}</p>
+                    
+                    <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                      <span class="text-xs font-black text-[#1A1D20]">R$ ${prod.price.toFixed(2).replace('.', ',')}</span>
+                      
+                      <!-- BADGE DO TEMPLATE DE ADICIONAIS HERDADO -->
+                      <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1 ${hasGroups ? 'bg-orange-50 text-orange-950 border-orange-200' : 'bg-slate-50 text-[#6C757D] border-slate-200'}">
+                        <span>🧩 Template:</span>
+                        <strong>${tmpl.name.split(' ')[1] || tmpl.name}</strong>
+                        ${hasGroups ? `<span class="opacity-70">(${tmpl.groups.length} grupos)</span>` : ''}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Controles: Toggle Disponível e Ações -->
+                <div class="flex items-center justify-between md:justify-end gap-5 pt-2 md:pt-0 border-t md:border-t-0 border-[#E9ECEF]">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-xs font-bold ${prod.available ? 'text-emerald-700' : 'text-rose-600'}">
+                      ${prod.available ? '🟢 Disponível' : '🔴 Esgotado Hoje'}
+                    </span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" ${prod.available ? 'checked' : ''} onchange="toggleProductAvailability(${prod.id}, this.checked)" class="sr-only peer">
+                      <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <button onclick="editProduct(${prod.id})" class="px-3 py-1.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E] transition-all">
+                      Editar
+                    </button>
+                    <button onclick="deleteProduct(${prod.id})" class="p-1.5 text-[#6C757D] hover:text-rose-600 text-xs transition-colors" title="Excluir produto">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            `;
+          });
+        }
+
+        outputHtml += `</div></div>`;
+      });
+
+      container.innerHTML = outputHtml;
+    }
+
+    function toggleProductAvailability(prodId, isAvailable) {
+      const prod = products.find(p => p.id === prodId);
+      if (prod) {
+        prod.available = isAvailable;
+        renderProducts();
+        if (isAvailable) {
+          showToast(`✅ "${prod.name}" marcado como DISPONÍVEL! Sincronizado no cardápio em tempo real.`);
+        } else {
+          showToast(`🔴 "${prod.name}" marcado como ESGOTADO! O cardápio dos clientes agora exibe o selo 'Esgotado'.`);
+        }
+      }
+    }
+
+    function changeProductOrder(prodId, delta) {
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+      const catProds = products
+        .filter(p => p.categoryId === prod.categoryId)
+        .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id));
+
+      // Garante sequência 1, 2, 3...
+      catProds.forEach((p, idx) => {
+        p.order = idx + 1;
+      });
+
+      const currentIndex = catProds.findIndex(p => p.id === prodId);
+      const targetIndex = currentIndex + delta;
+
+      if (targetIndex >= 0 && targetIndex < catProds.length) {
+        catProds[currentIndex].order = targetIndex + 1;
+        catProds[targetIndex].order = currentIndex + 1;
+        renderProducts();
+        showToast(`Ordem de "${prod.name}" alterada para #${prod.order}!`);
+      }
+    }
+
+    function changeCategoryOrder(catId, delta) {
+      categories.sort((a, b) => a.order - b.order);
+      const currentIndex = categories.findIndex(c => c.id === catId);
+      const targetIndex = currentIndex + delta;
+      if (targetIndex >= 0 && targetIndex < categories.length) {
+        const cat = categories[currentIndex];
+        const other = categories[targetIndex];
+        const temp = cat.order;
+        cat.order = other.order;
+        other.order = temp;
+        renderCategoryFilters();
+        renderProducts();
+        showToast(`Vitrine "${cat.name}" movida para a posição #${cat.order}!`);
+      }
+    }
+
+    function filterProducts() {
+      renderProducts();
+    }
+
+    // ==========================================
+    // RENDERIZAÇÃO DE TEMPLATES DE COMPLEMENTOS
+    // ==========================================
+    function renderTemplatesList() {
+      const container = document.getElementById('templates-container');
+      if (!container) return;
+
+      const activeTemplates = templates.filter(t => t.id !== 'tmpl-none');
+
+      container.innerHTML = activeTemplates.map(tmpl => {
+        // Conta produtos que usam esse template
+        const usedCount = products.filter(p => p.templateId === tmpl.id).length;
+
+        return `
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs space-y-4 hover:border-[#FF5E1E]/40 transition-all flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h3 class="font-extrabold text-sm text-[#1A1D20] flex items-center gap-1.5">
+                    ${tmpl.name}
+                  </h3>
+                  <p class="text-xs text-[#6C757D] mt-0.5">${tmpl.desc || 'Sem descrição'}</p>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button onclick="editTemplate('${tmpl.id}')" class="p-1.5 rounded-lg border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E]">Editar</button>
+                  <button onclick="deleteTemplate('${tmpl.id}')" class="p-1.5 text-[#6C757D] hover:text-rose-600 text-xs">🗑️</button>
+                </div>
+              </div>
+
+              <!-- Badge de Uso -->
+              <div class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 w-fit flex items-center gap-1.5">
+                <span>✓ Ativo em <strong>${usedCount} ${usedCount === 1 ? 'produto' : 'produtos'}</strong></span>
+              </div>
+
+              <!-- Grupos Inclusos no Template -->
+              <div class="space-y-2 pt-2 border-t border-[#F1F3F5]">
+                <span class="text-[11px] font-bold text-[#6C757D] block uppercase tracking-wider">Grupos deste Modelo (${tmpl.groups.length}):</span>
+                ${tmpl.groups.map(grp => `
+                  <div class="p-2.5 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] space-y-1">
+                    <div class="flex items-center justify-between text-xs font-bold text-[#1A1D20]">
+                      <span>${grp.name}</span>
+                      <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${grp.required ? 'bg-amber-100 text-amber-900' : 'bg-slate-200 text-[#6C757D]'}">
+                        ${grp.required ? 'Obrigatório' : 'Opcional'}
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-[#6C757D]">
+                      ${grp.items.length} opções (${grp.items.slice(0, 3).map(i => i.name).join(', ')}${grp.items.length > 3 ? '...' : ''})
+                    </p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-[#F1F3F5] flex items-center justify-between text-xs">
+              <span class="text-[11px] text-[#6C757D]">ID: ${tmpl.id}</span>
+              <button onclick="editTemplate('${tmpl.id}')" class="text-xs font-bold text-[#FF5E1E] hover:underline">
+                Gerenciar Adicionais ➔
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const totalTmplEl = document.getElementById('sidebar-total-templates');
+      if (totalTmplEl) totalTmplEl.innerText = activeTemplates.length;
+    }
+
+    // ==========================================
+    // MODAL DE TEMPLATE (CRIAR / EDITAR)
+    // ==========================================
+    function openModalTemplate(tmplId = null) {
+      const modal = document.getElementById('modal-template');
+      const title = document.getElementById('modal-template-title');
+      const container = document.getElementById('tmpl-groups-list');
+      container.innerHTML = '';
+
+      if (tmplId) {
+        const tmpl = templates.find(t => t.id === tmplId);
+        title.innerText = 'Editar Template de Adicionais';
+        document.getElementById('tmpl-form-id').value = tmpl.id;
+        document.getElementById('tmpl-form-name').value = tmpl.name;
+        document.getElementById('tmpl-form-desc').value = tmpl.desc || '';
+        tmpl.groups.forEach(g => addTemplateGroupRow(g));
+      } else {
+        title.innerText = 'Criar Novo Template de Adicionais';
+        document.getElementById('tmpl-form-id').value = '';
+        document.getElementById('tmpl-form-name').value = '';
+        document.getElementById('tmpl-form-desc').value = '';
+        // Cria 1 grupo padrão
+        addTemplateGroupRow({
+          name: 'Opções Adicionais',
+          required: false,
+          min: 0,
+          max: 5,
+          items: [
+            { name: 'Adicional 1', price: 4.00 },
+            { name: 'Adicional 2', price: 3.50 }
+          ]
+        });
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeModalTemplate() {
+      document.getElementById('modal-template').classList.add('hidden');
+    }
+
+    function addTemplateGroupRow(groupData = null) {
+      const container = document.getElementById('tmpl-groups-list');
+      const gIndex = Date.now() + Math.floor(Math.random() * 1000);
+      const name = groupData?.name || '';
+      const isReq = groupData ? groupData.required : false;
+      const min = groupData ? groupData.min : 0;
+      const max = groupData ? groupData.max : 5;
+      const items = groupData?.items || [{ name: 'Opção 1', price: 0 }];
+
+      const card = document.createElement('div');
+      card.className = 'p-3.5 rounded-2xl bg-[#F8F9FA] border border-[#E9ECEF] space-y-3 tmpl-group-card';
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <input type="text" value="${name}" placeholder="Nome do Grupo (ex: Ponto da Carne, Adicionais)" required class="flex-1 bg-white border border-[#E9ECEF] rounded-xl px-3 py-1.5 text-xs text-[#1A1D20] font-bold outline-none focus:border-[#FF5E1E] tmpl-grp-name">
+          <div class="flex items-center gap-2">
+            <select class="bg-white border border-[#E9ECEF] rounded-xl px-2 py-1.5 text-xs text-[#1A1D20] font-semibold outline-none tmpl-grp-req">
+              <option value="false" ${!isReq ? 'selected' : ''}>Opcional</option>
+              <option value="true" ${isReq ? 'selected' : ''}>Obrigatório</option>
+            </select>
+            <button type="button" onclick="this.closest('.tmpl-group-card').remove()" class="text-rose-600 font-bold text-xs p-1">✕</button>
+          </div>
+        </div>
+
+        <div class="space-y-1.5 tmpl-items-subcontainer">
+          ${items.map(it => `
+            <div class="flex items-center gap-2 tmpl-item-row">
+              <input type="text" value="${it.name}" placeholder="Nome da opção" required class="flex-1 bg-white border border-[#E9ECEF] rounded-lg px-2.5 py-1 text-xs text-[#1A1D20] outline-none">
+              <div class="relative w-24">
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-[#6C757D]">R$</span>
+                <input type="number" step="0.50" min="0" value="${it.price}" class="w-full bg-white border border-[#E9ECEF] rounded-lg pl-6 pr-2 py-1 text-xs text-[#1A1D20] font-bold outline-none">
+              </div>
+              <button type="button" onclick="this.closest('.tmpl-item-row').remove()" class="text-[#6C757D] text-xs">✕</button>
+            </div>
+          `).join('')}
+        </div>
+        <button type="button" onclick="addSubItemToGroup(this)" class="text-[11px] font-bold text-[#FF5E1E] hover:underline">+ Adicionar opção a este grupo</button>
+      `;
+
+      container.appendChild(card);
+    }
+
+    function addSubItemToGroup(btn) {
+      const subContainer = btn.previousElementSibling;
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 tmpl-item-row';
+      row.innerHTML = `
+        <input type="text" value="" placeholder="Nome da opção" required class="flex-1 bg-white border border-[#E9ECEF] rounded-lg px-2.5 py-1 text-xs text-[#1A1D20] outline-none">
+        <div class="relative w-24">
+          <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-[#6C757D]">R$</span>
+          <input type="number" step="0.50" min="0" value="0" class="w-full bg-white border border-[#E9ECEF] rounded-lg pl-6 pr-2 py-1 text-xs text-[#1A1D20] font-bold outline-none">
+        </div>
+        <button type="button" onclick="this.closest('.tmpl-item-row').remove()" class="text-[#6C757D] text-xs">✕</button>
+      `;
+      subContainer.appendChild(row);
+    }
+
+    function editTemplate(tmplId) {
+      openModalTemplate(tmplId);
+    }
+
+    function deleteTemplate(tmplId) {
+      const tmpl = templates.find(t => t.id === tmplId);
+      if (!tmpl) return;
+      if (confirm(`Excluir o template "${tmpl.name}"? Os produtos vinculados a ele voltarão ao padrão sem adicionais.`)) {
+        templates = templates.filter(t => t.id !== tmplId);
+        products.forEach(p => {
+          if (p.templateId === tmplId) p.templateId = 'tmpl-none';
+        });
+        renderTemplatesList();
+        renderProducts();
+        populateTemplateSelect();
+        showToast(`Template "${tmpl.name}" excluído.`, 'info');
+      }
+    }
+
+    function handleSaveTemplate(e) {
+      e.preventDefault();
+      const id = document.getElementById('tmpl-form-id').value;
+      const name = document.getElementById('tmpl-form-name').value.trim();
+      const desc = document.getElementById('tmpl-form-desc').value.trim();
+
+      const groupCards = document.querySelectorAll('.tmpl-group-card');
+      const groups = [];
+
+      groupCards.forEach(gc => {
+        const gName = gc.querySelector('.tmpl-grp-name').value.trim();
+        const gReq = gc.querySelector('.tmpl-grp-req').value === 'true';
+        const itemRows = gc.querySelectorAll('.tmpl-item-row');
+        const items = [];
+        itemRows.forEach(ir => {
+          const inputs = ir.querySelectorAll('input');
+          const iName = inputs[0].value.trim();
+          const iPrice = parseFloat(inputs[1].value) || 0;
+          if (iName) items.push({ name: iName, price: iPrice });
+        });
+
+        if (gName && items.length > 0) {
+          groups.push({
+            name: gName,
+            required: gReq,
+            min: gReq ? 1 : 0,
+            max: gReq ? 1 : 5,
+            items
+          });
+        }
+      });
+
+      if (!name || groups.length === 0) {
+        alert('Adicione ao menos um grupo com opções válidas!');
+        return;
+      }
+
+      if (id) {
+        const tmpl = templates.find(t => t.id === id);
+        if (tmpl) {
+          tmpl.name = name;
+          tmpl.desc = desc;
+          tmpl.groups = groups;
+          showToast(`Template "${name}" atualizado! Todos os produtos vinculados já foram atualizados.`);
+        }
+      } else {
+        const newTmpl = {
+          id: 'tmpl-' + Date.now(),
+          name,
+          desc,
+          groups
+        };
+        templates.push(newTmpl);
+        showToast(`Novo template "${name}" criado com sucesso!`);
+      }
+
+      closeModalTemplate();
+      renderTemplatesList();
+      renderProducts();
+      populateTemplateSelect();
+    }
+
+    // ==========================================
+    // MODAL DE PRODUTO & POPULAÇÃO DE SELECTS
+    // ==========================================
+    // ==========================================
+    // MODAL DE PRODUTO & DROPDOWNS PERSONALIZADOS
+    // ==========================================
+    function toggleCustomDropdown(menuId) {
+      const menu = document.getElementById(menuId);
+      if (!menu) return;
+      const otherId = menuId === 'dropdown-cat-menu' ? 'dropdown-tmpl-menu' : 'dropdown-cat-menu';
+      document.getElementById(otherId)?.classList.add('hidden');
+      menu.classList.toggle('hidden');
+    }
+
+    // Fecha dropdowns se clicar fora
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#btn-custom-category') && !e.target.closest('#dropdown-cat-menu')) {
+        document.getElementById('dropdown-cat-menu')?.classList.add('hidden');
+      }
+      if (!e.target.closest('#btn-custom-template') && !e.target.closest('#dropdown-tmpl-menu')) {
+        document.getElementById('dropdown-tmpl-menu')?.classList.add('hidden');
+      }
+    });
+
+    function populateCategorySelect(selectedId = null) {
+      const menu = document.getElementById('dropdown-cat-menu');
+      const label = document.getElementById('label-custom-category');
+      const input = document.getElementById('prod-form-category');
+      if (!menu) return;
+
+      const activeId = selectedId || input.value || categories[0]?.id || '';
+      input.value = activeId;
+      const currentCat = categories.find(c => c.id === activeId);
+      if (label) {
+        label.innerText = currentCat ? currentCat.name : 'Selecione uma categoria...';
+      }
+
+      menu.innerHTML = categories
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map(cat => {
+          const isSelected = cat.id === activeId;
+          return `
+            <div onclick="selectCustomCategory('${cat.id}')" class="px-3.5 py-2.5 text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${isSelected ? 'bg-orange-50 text-[#FF5E1E] font-bold' : 'text-[#1A1D20] hover:bg-[#F8F9FA]'}">
+              <div>
+                <div class="font-bold">${cat.name}</div>
+                <div class="text-[10px] text-[#6C757D]">${cat.status === 'active' ? '🟢 Ativa no menu' : '⚪ Oculta na vitrine'}</div>
+              </div>
+              ${isSelected ? '<span class="text-[#FF5E1E] font-bold">✓</span>' : ''}
+            </div>
+          `;
+        }).join('');
+    }
+
+    function selectCustomCategory(catId) {
+      const input = document.getElementById('prod-form-category');
+      input.value = catId;
+      populateCategorySelect(catId);
+      document.getElementById('dropdown-cat-menu')?.classList.add('hidden');
+
+      // Recalcula a ordem se for cadastro de novo produto
+      const isEditing = Boolean(document.getElementById('prod-form-id').value);
+      if (!isEditing) {
+        const prodsInCat = products.filter(p => p.categoryId === catId);
+        document.getElementById('prod-form-order').value = prodsInCat.length + 1;
+      }
+    }
+
+    function populateTemplateSelect(selectedId = null) {
+      const menu = document.getElementById('dropdown-tmpl-menu');
+      const label = document.getElementById('label-custom-template');
+      const input = document.getElementById('prod-form-template');
+      if (!menu) return;
+
+      const activeId = selectedId || input.value || templates[0]?.id || 'tmpl-burger';
+      input.value = activeId;
+      const currentTmpl = templates.find(t => t.id === activeId);
+      if (label) {
+        label.innerText = currentTmpl ? currentTmpl.name : 'Selecione o template...';
+      }
+
+      menu.innerHTML = templates.map(tmpl => {
+        const isSelected = tmpl.id === activeId;
+        return `
+          <div onclick="selectCustomTemplate('${tmpl.id}')" class="px-3.5 py-2.5 text-xs flex items-center justify-between gap-2 cursor-pointer transition-colors ${isSelected ? 'bg-orange-50 text-[#FF5E1E] font-bold' : 'text-[#1A1D20] hover:bg-[#F8F9FA]'}">
+            <div>
+              <div class="font-bold">${tmpl.name}</div>
+              <div class="text-[10px] text-[#6C757D]">${tmpl.desc || ''}</div>
+            </div>
+            ${isSelected ? '<span class="text-[#FF5E1E] font-bold">✓</span>' : ''}
+          </div>
+        `;
+      }).join('');
+
+      onTemplateChanged(activeId);
+    }
+
+    function selectCustomTemplate(tmplId) {
+      const input = document.getElementById('prod-form-template');
+      input.value = tmplId;
+      populateTemplateSelect(tmplId);
+      document.getElementById('dropdown-tmpl-menu')?.classList.add('hidden');
+    }
+
+    function onTemplateChanged(tmplId) {
+      const tmpl = templates.find(t => t.id === tmplId);
+      const previewContainer = document.getElementById('prod-template-preview-groups');
+      const badge = document.getElementById('prod-template-name-badge');
+
+      if (!tmpl || tmpl.groups.length === 0) {
+        badge.innerText = 'Sem Adicionais';
+        badge.className = 'text-[11px] font-extrabold bg-slate-500 text-white px-2 py-0.5 rounded-full';
+        previewContainer.innerHTML = '<span class="italic text-slate-500">Este produto não terá complementos (vai direto para a sacola).</span>';
+        return;
+      }
+
+      badge.innerText = tmpl.name;
+      badge.className = 'text-[11px] font-extrabold bg-[#FF5E1E] text-white px-2 py-0.5 rounded-full';
+      
+      previewContainer.innerHTML = tmpl.groups.map(g => `
+        <div class="flex items-center justify-between text-xs py-1 border-b border-orange-200/50 last:border-b-0">
+          <span class="font-bold text-orange-950">✓ ${g.name} (${g.required ? 'Obrigatório' : 'Opcional'})</span>
+          <span class="text-orange-900/80">${g.items.length} opções (${g.items.slice(0, 2).map(i => i.name).join(', ')}...)</span>
+        </div>
+      `).join('');
+    }
+
+    function openModalProduct(presetCatId = null) {
+      const chosenCat = presetCatId || categories[0]?.id || '';
+      populateCategorySelect(chosenCat);
+      populateTemplateSelect(templates[0]?.id || 'tmpl-burger');
+
+      const modal = document.getElementById('modal-product');
+      const title = document.getElementById('modal-product-title');
+
+      title.innerText = 'Cadastrar Novo Produto';
+      document.getElementById('prod-form-id').value = '';
+      document.getElementById('prod-form-name').value = '';
+      document.getElementById('prod-form-desc').value = '';
+      document.getElementById('prod-form-price').value = '';
+
+      // Ordem automática vinculada à categoria escolhida: se já tem 1 produto, este vira o 2
+      const inCat = products.filter(p => p.categoryId === chosenCat);
+      document.getElementById('prod-form-order').value = inCat.length + 1;
+
+      document.getElementById('prod-form-available').checked = true;
+      updateAvailFormLabel(true);
+
+      const defaultImg = 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400';
+      document.getElementById('prod-form-image').value = defaultImg;
+      document.getElementById('prod-preview-img').src = defaultImg;
+      document.getElementById('prod-compress-badge')?.classList.add('hidden');
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeModalProduct() {
+      document.getElementById('modal-product').classList.add('hidden');
+    }
+
+    function updateImgPreview(url) {
+      if (url) {
+        document.getElementById('prod-preview-img').src = url;
+      }
+    }
+
+    function handleProductFileUpload(e) {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const maxDim = 900;
+          let w = img.width;
+          let h = img.height;
+          if (w > h) {
+            if (w > maxDim) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            }
+          } else {
+            if (h > maxDim) {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressedDataUrl = canvas.toDataURL('image/webp', 0.8);
+
+          document.getElementById('prod-preview-img').src = compressedDataUrl;
+          document.getElementById('prod-form-image').value = compressedDataUrl;
+
+          const origKB = Math.round(file.size / 1024);
+          const newKB = Math.round((compressedDataUrl.length * 3 / 4) / 1024);
+          const badge = document.getElementById('prod-compress-badge');
+          if (badge) {
+            badge.classList.remove('hidden');
+            badge.innerText = `✨ Foto Otimizada: ${newKB} KB (de ${origKB} KB)`;
+          }
+          showToast(`Foto otimizada para ${newKB} KB!`);
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateAvailFormLabel(checked) {
+      const label = document.getElementById('prod-form-avail-label');
+      if (checked) {
+        label.innerText = '🟢 Disponível Sempre';
+        label.className = 'text-xs font-extrabold text-emerald-700';
+      } else {
+        label.innerText = '🔴 Iniciar como Esgotado Hoje';
+        label.className = 'text-xs font-extrabold text-rose-600';
+      }
+    }
+
+    function editProduct(prodId) {
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+
+      populateCategorySelect(prod.categoryId);
+      populateTemplateSelect(prod.templateId || 'tmpl-none');
+      const modal = document.getElementById('modal-product');
+      document.getElementById('modal-product-title').innerText = 'Editar Produto';
+      document.getElementById('prod-form-id').value = prod.id;
+      document.getElementById('prod-form-name').value = prod.name;
+      document.getElementById('prod-form-desc').value = prod.desc || '';
+      document.getElementById('prod-form-price').value = prod.price;
+      document.getElementById('prod-form-order').value = prod.order;
+      document.getElementById('prod-form-available').checked = prod.available;
+      updateAvailFormLabel(prod.available);
+
+      document.getElementById('prod-form-image').value = prod.image;
+      document.getElementById('prod-preview-img').src = prod.image;
+
+      onTemplateChanged(prod.templateId || 'tmpl-none');
+
+      modal.classList.remove('hidden');
+    }
+
+    function handleSaveProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById('prod-form-id').value;
+      const rawName = document.getElementById('prod-form-name').value.trim();
+      const name = formatTitleCase(rawName);
+      const categoryId = document.getElementById('prod-form-category').value;
+      const templateId = document.getElementById('prod-form-template').value;
+      const desc = document.getElementById('prod-form-desc').value.trim();
+      const price = parseFloat(document.getElementById('prod-form-price').value);
+      const order = parseInt(document.getElementById('prod-form-order').value) || 1;
+      const available = document.getElementById('prod-form-available').checked;
+      const image = document.getElementById('prod-form-image').value.trim() || 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400';
+
+      if (!name || isNaN(price)) return;
+
+      const tmplName = templates.find(t => t.id === templateId)?.name || '';
+
+      if (id) {
+        const prod = products.find(p => p.id === parseInt(id));
+        if (prod) {
+          prod.name = name;
+          prod.categoryId = categoryId;
+          prod.templateId = templateId;
+          prod.desc = desc;
+          prod.price = price;
+          prod.available = available;
+          prod.image = image;
+
+          // Reorganiza empurrando os outros produtos da mesma categoria caso necessário
+          const catProds = products.filter(p => p.categoryId === categoryId && p.id !== prod.id)
+            .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id));
+          const reqOrder = Math.max(1, order);
+          const insertIdx = Math.min(reqOrder - 1, catProds.length);
+          catProds.splice(insertIdx, 0, prod);
+          catProds.forEach((p, idx) => { p.order = idx + 1; });
+
+          const otherProds = products.filter(p => p.categoryId !== categoryId && p.id !== prod.id);
+          products = [...otherProds, ...catProds];
+
+          showToast(`Produto "${name}" salvo com o Template "${tmplName}"!`);
+        }
+      } else {
+        const newProduct = {
+          id: Date.now(),
+          name,
+          categoryId,
+          templateId,
+          desc,
+          price,
+          order,
+          available,
+          image
+        };
+
+        // Pega os produtos já existentes desta categoria ordenados
+        const catProds = products.filter(p => p.categoryId === categoryId)
+          .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id));
+        const reqOrder = Math.max(1, order);
+        const insertIdx = Math.min(reqOrder - 1, catProds.length);
+
+        // Insere na posição desejada (se escolheu 1 e já havia um 1, empurra o anterior para 2)
+        catProds.splice(insertIdx, 0, newProduct);
+        catProds.forEach((p, idx) => {
+          p.order = idx + 1;
+        });
+
+        const otherProds = products.filter(p => p.categoryId !== categoryId);
+        products = [...otherProds, ...catProds];
+
+        showToast(`🎉 Produto "${name}" adicionado na vitrine como #${newProduct.order}!`);
+      }
+
+      closeModalProduct();
+      renderCategoryFilters();
+      renderProducts();
+      renderTemplatesList();
+    }
+
+    function deleteProduct(prodId) {
+      const prod = products.find(p => p.id === prodId);
+      if (!prod) return;
+      if (confirm(`Tem certeza que deseja excluir o produto "${prod.name}" do cardápio?`)) {
+        products = products.filter(p => p.id !== prodId);
+        renderCategoryFilters();
+        renderProducts();
+        renderTemplatesList();
+        showToast(`Produto "${prod.name}" excluído.`, 'info');
+      }
+    }
+
+    // ==========================================
+    // MODAL DE CATEGORIA NA VITRINE
+    // ==========================================
+    function setCatModalStatus(status) {
+      const input = document.getElementById('cat-form-status');
+      const container = document.getElementById('cat-status-container');
+      const dot = document.getElementById('cat-status-dot');
+      const label = document.getElementById('cat-status-label');
+      const desc = document.getElementById('cat-status-desc');
+      const sw = document.getElementById('cat-status-switch');
+      const knob = document.getElementById('cat-status-knob');
+
+      input.value = status;
+      if (status === 'active') {
+        container.className = 'p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 bg-emerald-50/50 border-emerald-300';
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+        label.className = 'text-xs font-extrabold text-emerald-900';
+        label.innerText = 'Categoria Ativa';
+        desc.innerText = 'Visível para os clientes no cardápio';
+        sw.className = 'relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-emerald-500';
+        knob.className = 'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out translate-x-5';
+      } else {
+        container.className = 'p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 bg-slate-50 border-slate-200';
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
+        label.className = 'text-xs font-extrabold text-[#1A1D20]';
+        label.innerText = 'Categoria Desativada';
+        desc.innerText = 'Oculta na vitrine (os clientes não verão esta aba)';
+        sw.className = 'relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-slate-300';
+        knob.className = 'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out translate-x-0';
+      }
+    }
+
+    function toggleCatModalStatus() {
+      const current = document.getElementById('cat-form-status').value;
+      setCatModalStatus(current === 'active' ? 'hidden' : 'active');
+    }
+
+    function toggleCategoryLive(catId) {
+      const cat = categories.find(c => c.id === catId);
+      if (cat) {
+        cat.status = cat.status === 'active' ? 'hidden' : 'active';
+        showToast(
+          `Categoria "${cat.name}" ${cat.status === 'active' ? 'ativada' : 'desativada'} na vitrine!`,
+          cat.status === 'active' ? 'success' : 'info'
+        );
+        renderCategoryFilters();
+        renderProducts();
+      }
+    }
+
+    function openModalCategory(catId = null) {
+      const modal = document.getElementById('modal-category');
+      const title = document.getElementById('modal-category-title');
+      const formId = document.getElementById('cat-form-id');
+      const formName = document.getElementById('cat-form-name');
+      const formOrder = document.getElementById('cat-form-order');
+
+      if (catId) {
+        const cat = categories.find(c => c.id === catId);
+        title.innerText = 'Editar Categoria na Vitrine';
+        formId.value = cat.id;
+        formName.value = cat.name;
+        formOrder.value = cat.order;
+        setCatModalStatus(cat.status || 'active');
+      } else {
+        title.innerText = 'Nova Categoria na Vitrine';
+        formId.value = '';
+        formName.value = '';
+        formOrder.value = categories.length + 1;
+        setCatModalStatus('active');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeModalCategory() {
+      document.getElementById('modal-category').classList.add('hidden');
+    }
+
+    function formatTitleCase(str) {
+      if (!str) return '';
+      const minorWords = new Set(['de', 'do', 'da', 'dos', 'das', 'e', 'em', 'com', 'para', 'por']);
+      return str
+        .trim()
+        .split(/\s+/)
+        .map((word, index) => {
+          const firstLetterMatch = word.match(/\p{L}/u);
+          if (!firstLetterMatch) return word;
+          const lower = word.toLowerCase();
+          if (index > 0 && minorWords.has(lower)) {
+            return lower;
+          }
+          const letterIndex = word.indexOf(firstLetterMatch[0]);
+          return (
+            word.slice(0, letterIndex) +
+            firstLetterMatch[0].toUpperCase() +
+            word.slice(letterIndex + 1).toLowerCase()
+          );
+        })
+        .join(' ');
+    }
+
+    function handleSaveCategory(e) {
+      e.preventDefault();
+      const id = document.getElementById('cat-form-id').value;
+      const rawName = document.getElementById('cat-form-name').value.trim();
+      const name = formatTitleCase(rawName);
+      const order = parseInt(document.getElementById('cat-form-order').value) || 1;
+      const status = document.getElementById('cat-form-status').value;
+
+      if (!name) return;
+
+      if (id) {
+        const cat = categories.find(c => c.id === id);
+        if (cat) {
+          cat.name = name;
+          cat.status = status;
+          const otherCats = categories.filter(c => c.id !== id)
+            .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id));
+          const reqOrder = Math.max(1, order);
+          const insertIdx = Math.min(reqOrder - 1, otherCats.length);
+          otherCats.splice(insertIdx, 0, cat);
+          otherCats.forEach((c, idx) => { c.order = idx + 1; });
+          categories = otherCats;
+          showToast(`Categoria "${name}" atualizada!`);
+        }
+      } else {
+        const newCat = {
+          id: 'cat-' + Date.now(),
+          name,
+          order,
+          status
+        };
+        const existing = [...categories].sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id));
+        const reqOrder = Math.max(1, order);
+        const insertIdx = Math.min(reqOrder - 1, existing.length);
+        existing.splice(insertIdx, 0, newCat);
+        existing.forEach((c, idx) => { c.order = idx + 1; });
+        categories = existing;
+        showToast(`Nova categoria "${name}" criada como #${newCat.order} na vitrine!`);
+      }
+
+      closeModalCategory();
+      populateCategorySelect();
+      renderCategoryFilters();
+      renderProducts();
+    }
+
+    function editCategory(catId) {
+      openModalCategory(catId);
+    }
+
+    // ==========================================
+    // NAVEGAÇÃO ENTRE TABS
+    // ==========================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById('tab-' + tabId + '-content');
+      if (target) target.classList.remove('hidden');
+
+      const titles = {
+        cardapio: 'Cardápio & Vitrine de Produtos',
+        templates: 'Templates de Complementos & Adicionais',
+        pedidos: 'Gestor de Pedidos',
+        horarios: 'Horários da Semana',
+        entregas: 'Bairros & Taxas de Entrega',
+        pagamentos: 'Pagamentos & Chave PIX',
+        loja: 'Dados do Restaurante'
+      };
+      document.getElementById('tab-title').innerText = titles[tabId] || 'Painel';
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-[#FF5E1E]', 'text-white', 'shadow-sm', 'shadow-[#FF5E1E]/25');
+        btn.classList.add('text-[#6C757D]');
+      });
+      const activeBtn = document.getElementById('nav-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#FF5E1E]', 'text-white', 'shadow-sm', 'shadow-[#FF5E1E]/25');
+        activeBtn.classList.remove('text-[#6C757D]');
+      }
+    }
+
+    function setStoreStatus(isOpen) {
+      const openBtn = document.getElementById('btn-status-open');
+      const closedBtn = document.getElementById('btn-status-closed');
+      if (isOpen) {
+        openBtn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs bg-emerald-600 text-white shadow-sm transition-all';
+        closedBtn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs text-[#6C757D] hover:text-[#1A1D20] transition-all';
+        showToast('🟢 Loja Aberta! O cardápio do cliente agora aceita novos pedidos.');
+      } else {
+        openBtn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs text-[#6C757D] hover:text-[#1A1D20] transition-all';
+        closedBtn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-sm transition-all';
+        showToast('🔴 Loja Pausada! Clientes verão banner de fechado no cardápio.', 'danger');
+      }
+    }
+
+    function toggleSound() {
+      showToast('🔔 Alerta sonoro de novo pedido alternado com sucesso!');
+    }
+
+    function addBairroPrompt() {
+      const nome = prompt('Nome do Bairro:');
+      if (!nome) return;
+      const taxa = prompt('Taxa de entrega (ex: 8.00):', '5.00');
+      const tbody = document.getElementById('bairros-tbody');
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-[#F8F9FA]/50 transition-colors';
+      tr.innerHTML = `
+        <td class="py-3.5 px-4 font-bold text-[#1A1D20]">${nome}</td>
+        <td class="py-3.5 px-4 font-bold text-emerald-600">R$ ${parseFloat(taxa).toFixed(2).replace('.', ',')}</td>
+        <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Ativo</span></td>
+        <td class="py-3.5 px-4 text-right"><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Remover</button></td>
+      `;
+      tbody.appendChild(tr);
+      showToast(`Bairro "${nome}" cadastrado com taxa de R$ ${parseFloat(taxa).toFixed(2).replace('.', ',')}!`);
+    }
+
+    function renderScheduleDays() {
+      const days = [
+        { name: 'Segunda-feira', open: false, start: '18:00', end: '23:30' },
+        { name: 'Terça-feira', open: true, start: '18:00', end: '23:30' },
+        { name: 'Quarta-feira', open: true, start: '18:00', end: '23:30' },
+        { name: 'Quinta-feira', open: true, start: '18:00', end: '23:30' },
+        { name: 'Sexta-feira', open: true, start: '18:00', end: '00:00' },
+        { name: 'Sábado', open: true, start: '18:00', end: '00:30' },
+        { name: 'Domingo', open: true, start: '18:00', end: '23:30' }
+      ];
+      const list = document.getElementById('schedule-days-list');
+      if (!list) return;
+      list.innerHTML = days.map((d, i) => `
+        <div class="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3 w-40">
+            <input type="checkbox" id="check-day-${i}" ${d.open ? 'checked' : ''} class="w-4 h-4 accent-[#FF5E1E] rounded cursor-pointer">
+            <label for="check-day-${i}" class="font-bold text-sm ${d.open ? 'text-[#1A1D20]' : 'text-[#6C757D]'}">${d.name}</label>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${d.open ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'} w-fit">
+            ${d.open ? 'Aberto' : 'Fechado'}
+          </span>
+          <div class="flex items-center gap-2 ${d.open ? '' : 'opacity-40 pointer-events-none'}">
+            <input type="time" value="${d.start}" class="border border-[#E9ECEF] rounded-lg px-2.5 py-1.5 text-xs text-[#1A1D20]">
+            <span class="text-xs text-[#6C757D]">até</span>
+            <input type="time" value="${d.end}" class="border border-[#E9ECEF] rounded-lg px-2.5 py-1.5 text-xs text-[#1A1D20]">
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
