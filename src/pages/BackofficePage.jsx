@@ -1,6 +1,8 @@
 import { BackofficeSidebar } from '../components/backoffice/BackofficeSidebar'
 import { BackofficeTopbar } from '../components/backoffice/BackofficeTopbar'
 import { MenuVitrineView } from '../components/backoffice/menu/MenuVitrineView'
+import { TemplatesView } from '../components/backoffice/templates/TemplatesView'
+import { ScheduleView } from '../components/backoffice/schedule/ScheduleView'
 import { useStoreAdmin } from '../store/useStoreAdmin'
 
 export function BackofficePage() {
@@ -20,16 +22,7 @@ export function BackofficePage() {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8F9FA]">
           {activeTab === 'cardapio' && <MenuVitrineView />}
 
-          {activeTab === 'templates' && (
-            <div className="max-w-6xl mx-auto space-y-4">
-              <div className="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs">
-                <h3 className="font-extrabold text-base text-[#1A1D20]">🧩 Templates de Complementos & Adicionais</h3>
-                <p className="text-xs text-[#6C757D] mt-1">
-                  Aqui os lojistas cadastrarão os modelos reutilizáveis (Template Hambúrguer, Template Pizza, etc.) para vincular aos produtos.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'templates' && <TemplatesView />}
 
           {activeTab === 'pedidos' && (
             <div className="max-w-6xl mx-auto space-y-4">
@@ -42,16 +35,7 @@ export function BackofficePage() {
             </div>
           )}
 
-          {activeTab === 'horarios' && (
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs">
-                <h3 className="font-extrabold text-base text-[#1A1D20]">⏰ Horários da Semana</h3>
-                <p className="text-xs text-[#6C757D] mt-1">
-                  Aqui ficará a grade semanal de Segunda a Domingo com abertura e fechamento programados.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'horarios' && <ScheduleView />}
 
           {activeTab === 'entregas' && (
             <div className="max-w-4xl mx-auto space-y-4">
