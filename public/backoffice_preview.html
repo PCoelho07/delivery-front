@@ -414,13 +414,72 @@
       <!-- ================= 4. TAB: HORÁRIOS DA SEMANA ================= -->
       <section id="tab-horarios-content" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
         <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
-          <div>
-            <h2 class="text-base font-bold text-[#1A1D20]">Programação de Horários Semanais</h2>
-            <p class="text-xs text-[#6C757D]">Defina os horários em que seu estabelecimento aceita pedidos a cada dia da semana.</p>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-extrabold text-[#1A1D20]">Programação de Horários Semanais</h2>
+              <p class="text-xs text-[#6C757D]">Defina os horários em que seu estabelecimento aceita pedidos a cada dia da semana.</p>
+            </div>
+            <button onclick="resetScheduleDefault()" class="text-xs font-bold text-[#6C757D] hover:text-[#1A1D20] px-3 py-1.5 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] transition-all">
+              Restaurar Padrão
+            </button>
           </div>
+
+          <!-- Seletor de Fuso Horário do Brasil -->
+          <div class="p-4 rounded-2xl bg-white border border-[#E9ECEF] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-orange-100 text-[#FF5E1E] flex items-center justify-center font-bold text-sm">🌐</span>
+              <div>
+                <h4 class="font-extrabold text-xs text-[#1A1D20]">Fuso Horário no Brasil</h4>
+                <p class="text-[11px] text-[#6C757D]">Referência para o relógio de abertura e fechamento automático</p>
+              </div>
+            </div>
+            <select onchange="showToast('Fuso horário atualizado para: ' + this.options[this.selectedIndex].text)" class="bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs font-bold text-[#1A1D20] outline-none">
+              <option value="America/Sao_Paulo" selected>Horário de Brasília (GMT-3)</option>
+              <option value="America/Manaus">Manaus / Cuiabá (GMT-4)</option>
+              <option value="America/Rio_Branco">Rio Branco (GMT-5)</option>
+              <option value="America/Noronha">Fernando de Noronha (GMT-2)</option>
+            </select>
+          </div>
+
+          <!-- Caixa de Ação Rápida em Massa -->
+          <div class="p-4 rounded-2xl bg-orange-50/70 border border-orange-200/80 space-y-3">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-[#FF5E1E] text-white flex items-center justify-center font-bold text-xs">⚡</span>
+              <div>
+                <h4 class="font-extrabold text-xs text-orange-950">Atalho Rápido: Aplicar em Massa</h4>
+                <p class="text-[11px] text-orange-900/80">Configure um horário padrão e replique para a semana inteira</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 pt-1">
+              <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-orange-200 text-xs font-bold text-[#1A1D20]">
+                <span class="text-[#6C757D]">De:</span>
+                <input type="text" id="bulk-start-time" value="18:00" maxlength="6" onblur="this.value = normalizeTime24h(this.value, '18:00')" class="outline-none font-bold w-14 text-center bg-transparent">
+              </div>
+              <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-orange-200 text-xs font-bold text-[#1A1D20]">
+                <span class="text-[#6C757D]">Até:</span>
+                <input type="text" id="bulk-end-time" value="23:30" maxlength="6" onblur="this.value = normalizeTime24h(this.value, '23:30')" class="outline-none font-bold w-14 text-center bg-transparent">
+              </div>
+              <button onclick="applyBulkToAllDays()" class="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-extrabold shadow-sm transition-all cursor-pointer">
+                ⚡ Aplicar para Todos os Dias (Dom a Dom)
+              </button>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-orange-200/50">
+              <span class="text-[10px] font-bold text-orange-900/70">Outros atalhos:</span>
+              <button onclick="applyBulkWeekdays()" class="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-[#FF5E1E] text-[11px] font-bold text-[#FF5E1E] hover:text-white border border-orange-300 transition-all cursor-pointer">
+                📅 Seg a Sex
+              </button>
+              <button onclick="applyBulkWeekend()" class="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-[#FF5E1E] text-[11px] font-bold text-[#FF5E1E] hover:text-white border border-orange-300 transition-all cursor-pointer">
+                🍻 Sáb e Dom
+              </button>
+            </div>
+          </div>
+
           <div class="space-y-3 divide-y divide-[#F1F3F5]" id="schedule-days-list"></div>
+
           <div class="pt-4 flex justify-end">
-            <button onclick="showToast('Horários salvos com sucesso!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
+            <button onclick="showToast('Horários semanais salvos com sucesso!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
               Salvar Horários
             </button>
           </div>
@@ -1994,34 +2053,145 @@
       showToast(`Bairro "${nome}" cadastrado com taxa de R$ ${parseFloat(taxa).toFixed(2).replace('.', ',')}!`);
     }
 
+    let scheduleDays = [
+      { id: 'seg', name: 'Segunda-feira', open: true, start: '18:00', end: '23:30' },
+      { id: 'ter', name: 'Terça-feira', open: true, start: '18:00', end: '23:30' },
+      { id: 'qua', name: 'Quarta-feira', open: true, start: '18:00', end: '23:30' },
+      { id: 'qui', name: 'Quinta-feira', open: true, start: '18:00', end: '23:30' },
+      { id: 'sex', name: 'Sexta-feira', open: true, start: '18:00', end: '00:00' },
+      { id: 'sab', name: 'Sábado', open: true, start: '18:00', end: '00:30' },
+      { id: 'dom', name: 'Domingo', open: true, start: '18:00', end: '23:30' }
+    ];
+
+    function normalizeTime24h(val, fallback = '18:00') {
+      if (!val || typeof val !== 'string') return fallback;
+      const cleaned = val.trim().toLowerCase().replace('h', ':').replace(/\s+/g, '');
+      if (!cleaned) return fallback;
+      if (/^\d{3,4}$/.test(cleaned)) {
+        const h = cleaned.slice(0, cleaned.length - 2);
+        const m = cleaned.slice(-2);
+        return normalizeTime24h(`${h}:${m}`, fallback);
+      }
+      const parts = cleaned.split(':');
+      let hours = parseInt(parts[0], 10);
+      let minutes = parts[1] !== undefined && parts[1] !== '' ? parseInt(parts[1], 10) : 0;
+      if (isNaN(hours)) return fallback;
+      if (hours < 0) hours = 0;
+      if (hours === 24 && minutes === 0) { hours = 0; }
+      else if (hours > 23) { hours = 23; }
+      if (isNaN(minutes) || minutes < 0) minutes = 0;
+      if (minutes > 59) minutes = 59;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
     function renderScheduleDays() {
-      const days = [
-        { name: 'Segunda-feira', open: false, start: '18:00', end: '23:30' },
-        { name: 'Terça-feira', open: true, start: '18:00', end: '23:30' },
-        { name: 'Quarta-feira', open: true, start: '18:00', end: '23:30' },
-        { name: 'Quinta-feira', open: true, start: '18:00', end: '23:30' },
-        { name: 'Sexta-feira', open: true, start: '18:00', end: '00:00' },
-        { name: 'Sábado', open: true, start: '18:00', end: '00:30' },
-        { name: 'Domingo', open: true, start: '18:00', end: '23:30' }
-      ];
       const list = document.getElementById('schedule-days-list');
       if (!list) return;
-      list.innerHTML = days.map((d, i) => `
-        <div class="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex items-center gap-3 w-40">
-            <input type="checkbox" id="check-day-${i}" ${d.open ? 'checked' : ''} class="w-4 h-4 accent-[#FF5E1E] rounded cursor-pointer">
-            <label for="check-day-${i}" class="font-bold text-sm ${d.open ? 'text-[#1A1D20]' : 'text-[#6C757D]'}">${d.name}</label>
+      const todayNames = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+      const todayId = todayNames[new Date().getDay()];
+
+      list.innerHTML = scheduleDays.map((d, i) => {
+        const isToday = d.id === todayId;
+        return `
+        <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl px-3 transition-colors ${isToday ? 'border border-[#FF5E1E]/25 bg-orange-50/15' : 'border border-transparent hover:bg-slate-50/60'}">
+          <div class="flex items-center gap-3 w-48">
+            <button type="button" onclick="toggleDayOpen(${i})" class="cursor-pointer">
+              <div class="relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${d.open ? 'bg-emerald-500' : 'bg-slate-300'}">
+                <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform duration-200 ${d.open ? 'translate-x-4' : 'translate-x-0'}"></span>
+              </div>
+            </button>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-sm ${d.open ? 'text-[#1A1D20]' : 'text-[#6C757D] line-through'}">${d.name}</span>
+                ${isToday ? '<span class="text-[9px] font-black uppercase tracking-wider bg-[#FF5E1E] text-white px-1.5 py-0.2 rounded-sm shadow-xs">Hoje</span>' : ''}
+              </div>
+              <span class="text-[10px] font-bold ${d.open ? 'text-emerald-700' : 'text-[#6C757D]'}">${d.open ? 'Aberto' : 'Fechado'}</span>
+            </div>
           </div>
-          <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${d.open ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200'} w-fit">
-            ${d.open ? 'Aberto' : 'Fechado'}
-          </span>
-          <div class="flex items-center gap-2 ${d.open ? '' : 'opacity-40 pointer-events-none'}">
-            <input type="time" value="${d.start}" class="border border-[#E9ECEF] rounded-lg px-2.5 py-1.5 text-xs text-[#1A1D20]">
-            <span class="text-xs text-[#6C757D]">até</span>
-            <input type="time" value="${d.end}" class="border border-[#E9ECEF] rounded-lg px-2.5 py-1.5 text-xs text-[#1A1D20]">
+
+          <div class="flex items-center gap-2.5 ${d.open ? '' : 'opacity-40 pointer-events-none'}">
+            <div class="flex items-center gap-1 bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-2.5 py-1.5">
+              <span class="text-xs text-[#6C757D] font-bold">Das</span>
+              <input type="text" value="${d.start}" maxlength="6" onchange="scheduleDays[${i}].start = normalizeTime24h(this.value, '18:00'); this.value = scheduleDays[${i}].start;" class="outline-none text-xs font-black text-[#1A1D20] w-14 text-center bg-transparent">
+            </div>
+            <span class="text-xs font-bold text-[#6C757D]">às</span>
+            <div class="flex items-center gap-1 bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-2.5 py-1.5">
+              <input type="text" value="${d.end}" maxlength="6" onchange="scheduleDays[${i}].end = normalizeTime24h(this.value, '23:30'); this.value = scheduleDays[${i}].end;" class="outline-none text-xs font-black text-[#1A1D20] w-14 text-center bg-transparent">
+            </div>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
+    }
+
+    function toggleDayOpen(idx) {
+      scheduleDays[idx].open = !scheduleDays[idx].open;
+      renderScheduleDays();
+    }
+
+    function applyBulkToAllDays() {
+      const start = document.getElementById('bulk-start-time').value || '18:00';
+      const end = document.getElementById('bulk-end-time').value || '23:30';
+      scheduleDays.forEach(d => {
+        d.open = true;
+        d.start = start;
+        d.end = end;
+      });
+      renderScheduleDays();
+      showToast(`⚡ Horário (${start} às ${end}) replicado para todos os dias (Dom a Dom)!`);
+    }
+
+    function applyBulkWeekdays() {
+      const start = document.getElementById('bulk-start-time').value || '18:00';
+      const end = document.getElementById('bulk-end-time').value || '23:30';
+      scheduleDays.forEach(d => {
+        if (['seg', 'ter', 'qua', 'qui', 'sex'].includes(d.id)) {
+          d.open = true;
+          d.start = start;
+          d.end = end;
+        }
+      });
+      renderScheduleDays();
+      showToast(`📅 Horário aplicado de Segunda a Sexta!`);
+    }
+
+    function applyBulkWeekend() {
+      const start = document.getElementById('bulk-start-time').value || '18:00';
+      const end = document.getElementById('bulk-end-time').value || '23:30';
+      scheduleDays.forEach(d => {
+        if (['sab', 'dom'].includes(d.id)) {
+          d.open = true;
+          d.start = start;
+          d.end = end;
+        }
+      });
+      renderScheduleDays();
+      showToast(`🍻 Horário aplicado para Sábado e Domingo!`);
+    }
+
+    function copyDayToAll(sourceIdx) {
+      const source = scheduleDays[sourceIdx];
+      scheduleDays.forEach(d => {
+        d.open = true;
+        d.start = source.start;
+        d.end = source.end;
+      });
+      renderScheduleDays();
+      showToast(`Horário de ${source.name} copiado para todos os dias!`);
+    }
+
+    function resetScheduleDefault() {
+      scheduleDays = [
+        { id: 'seg', name: 'Segunda-feira', open: true, start: '18:00', end: '23:30' },
+        { id: 'ter', name: 'Terça-feira', open: true, start: '18:00', end: '23:30' },
+        { id: 'qua', name: 'Quarta-feira', open: true, start: '18:00', end: '23:30' },
+        { id: 'qui', name: 'Quinta-feira', open: true, start: '18:00', end: '23:30' },
+        { id: 'sex', name: 'Sexta-feira', open: true, start: '18:00', end: '00:00' },
+        { id: 'sab', name: 'Sábado', open: true, start: '18:00', end: '00:30' },
+        { id: 'dom', name: 'Domingo', open: true, start: '18:00', end: '23:30' }
+      ];
+      renderScheduleDays();
+      showToast('Horários restaurados para o padrão.');
     }
   </script>
 </body>
