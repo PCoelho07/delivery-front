@@ -21,6 +21,10 @@ function App() {
           {/* Backoffice do Estabelecimento */}
           <Route path="/admin" element={<BackofficePage />} />
           <Route path="/backoffice" element={<BackofficePage />} />
+
+          {/* Cadastro & Gestão de Empresas (Integrado com API Go) */}
+          <Route path="/empresas" element={<HomePage />} />
+          <Route path="/cadastro-empresas" element={<HomePage />} />
           <Route path="/admin/api-health" element={<HomePage />} />
         </Routes>
       </div>

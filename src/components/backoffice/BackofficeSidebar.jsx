@@ -6,6 +6,7 @@ import {
   MapPin,
   CreditCard,
   Store,
+  Building2,
   ExternalLink,
   X,
 } from 'lucide-react'
@@ -144,12 +145,23 @@ export function BackofficeSidebar() {
           </nav>
         </div>
 
-        {/* Rodapé da Sidebar: Acesso direto ao cardápio público */}
-        <div className="p-4 border-t border-[#E9ECEF] bg-[#F8F9FA]/60">
+        {/* Rodapé da Sidebar: Acesso direto ao cardápio público e à gestão de empresas */}
+        <div className="p-3 border-t border-[#E9ECEF] bg-[#F8F9FA]/60 space-y-1.5">
+          <Link
+            to="/empresas"
+            className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-semibold text-[#1A1D20] hover:text-[#FF5E1E] transition-all group shadow-2xs"
+          >
+            <span className="flex items-center gap-2">
+              <Building2 className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#FF5E1E]" />
+              <span>Gestão Empresas (API)</span>
+            </span>
+            <ExternalLink className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#FF5E1E] transition-colors" />
+          </Link>
+
           <Link
             to={`/${storeInfo?.slug || 'brasa-burger'}`}
             target="_blank"
-            className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-semibold text-[#1A1D20] hover:text-[#FF5E1E] transition-all group shadow-sm"
+            className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-semibold text-[#1A1D20] hover:text-[#FF5E1E] transition-all group shadow-2xs"
           >
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>

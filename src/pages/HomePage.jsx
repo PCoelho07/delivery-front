@@ -6,6 +6,7 @@ import {
   ExternalLink,
   FileText,
   Flame,
+  LayoutDashboard,
   Mail,
   Phone,
   Plus,
@@ -323,13 +324,23 @@ export function HomePage() {
                         </div>
                       </div>
 
-                      <Link
-                        to={`/${toSlug(b.name)}`}
-                        className="inline-flex items-center justify-center gap-1.5 text-[12.5px] font-semibold text-white bg-[#FF5E1E] hover:bg-[#E64E12] px-3.5 py-2.5 rounded-xl shrink-0 transition-colors"
-                      >
-                        <span>Abrir Cardápio</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Link>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          to="/admin"
+                          className="inline-flex items-center justify-center gap-1.5 text-[12px] font-semibold text-[#1A1D20] bg-white hover:bg-gray-100 border border-[#E2E5E9] px-3 py-2 rounded-xl transition-colors"
+                        >
+                          <LayoutDashboard className="w-3.5 h-3.5 text-[#FF5E1E]" />
+                          <span>Backoffice</span>
+                        </Link>
+
+                        <Link
+                          to={`/${toSlug(b.name)}`}
+                          className="inline-flex items-center justify-center gap-1.5 text-[12px] font-semibold text-white bg-[#FF5E1E] hover:bg-[#E64E12] px-3 py-2 rounded-xl transition-colors"
+                        >
+                          <span>Ver Cardápio</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
                     </div>
                   ))}
                 </div>
