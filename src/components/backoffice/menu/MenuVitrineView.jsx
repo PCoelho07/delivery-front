@@ -211,7 +211,7 @@ export function MenuVitrineView() {
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
                       </button>
-                      <span className="text-xs font-black text-[#1A1D20]">
+                      <span className="text-xs font-black text-[#FF5E1E]">
                         #{cat.order}
                       </span>
                       <button
@@ -235,8 +235,8 @@ export function MenuVitrineView() {
                       </div>
                       <span className="text-[11px] text-[#6C757D]">
                         {cat.status === 'active'
-                          ? 'Visível aos clientes no topo do cardápio'
-                          : 'Oculta na vitrine'}
+                          ? 'Visível aos clientes no cardápio'
+                          : 'Oculta no cardápio'}
                       </span>
                     </div>
                   </div>
@@ -380,11 +380,23 @@ export function MenuVitrineView() {
                             {/* Textos */}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <h4 className="font-extrabold text-sm text-[#1A1D20] truncate">
+                                <h4
+                                  className={`font-extrabold text-sm truncate transition-all ${
+                                    !prod.available
+                                      ? 'line-through text-[#6C757D]'
+                                      : 'text-[#1A1D20]'
+                                  }`}
+                                >
                                   {prod.name}
                                 </h4>
                                 {prod.badge && (
-                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-orange-100 text-[#FF5E1E]">
+                                  <span
+                                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md transition-all ${
+                                      !prod.available
+                                        ? 'bg-slate-100 text-[#6C757D] opacity-60'
+                                        : 'bg-orange-100 text-[#FF5E1E]'
+                                    }`}
+                                  >
                                     {prod.badge}
                                   </span>
                                 )}
@@ -409,6 +421,11 @@ export function MenuVitrineView() {
                                   <span className="text-[10px] font-semibold text-slate-600 bg-[#F8F9FA] border border-[#E9ECEF] px-2 py-0.5 rounded-full flex items-center gap-1">
                                     <Sparkles className="w-2.5 h-2.5 text-orange-500" />
                                     <span>{tmpl.name}</span>
+                                    {tmpl.groups?.length > 0 && (
+                                      <span className="opacity-75 text-[9px] font-bold">
+                                        ({tmpl.groups.length} {tmpl.groups.length === 1 ? 'grupo' : 'grupos'})
+                                      </span>
+                                    )}
                                   </span>
                                 )}
                               </div>

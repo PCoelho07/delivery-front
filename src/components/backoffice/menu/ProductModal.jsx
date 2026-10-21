@@ -370,6 +370,60 @@ export function ProductModal({
               placeholder="Selecione o template..."
               helperText="Define quais grupos de complementos abrem ao clicar."
             />
+
+            {/* Pré-visualização dos Grupos Herdados do Template */}
+            {(() => {
+              const currentTmpl = templates.find((t) => t.id === templateId)
+              const tmplGroups = currentTmpl?.groups || []
+
+              if (templateId === 'tmpl-none' || tmplGroups.length === 0) {
+                return (
+                  <div className="p-3 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] text-[11px] text-[#6C757D] italic flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Este produto não terá adicionais (vai direto para a sacola).</span>
+                  </div>
+                )
+              }
+
+              return (
+                <div className="p-3.5 rounded-xl border border-orange-200 bg-orange-50/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-orange-950 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#FF5E1E]" />
+                      <span>Complementos herdados deste template ({tmplGroups.length}):</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold bg-[#FF5E1E] text-white px-2 py-0.5 rounded-full">
+                      {currentTmpl.name}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5 pt-1">
+                    {tmplGroups.map((grp, idx) => (
+                      <div
+                        key={grp.id || idx}
+                        className="flex items-center justify-between text-xs py-1 border-b border-orange-200/40 last:border-b-0"
+                      >
+                        <span className="font-bold text-orange-950 text-[11px]">
+                          ✓ {grp.name}{' '}
+                          <span
+                            className={`text-[9px] font-black px-1.5 py-0.2 rounded ml-1 ${
+                              grp.required
+                                ? 'bg-amber-200 text-amber-900'
+                                : 'bg-emerald-200 text-emerald-900'
+                            }`}
+                          >
+                            {grp.required ? 'Obrigatório' : 'Opcional'}
+                          </span>
+                        </span>
+                        <span className="text-[10px] text-orange-900/80">
+                          {grp.items?.length || 0} opções
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {/* Seção 4: Descrição do Produto */}

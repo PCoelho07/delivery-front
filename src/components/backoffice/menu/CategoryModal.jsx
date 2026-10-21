@@ -99,7 +99,7 @@ export function CategoryModal({ isOpen, onClose, categoryToEdit = null }) {
               value={order}
               onChange={(e) => setOrder(e.target.value)}
               required
-              className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-extrabold outline-none"
+              className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#FF5E1E] font-extrabold outline-none"
             />
             <span className="text-[10px] text-[#6C757D] mt-1 block">
               Posição de exibição na barra de categorias (ex: 1 é a primeira aba).
