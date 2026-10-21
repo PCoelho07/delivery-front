@@ -107,11 +107,19 @@ export function StoreHeader({ store, ordersCount = 0, onOpenCustomerHub }) {
         )}
 
         <span
-          className={`font-semibold ${
-            store.isOpen !== false ? 'text-[#FF5E1E]' : 'text-[#6C757D]'
+          className={`font-semibold text-xs ${
+            store.statusMode === 'paused'
+              ? 'text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 text-[11px]'
+              : store.isOpen !== false
+              ? 'text-[#FF5E1E]'
+              : 'text-[#6C757D]'
           }`}
         >
-          {store.isOpen !== false ? 'Aberto' : 'Fechado'}
+          {store.statusMode === 'paused'
+            ? 'Fechado temporariamente'
+            : store.isOpen !== false
+            ? 'Aberto'
+            : 'Fechado'}
         </span>
       </div>
     </div>

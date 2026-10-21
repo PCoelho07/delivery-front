@@ -14,6 +14,7 @@ import { DEFAULT_STORE_PREVIEW } from '../data/storeTemplateData'
 import { useBusinessStore } from '../store/useBusinessStore'
 import { useCartStore } from '../store/useCartStore'
 import { useCustomerStore } from '../store/useCustomerStore'
+import { useStoreAdmin, calculateStoreLiveStatus } from '../store/useStoreAdmin'
 
 export function BusinessPage() {
   const { businessName } = useParams()
@@ -26,6 +27,21 @@ export function BusinessPage() {
     (state) => state.replaceCartWithOrderItems
   )
   const orders = useCustomerStore((state) => state.orders)
+
+  const adminSchedule = useStoreAdmin((state) => state.schedule)
+  const adminTimezone = useStoreAdmin((state) => state.timezone)
+  const adminStoreStatusMode = useStoreAdmin((state) => state.storeStatusMode)
+  const adminStoreInfo = useStoreAdmin((state) => state.storeInfo)
+
+  const liveStatus = useMemo(
+    () =>
+      calculateStoreLiveStatus(
+        adminSchedule,
+        adminTimezone,
+        adminStoreStatusMode
+      ),
+    [adminSchedule, adminTimezone, adminStoreStatusMode]
+  )
 
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategoryId, setActiveCategoryId] = useState(
@@ -65,18 +81,31 @@ export function BusinessPage() {
     syncTenant()
   }, [businessName, businesses.length, fetchBusinesses, selectBusinessByName])
 
-  // Mescla os dados cadastrados na API (quando disponíveis) com o template visual do Figma
+  // Mescla os dados cadastrados na API / Painel Admin com o template visual do Figma e status ao vivo
   const storeData = useMemo(() => {
-    if (!currentBusiness) return DEFAULT_STORE_PREVIEW
+    const base = currentBusiness
+      ? {
+          ...DEFAULT_STORE_PREVIEW,
+          name: currentBusiness.name || DEFAULT_STORE_PREVIEW.name,
+          shortBrand: currentBusiness.name
+            ? currentBusiness.name.split(' ')[0].toUpperCase().slice(0, 8)
+            : DEFAULT_STORE_PREVIEW.shortBrand,
+          whatsapp: currentBusiness.phone || DEFAULT_STORE_PREVIEW.whatsapp,
+        }
+      : {
+          ...DEFAULT_STORE_PREVIEW,
+          name: adminStoreInfo?.name || DEFAULT_STORE_PREVIEW.name,
+          minOrder: adminStoreInfo?.minOrder ?? DEFAULT_STORE_PREVIEW.minOrder,
+          whatsapp: adminStoreInfo?.whatsapp || DEFAULT_STORE_PREVIEW.whatsapp,
+        }
+
     return {
-      ...DEFAULT_STORE_PREVIEW,
-      name: currentBusiness.name || DEFAULT_STORE_PREVIEW.name,
-      shortBrand: currentBusiness.name
-        ? currentBusiness.name.split(' ')[0].toUpperCase().slice(0, 8)
-        : DEFAULT_STORE_PREVIEW.shortBrand,
-      whatsapp: currentBusiness.phone || DEFAULT_STORE_PREVIEW.whatsapp,
+      ...base,
+      isOpen: liveStatus.isOpen,
+      statusMode: liveStatus.mode,
+      statusBadge: liveStatus.badge,
     }
-  }, [currentBusiness])
+  }, [currentBusiness, adminStoreInfo, liveStatus])
 
   // Filtra categorias e produtos conforme o texto digitado na busca
   const filteredCategories = useMemo(() => {
@@ -155,12 +184,25 @@ export function BusinessPage() {
 
   // Ao adicionar item na Tela 2, salva na sacola e retorna ao cardápio exibindo a barra da Tela 3
   const handleConfirmAddToCart = (cartPayload) => {
+    if (storeData.statusMode === 'paused') {
+      toast.warning('Aviso: o estabelecimento está pausado temporariamente no momento.')
+    } else if (storeData.isOpen === false) {
+      toast.warning('Aviso: o estabelecimento está fechado no momento.')
+    }
     addItemToCart(cartPayload)
     setSelectedProduct(null)
   }
 
   // Da Tela 4 (Sua sacola) avança para a Tela 5 (Finalizar pedido)
   const handleContinueToDelivery = () => {
+    if (storeData.statusMode === 'paused') {
+      toast.error('O estabelecimento pausou os pedidos temporariamente. Não é possível concluir o pedido agora.')
+      return
+    }
+    if (storeData.isOpen === false) {
+      toast.error('O estabelecimento está fechado no momento. Verifique os horários de funcionamento.')
+      return
+    }
     setIsCartOpen(false)
     setIsCheckoutOpen(true)
   }
