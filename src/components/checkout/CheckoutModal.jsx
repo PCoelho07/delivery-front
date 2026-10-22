@@ -22,13 +22,9 @@ import { useCustomerStore } from '../../store/useCustomerStore'
 
 const PAYMENT_OPTIONS = [
   { id: 'money', label: 'Dinheiro', subtitle: null },
-  {
-    id: 'pix',
-    label: 'PIX',
-    subtitle: 'Chave exibida após o envio do pedido',
-  },
-  { id: 'debit', label: 'Cartão de Débito - Maquininha', subtitle: null },
-  { id: 'credit', label: 'Cartão de Crédito - Maquininha', subtitle: null },
+  { id: 'pix', label: 'PIX', subtitle: null },
+  { id: 'credit', label: 'Cartão de Crédito (Maquininha)', subtitle: null },
+  { id: 'debit', label: 'Cartão de Débito (Maquininha)', subtitle: null },
 ]
 
 export function CheckoutModal({
@@ -65,20 +61,32 @@ export function CheckoutModal({
   const [neighborhoodId, setNeighborhoodId] = useState(
     cachedAddress?.neighborhoodId || ''
   )
+  const [customNeighborhood, setCustomNeighborhood] = useState('')
   const [complement, setComplement] = useState(cachedAddress?.complement || '')
   const [showSavedAddresses, setShowSavedAddresses] = useState(false)
 
   const [paymentMethod, setPaymentMethod] = useState('')
   const [changeFor, setChangeFor] = useState('0')
 
-  const neighborhoods = useMemo(
-    () => store?.neighborhoods || [],
+  const activePaymentOptions = useMemo(() => {
+    const accepted = store?.acceptedPaymentMethods
+    if (!accepted) return PAYMENT_OPTIONS
+    return PAYMENT_OPTIONS.filter((opt) => accepted[opt.id] !== false)
+  }, [store?.acceptedPaymentMethods])
+
+  const pricingMode = store?.deliveryPricingMode || 'by_neighborhood'
+  const fixedDeliveryFee = store?.fixedDeliveryFee ?? 5.0
+  const allowPickup = store?.allowPickup ?? true
+
+  // Apenas bairros ativos no backoffice aparecem no dropdown do cliente
+  const activeNeighborhoods = useMemo(
+    () => (store?.neighborhoods || []).filter((n) => n.active !== false),
     [store?.neighborhoods]
   )
 
   const selectedNeighborhood = useMemo(
-    () => neighborhoods.find((n) => n.id === neighborhoodId) || null,
-    [neighborhoods, neighborhoodId]
+    () => activeNeighborhoods.find((n) => n.id === neighborhoodId) || null,
+    [activeNeighborhoods, neighborhoodId]
   )
 
   const totalCount = useMemo(
@@ -91,14 +99,23 @@ export function CheckoutModal({
     [items]
   )
 
-  const deliveryFee =
-    deliveryMethod === 'pickup' ? 0 : selectedNeighborhood?.fee ?? null
+  const deliveryFee = useMemo(() => {
+    if (deliveryMethod === 'pickup') return 0
+    if (pricingMode === 'fixed') return fixedDeliveryFee
+    return selectedNeighborhood?.fee ?? null
+  }, [deliveryMethod, pricingMode, fixedDeliveryFee, selectedNeighborhood])
 
   const finalTotal = subtotal + (deliveryFee || 0)
 
   const isAddressReady =
     deliveryMethod === 'pickup' ||
-    Boolean(street.trim() && number.trim() && selectedNeighborhood)
+    (pricingMode === 'fixed'
+      ? Boolean(
+          street.trim() &&
+            number.trim() &&
+            (selectedNeighborhood || customNeighborhood.trim() || activeNeighborhoods.length === 0)
+        )
+      : Boolean(street.trim() && number.trim() && selectedNeighborhood))
 
   const phoneDigits = phone.replace(/\D/g, '')
   const isCustomerReady = Boolean(name.trim() && phoneDigits.length >= 10)
@@ -193,7 +210,10 @@ export function CheckoutModal({
       storePhone: store?.phone || '(00) 00000-0000',
       whatsapp: store?.whatsapp || '5500000000000',
       instagramUrl: store?.instagramUrl || 'https://instagram.com',
-      estimatedTime: store?.estimatedTime || '30 - 50 minutos',
+      estimatedTime:
+        deliveryMethod === 'delivery'
+          ? store?.estimatedDelivery || '40 - 50 min'
+          : store?.estimatedPickup || '20 - 30 min',
       deliveryMethod,
       customer: cleanProfile,
       address:
@@ -201,8 +221,9 @@ export function CheckoutModal({
           ? {
               street: street.trim(),
               number: number.trim(),
-              neighborhoodId,
-              neighborhoodName: selectedNeighborhood?.name || '',
+              neighborhoodId: selectedNeighborhood?.id || '',
+              neighborhoodName:
+                selectedNeighborhood?.name || customNeighborhood.trim() || '',
               complement: complement.trim(),
             }
           : null,
@@ -366,18 +387,22 @@ export function CheckoutModal({
               Como quer receber?
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div
+              className={`grid ${
+                allowPickup ? 'grid-cols-2' : 'grid-cols-1'
+              } gap-3`}
+            >
               <button
                 type="button"
                 onClick={() => setDeliveryMethod('delivery')}
-                className={`rounded-xl px-3.5 py-2.5 flex items-center gap-2.5 text-[14px] transition-all cursor-pointer ${
+                className={`rounded-xl px-3.5 py-2.5 flex items-start gap-2.5 text-[14px] transition-all cursor-pointer ${
                   deliveryMethod === 'delivery'
                     ? 'bg-[#FFF3EE] text-[#FF5E1E] font-semibold'
-                    : 'bg-white text-[#6C757D] font-medium hover:text-[#1A1D20]'
+                    : 'bg-[#F8F9FA] text-[#6C757D] font-medium hover:text-[#1A1D20]'
                 }`}
               >
                 <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                  className={`w-5 h-5 rounded-full mt-0.5 flex items-center justify-center shrink-0 transition-colors ${
                     deliveryMethod === 'delivery'
                       ? 'bg-[#FF5E1E] text-white'
                       : 'border border-[#CBD5E1] bg-white'
@@ -387,31 +412,43 @@ export function CheckoutModal({
                     <Check className="w-3 h-3 stroke-[3]" />
                   )}
                 </span>
-                <span>Entrega</span>
+                <div className="text-left">
+                  <span className="block leading-tight">Entrega</span>
+                  <span className="text-[11px] font-normal text-[#6C757D]">
+                    {store?.estimatedDelivery || '40 - 50 min'}
+                  </span>
+                </div>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setDeliveryMethod('pickup')}
-                className={`rounded-xl px-3.5 py-2.5 flex items-center gap-2.5 text-[14px] transition-all cursor-pointer ${
-                  deliveryMethod === 'pickup'
-                    ? 'bg-[#FFF3EE] text-[#FF5E1E] font-semibold'
-                    : 'bg-white text-[#6C757D] font-medium hover:text-[#1A1D20]'
-                }`}
-              >
-                <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+              {allowPickup && (
+                <button
+                  type="button"
+                  onClick={() => setDeliveryMethod('pickup')}
+                  className={`rounded-xl px-3.5 py-2.5 flex items-start gap-2.5 text-[14px] transition-all cursor-pointer ${
                     deliveryMethod === 'pickup'
-                      ? 'bg-[#FF5E1E] text-white'
-                      : 'border border-[#CBD5E1] bg-white'
+                      ? 'bg-[#FFF3EE] text-[#FF5E1E] font-semibold'
+                      : 'bg-[#F8F9FA] text-[#6C757D] font-medium hover:text-[#1A1D20]'
                   }`}
                 >
-                  {deliveryMethod === 'pickup' && (
-                    <Check className="w-3 h-3 stroke-[3]" />
-                  )}
-                </span>
-                <span>Retirada</span>
-              </button>
+                  <span
+                    className={`w-5 h-5 rounded-full mt-0.5 flex items-center justify-center shrink-0 transition-colors ${
+                      deliveryMethod === 'pickup'
+                        ? 'bg-[#FF5E1E] text-white'
+                        : 'border border-[#CBD5E1] bg-white'
+                    }`}
+                  >
+                    {deliveryMethod === 'pickup' && (
+                      <Check className="w-3 h-3 stroke-[3]" />
+                    )}
+                  </span>
+                  <div className="text-left">
+                    <span className="block leading-tight">Retirada</span>
+                    <span className="text-[11px] font-normal text-[#6C757D]">
+                      {store?.estimatedPickup || '20 - 30 min'}
+                    </span>
+                  </div>
+                </button>
+              )}
             </div>
           </section>
 
@@ -492,25 +529,46 @@ export function CheckoutModal({
                   <label className="block text-[12px] text-[#6C757D] mb-1">
                     Bairro / condomínio *
                   </label>
-                  <div className="relative">
-                    <select
-                      value={neighborhoodId}
-                      onChange={(e) => setNeighborhoodId(e.target.value)}
-                      className={`w-full bg-white border rounded-xl pl-3.5 pr-9 py-2.5 text-[13.5px] appearance-none cursor-pointer focus:outline-none transition-colors ${
-                        neighborhoodId
-                          ? 'border-[#E2E5E9] text-[#1A1D20]'
-                          : 'border-[#FF5E1E] text-[#6C757D]'
-                      }`}
-                    >
-                      <option value="">Selecione o bairro</option>
-                      {neighborhoods.map((n) => (
-                        <option key={n.id} value={n.id}>
-                          {n.name} (+ {formatCurrency(n.fee)})
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-[#FF5E1E] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
+                  {activeNeighborhoods.length > 0 ? (
+                    <div className="relative">
+                      <select
+                        value={neighborhoodId}
+                        onChange={(e) => {
+                          setNeighborhoodId(e.target.value)
+                          const found = activeNeighborhoods.find(
+                            (n) => n.id === e.target.value
+                          )
+                          if (found) setCustomNeighborhood(found.name)
+                        }}
+                        className={`w-full bg-white border rounded-xl pl-3.5 pr-9 py-2.5 text-[13.5px] appearance-none cursor-pointer focus:outline-none transition-colors ${
+                          neighborhoodId
+                            ? 'border-[#E2E5E9] text-[#1A1D20]'
+                            : 'border-[#FF5E1E] text-[#6C757D]'
+                        }`}
+                      >
+                        <option value="">Selecione o bairro</option>
+                        {activeNeighborhoods.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {n.name}{' '}
+                            {pricingMode === 'fixed'
+                              ? `(Taxa fixa ${formatCurrency(fixedDeliveryFee)})`
+                              : n.fee > 0
+                              ? `(+ ${formatCurrency(n.fee)})`
+                              : '(Grátis)'}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-[#FF5E1E] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      value={customNeighborhood}
+                      onChange={(e) => setCustomNeighborhood(e.target.value)}
+                      placeholder="Ex: Centro"
+                      className="w-full bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3.5 py-2.5 text-[13.5px] text-[#1A1D20] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#FF5E1E] transition-colors"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -642,10 +700,15 @@ export function CheckoutModal({
             </div>
 
             <div className="space-y-3.5">
-              {PAYMENT_OPTIONS.map((option) => {
-                const isSelected = paymentMethod === option.id
-                return (
-                  <div key={option.id} className="space-y-2.5">
+              {activePaymentOptions.length === 0 ? (
+                <div className="p-3 rounded-xl bg-amber-50 text-amber-800 text-xs">
+                  Nenhuma forma de pagamento disponível no momento.
+                </div>
+              ) : (
+                activePaymentOptions.map((option) => {
+                  const isSelected = paymentMethod === option.id
+                  return (
+                    <div key={option.id} className="space-y-2.5">
                     <label
                       onClick={() => setPaymentMethod(option.id)}
                       className="flex items-start gap-3 cursor-pointer select-none group"
@@ -691,9 +754,10 @@ export function CheckoutModal({
                         </p>
                       </div>
                     )}
-                  </div>
-                )
-              })}
+                    </div>
+                  )
+                })
+              )}
             </div>
           </section>
         </div>
@@ -713,14 +777,18 @@ export function CheckoutModal({
             <span>
               {deliveryMethod === 'pickup'
                 ? 'Retirada no estabelecimento'
+                : pricingMode === 'fixed'
+                ? 'Taxa fixa de entrega'
                 : 'Entrega calculada por bairro'}
             </span>
             <span className="font-medium text-[#1A1D20]">
               {deliveryMethod === 'pickup'
                 ? 'Grátis'
                 : deliveryFee !== null
+                ? deliveryFee > 0
                   ? formatCurrency(deliveryFee)
-                  : 'A calcular'}
+                  : 'Grátis'
+                : 'A calcular'}
             </span>
           </div>
 

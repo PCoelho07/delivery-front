@@ -10,6 +10,7 @@ import { CategoryTabs } from '../components/menu/CategoryTabs'
 import { ProductCard } from '../components/menu/ProductCard'
 import { ProductDetailsModal } from '../components/menu/ProductDetailsModal'
 import { StoreHeader } from '../components/menu/StoreHeader'
+import { StoreInfoModal } from '../components/menu/StoreInfoModal'
 import { DEFAULT_STORE_PREVIEW } from '../data/storeTemplateData'
 import { useBusinessStore } from '../store/useBusinessStore'
 import { useCartStore } from '../store/useCartStore'
@@ -32,6 +33,9 @@ export function BusinessPage() {
   const adminTimezone = useStoreAdmin((state) => state.timezone)
   const adminStoreStatusMode = useStoreAdmin((state) => state.storeStatusMode)
   const adminStoreInfo = useStoreAdmin((state) => state.storeInfo)
+  const adminDeliveryConfig = useStoreAdmin((state) => state.deliveryConfig)
+  const adminNeighborhoods = useStoreAdmin((state) => state.neighborhoods)
+  const adminPaymentConfig = useStoreAdmin((state) => state.paymentConfig)
 
   const liveStatus = useMemo(
     () =>
@@ -52,6 +56,7 @@ export function BusinessPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [isCustomerHubOpen, setIsCustomerHubOpen] = useState(false)
+  const [isStoreInfoOpen, setIsStoreInfoOpen] = useState(false)
 
   const scrollContainerRef = useRef(null)
   const stickyNavRef = useRef(null)
@@ -104,8 +109,41 @@ export function BusinessPage() {
       isOpen: liveStatus.isOpen,
       statusMode: liveStatus.mode,
       statusBadge: liveStatus.badge,
+      todayHours: liveStatus.todayHours || '18:00 às 23:30',
+      deliveryConfig: adminDeliveryConfig,
+      deliveryPricingMode: adminDeliveryConfig?.pricingMode || 'by_neighborhood',
+      fixedDeliveryFee: adminDeliveryConfig?.fixedFee ?? 5.0,
+      estimatedDelivery: adminDeliveryConfig?.estimatedDelivery || '40 - 50 min',
+      estimatedPickup: adminDeliveryConfig?.estimatedPickup || '20 - 30 min',
+      allowPickup: adminDeliveryConfig?.allowPickup ?? true,
+      minOrder: adminDeliveryConfig?.minOrder ?? base.minOrder ?? 15.0,
+      neighborhoods: adminNeighborhoods || [],
+      paymentConfig: adminPaymentConfig,
+      acceptedPaymentMethods: adminPaymentConfig?.methods || {
+        money: true,
+        pix: true,
+        credit: true,
+        debit: true,
+      },
+      pix: adminPaymentConfig?.pix || base.pix,
+      address:
+        adminStoreInfo?.address ||
+        currentBusiness?.address ||
+        base.address ||
+        'Praça Antônio Basílio de Melo, 32, Nova Cruz / RN',
+      schedule: adminSchedule,
+      timezone: adminTimezone,
     }
-  }, [currentBusiness, adminStoreInfo, liveStatus])
+  }, [
+    currentBusiness,
+    adminStoreInfo,
+    liveStatus,
+    adminDeliveryConfig,
+    adminNeighborhoods,
+    adminPaymentConfig,
+    adminSchedule,
+    adminTimezone,
+  ])
 
   // Filtra categorias e produtos conforme o texto digitado na busca
   const filteredCategories = useMemo(() => {
@@ -245,6 +283,7 @@ export function BusinessPage() {
               setConfirmedOrder(null)
               setIsCustomerHubOpen(true)
             }}
+            onOpenStoreInfo={() => setIsStoreInfoOpen(true)}
           />
 
           {/* Bloco Sticky: Barra de Pesquisa + Botões de Categorias sempre visíveis ao rolar */}
@@ -373,6 +412,15 @@ export function BusinessPage() {
               setConfirmedOrder(null)
             }}
             onRepeatOrder={handleRepeatOrder}
+          />
+        )}
+
+        {/* Modal de Informações da Loja, Horários de Funcionamento & Métodos de Pagamento (Figma) */}
+        {isStoreInfoOpen && (
+          <StoreInfoModal
+            isOpen={isStoreInfoOpen}
+            onClose={() => setIsStoreInfoOpen(false)}
+            store={storeData}
           />
         )}
       </div>

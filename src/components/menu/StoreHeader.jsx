@@ -4,10 +4,17 @@ import {
   Flame,
   ShoppingBag,
   Star,
+  Clock,
+  ChevronDown,
 } from 'lucide-react'
 import { formatCurrency } from '../../lib/utils'
 
-export function StoreHeader({ store, ordersCount = 0, onOpenCustomerHub }) {
+export function StoreHeader({
+  store,
+  ordersCount = 0,
+  onOpenCustomerHub,
+  onOpenStoreInfo,
+}) {
   const shortBrand =
     store.shortBrand ||
     (store.name ? store.name.split(' ')[0].toUpperCase().slice(0, 8) : 'LOJA')
@@ -68,7 +75,11 @@ export function StoreHeader({ store, ordersCount = 0, onOpenCustomerHub }) {
         )}
 
         {(store.rating || store.distance) && (
-          <div className="flex items-center justify-center gap-1 text-[13px] mt-1.5">
+          <button
+            type="button"
+            onClick={onOpenStoreInfo}
+            className="flex items-center justify-center gap-1 text-[13px] mt-1.5 cursor-pointer group mx-auto"
+          >
             {store.rating && (
               <>
                 <Star className="w-3.5 h-3.5 text-[#FF5E1E]" strokeWidth={2.2} />
@@ -83,31 +94,42 @@ export function StoreHeader({ store, ordersCount = 0, onOpenCustomerHub }) {
             {store.distance && (
               <span className="text-[#6C757D]">· {store.distance}</span>
             )}
-            <ChevronRight className="w-3.5 h-3.5 text-[#6C757D]" />
-          </div>
+            <ChevronRight className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#FF5E1E] transition-colors" />
+          </button>
         )}
       </div>
 
-      {/* Barra de Pedido Mínimo, Horário e Status (rola junto ao descer a tela) */}
-      <div className="mx-4 mt-3 mb-1 bg-white rounded-xl px-3.5 py-2.5 flex items-center justify-between text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        <div className="flex items-center gap-1.5">
+      {/* Barra de Pedido Mínimo, Horário e Status */}
+      <div className="mx-4 mt-3 mb-1 bg-white rounded-xl px-3.5 py-2.5 flex items-center justify-between text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <ShoppingBag
             className="w-4 h-4 text-[#FF5E1E] shrink-0"
             strokeWidth={2.2}
           />
           <span className="font-semibold text-[#1A1D20]">
-            Pedido mínimo {formatCurrency(store.minOrder ?? 10)}
+            Pedido mín. {formatCurrency(store.minOrder ?? 10)}
           </span>
         </div>
 
-        {store.openingHours && (
-          <span className="text-[#6C757D] font-medium">
-            {store.openingHours}
+        {/* Botão de Horário de Funcionamento com Horário de Hoje */}
+        <button
+          type="button"
+          onClick={onOpenStoreInfo}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-[#FF5E1E] border border-orange-200/80 font-bold text-[11.5px] transition-all active:scale-95 cursor-pointer shadow-2xs group"
+          title="Ver todos os horários e informações da loja"
+        >
+          <Clock className="w-3.5 h-3.5 text-[#FF5E1E] shrink-0" />
+          <span className="truncate max-w-[125px] sm:max-w-none">
+            {store.todayHours || store.openingHours || '18:00 às 23:30'}
           </span>
-        )}
+          <ChevronDown className="w-3 h-3 text-[#FF5E1E] shrink-0 group-hover:translate-y-0.5 transition-transform" />
+        </button>
 
-        <span
-          className={`font-semibold text-xs ${
+        {/* Status Aberto / Fechado */}
+        <button
+          type="button"
+          onClick={onOpenStoreInfo}
+          className={`font-semibold text-xs cursor-pointer shrink-0 transition-opacity hover:opacity-85 ${
             store.statusMode === 'paused'
               ? 'text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 text-[11px]'
               : store.isOpen !== false
@@ -120,7 +142,7 @@ export function StoreHeader({ store, ordersCount = 0, onOpenCustomerHub }) {
             : store.isOpen !== false
             ? 'Aberto'
             : 'Fechado'}
-        </span>
+        </button>
       </div>
     </div>
   )
