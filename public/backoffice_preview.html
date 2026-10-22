@@ -491,45 +491,88 @@
         <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 class="text-base font-bold text-[#1A1D20]">Taxas de Entrega por Bairro</h2>
-              <p class="text-xs text-[#6C757D]">Cadastre as regiões atendidas pelo seu delivery e o valor correspondente de entrega.</p>
+              <h2 class="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+                <span>🛵 Bairros & Taxas de Entrega</span>
+                <span id="preview-mode-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-orange-50 text-[#FF5E1E] border-orange-200">
+                  Taxa por Bairro
+                </span>
+              </h2>
+              <p class="text-xs text-[#6C757D]">Defina a modalidade de cobrança, os prazos estimados e gerencie as localidades atendidas.</p>
             </div>
             <button onclick="addBairroPrompt()" class="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-sm">
               + Adicionar Bairro
             </button>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF]">
+
+          <!-- Seleção de Modalidade (Taxa Fixa vs Por Bairro) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div id="card-mode-bairro" onclick="setPreviewPricingMode('by_neighborhood')" class="p-4 rounded-2xl border-2 border-[#FF5E1E] bg-orange-50/20 cursor-pointer space-y-2 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-[#1A1D20]">📍 Taxa por Bairro / Localidade</span>
+                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Mais flexível</span>
+              </div>
+              <p class="text-[11px] text-[#6C757D]">Cada localidade atendida tem seu próprio valor de taxa cadastrado.</p>
+            </div>
+
+            <div id="card-mode-fixo" onclick="setPreviewPricingMode('fixed')" class="p-4 rounded-2xl border-2 border-[#E9ECEF] hover:border-slate-300 cursor-pointer space-y-2 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-[#1A1D20]">🚚 Taxa Fixa para toda a Cidade</span>
+                <span class="text-[10px] font-bold text-orange-800 bg-orange-100 px-1.5 py-0.5 rounded">Ideal para interior</span>
+              </div>
+              <p class="text-[11px] text-[#6C757D]">Valor único de entrega cobrado para qualquer bairro da cidade.</p>
+            </div>
+          </div>
+
+          <!-- Campo Taxa Fixa (quando ativo) -->
+          <div id="preview-fixed-fee-row" class="hidden p-4 rounded-2xl bg-orange-50/40 border border-orange-200/80 flex items-center justify-between">
+            <span class="text-xs font-bold text-orange-950">Valor da Taxa Fixa (R$):</span>
+            <input type="number" id="preview-fixed-fee-input" value="5.00" step="0.50" onchange="showToast('Taxa fixa atualizada!')" class="w-24 bg-white border border-orange-300 rounded-xl px-3 py-1.5 text-xs font-black text-center outline-none">
+          </div>
+
+          <!-- Prazos Estimados -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF]">
             <div>
-              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tempo estimado de Entrega</label>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Previsão de Entrega</label>
               <input type="text" value="40 - 50 min" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
             </div>
             <div>
-              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tempo estimado de Retirada</label>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Previsão de Retirada</label>
               <input type="text" value="20 - 30 min" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
             </div>
+            <div>
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Pedido Mínimo (R$)</label>
+              <input type="text" value="15.00" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
+            </div>
           </div>
+
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead class="bg-[#F8F9FA] text-[#6C757D] font-bold border-y border-[#E9ECEF]">
                 <tr>
-                  <th class="py-3 px-4">Bairro / Região</th>
+                  <th class="py-3 px-4">Bairro / Localidade</th>
                   <th class="py-3 px-4">Taxa de Entrega</th>
-                  <th class="py-3 px-4">Status</th>
-                  <th class="py-3 px-4 text-right">Ação</th>
+                  <th class="py-3 px-4">Status no Cardápio</th>
+                  <th class="py-3 px-4 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody id="bairros-tbody" class="divide-y divide-[#E9ECEF]">
                 <tr class="hover:bg-[#F8F9FA]/50 transition-colors">
                   <td class="py-3.5 px-4 font-bold text-[#1A1D20]">Centro</td>
-                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 5,00</td>
-                  <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Ativo</span></td>
-                  <td class="py-3.5 px-4 text-right"><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Remover</button></td>
+                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 3,00</td>
+                  <td class="py-3.5 px-4"><button onclick="toggleBairroStatus(this)" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px] cursor-pointer">Ativo</button></td>
+                  <td class="py-3.5 px-4 text-right space-x-2"><button onclick="editBairroPrompt(this)" class="text-[#FF5E1E] font-bold hover:underline">Editar</button><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Excluir</button></td>
                 </tr>
                 <tr class="hover:bg-[#F8F9FA]/50 transition-colors">
                   <td class="py-3.5 px-4 font-bold text-[#1A1D20]">Jardim América</td>
-                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 7,50</td>
-                  <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Ativo</span></td>
-                  <td class="py-3.5 px-4 text-right"><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Remover</button></td>
+                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 4,00</td>
+                  <td class="py-3.5 px-4"><button onclick="toggleBairroStatus(this)" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px] cursor-pointer">Ativo</button></td>
+                  <td class="py-3.5 px-4 text-right space-x-2"><button onclick="editBairroPrompt(this)" class="text-[#FF5E1E] font-bold hover:underline">Editar</button><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Excluir</button></td>
+                </tr>
+                <tr class="hover:bg-[#F8F9FA]/50 transition-colors">
+                  <td class="py-3.5 px-4 font-bold text-[#1A1D20]">Distrito Industrial</td>
+                  <td class="py-3.5 px-4 font-bold text-emerald-600">R$ 8,00</td>
+                  <td class="py-3.5 px-4"><button onclick="toggleBairroStatus(this)" class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold text-[11px] cursor-pointer">Desativado</button></td>
+                  <td class="py-3.5 px-4 text-right space-x-2"><button onclick="editBairroPrompt(this)" class="text-[#FF5E1E] font-bold hover:underline">Editar</button><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Excluir</button></td>
                 </tr>
               </tbody>
             </table>
@@ -539,29 +582,100 @@
 
       <!-- ================= 6. TAB: PAGAMENTOS & PIX ================= -->
       <section id="tab-pagamentos-content" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
-        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-6">
-          <div>
-            <h2 class="text-base font-bold text-[#1A1D20]">Configuração do PIX & Meios de Pagamento</h2>
-            <p class="text-xs text-[#6C757D]">Configure a chave PIX onde você recebe os pagamentos dos clientes.</p>
+        <!-- Card 1: Formas de Pagamento Aceitas -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-[#1A1D20]">Formas de Pagamento Aceitas</h2>
+              <p class="text-xs text-[#6C757D]">Marque as opções que estarão disponíveis para o cliente no fechamento do pedido</p>
+            </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <!-- Dinheiro -->
+            <label class="flex items-center gap-3 p-3.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E]/40 hover:bg-orange-50/20 cursor-pointer transition-all">
+              <input type="checkbox" checked class="w-4 h-4 rounded text-[#FF5E1E] focus:ring-[#FF5E1E] border-[#CED4DA] cursor-pointer">
+              <span class="text-xs font-bold text-[#1A1D20]">Dinheiro</span>
+            </label>
+
+            <!-- PIX -->
+            <label class="flex items-center gap-3 p-3.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E]/40 hover:bg-orange-50/20 cursor-pointer transition-all">
+              <input type="checkbox" checked class="w-4 h-4 rounded text-[#FF5E1E] focus:ring-[#FF5E1E] border-[#CED4DA] cursor-pointer">
+              <span class="text-xs font-bold text-[#1A1D20]">PIX</span>
+            </label>
+
+            <!-- Cartão de Crédito -->
+            <label class="flex items-center gap-3 p-3.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E]/40 hover:bg-orange-50/20 cursor-pointer transition-all">
+              <input type="checkbox" checked class="w-4 h-4 rounded text-[#FF5E1E] focus:ring-[#FF5E1E] border-[#CED4DA] cursor-pointer">
+              <span class="text-xs font-bold text-[#1A1D20]">Cartão de Crédito (Maquininha)</span>
+            </label>
+
+            <!-- Cartão de Débito -->
+            <label class="flex items-center gap-3 p-3.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E]/40 hover:bg-orange-50/20 cursor-pointer transition-all">
+              <input type="checkbox" checked class="w-4 h-4 rounded text-[#FF5E1E] focus:ring-[#FF5E1E] border-[#CED4DA] cursor-pointer">
+              <span class="text-xs font-bold text-[#1A1D20]">Cartão de Débito (Maquininha)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Card 2: Chave PIX do Estabelecimento -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-sm space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" stroke-width="2"/><rect x="14" y="3" width="7" height="7" stroke-width="2"/><rect x="3" y="14" width="7" height="7" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 14h3v3h-3zm4 4h3v3h-3zm-4 3h3m4-7v4"/></svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-[#1A1D20]">Dados da Chave PIX</h2>
+              <p class="text-xs text-[#6C757D]">Configure a chave e o titular exibidos para o cliente ao escolher pagar por PIX</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div>
               <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tipo de Chave PIX</label>
-              <select class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold">
-                <option>CNPJ</option>
-                <option>CPF</option>
-                <option>Telefone / WhatsApp</option>
-                <option>E-mail</option>
-                <option>Chave Aleatória</option>
-              </select>
+              <div class="relative">
+                <select class="w-full bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E] focus:bg-white appearance-none cursor-pointer">
+                  <option value="cnpj" selected>CNPJ (Pessoa Jurídica)</option>
+                  <option value="cpf">CPF (Pessoa Física)</option>
+                  <option value="phone">Telefone / WhatsApp</option>
+                  <option value="email">E-mail</option>
+                  <option value="random">Chave Aleatória (EVP)</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#6C757D]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+              </div>
             </div>
+
             <div>
               <label class="block text-xs font-bold text-[#1A1D20] mb-1">Chave PIX</label>
-              <input type="text" value="00000000000" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold font-mono">
+              <input type="text" value="12.345.678/0001-90" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold font-mono focus:outline-none focus:border-[#FF5E1E]">
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome do Beneficiário / Titular da Conta</label>
+              <input type="text" value="Brasa Burger Hamburgueria Ltda" placeholder="Ex: Nome da sua empresa ou titular" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold focus:outline-none focus:border-[#FF5E1E]">
             </div>
           </div>
-          <div class="pt-4 flex justify-end">
-            <button onclick="showToast('Configurações de pagamento salvas!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
+
+          <!-- Live Preview -->
+          <div class="p-3.5 bg-[#F8F9FA] rounded-xl border border-[#E9ECEF] flex items-center justify-between gap-3 text-xs">
+            <div>
+              <span class="text-[11px] text-[#6C757D] block font-medium">Pré-visualização da Chave PIX</span>
+              <span class="font-mono font-bold text-[#1A1D20]">12.345.678/0001-90</span>
+              <span class="text-[11px] text-[#6C757D] block">Titular: Brasa Burger Hamburgueria Ltda</span>
+            </div>
+            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-lg border border-emerald-200">
+              Ativo no Checkout
+            </span>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button onclick="showToast('Configurações de pagamento salvas!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               Salvar Pagamentos
             </button>
           </div>
@@ -2036,8 +2150,58 @@
       showToast('🔔 Alerta sonoro de novo pedido alternado com sucesso!');
     }
 
+    function setPreviewPricingMode(mode) {
+      const cardBairro = document.getElementById('card-mode-bairro');
+      const cardFixo = document.getElementById('card-mode-fixo');
+      const fixedRow = document.getElementById('preview-fixed-fee-row');
+      const badge = document.getElementById('preview-mode-badge');
+
+      if (mode === 'fixed') {
+        cardBairro.className = 'p-4 rounded-2xl border-2 border-[#E9ECEF] hover:border-slate-300 cursor-pointer space-y-2 transition-all';
+        cardFixo.className = 'p-4 rounded-2xl border-2 border-[#FF5E1E] bg-orange-50/20 cursor-pointer space-y-2 transition-all';
+        fixedRow.classList.remove('hidden');
+        badge.innerText = 'Taxa Fixa';
+        showToast('Modalidade alterada para Taxa Fixa!');
+      } else {
+        cardBairro.className = 'p-4 rounded-2xl border-2 border-[#FF5E1E] bg-orange-50/20 cursor-pointer space-y-2 transition-all';
+        cardFixo.className = 'p-4 rounded-2xl border-2 border-[#E9ECEF] hover:border-slate-300 cursor-pointer space-y-2 transition-all';
+        fixedRow.classList.add('hidden');
+        badge.innerText = 'Taxa por Bairro';
+        showToast('Modalidade alterada para Taxa por Bairro!');
+      }
+    }
+
+    function toggleBairroStatus(btn) {
+      if (btn.innerText === 'Ativo') {
+        btn.innerText = 'Desativado';
+        btn.className = 'px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold text-[11px] cursor-pointer';
+        showToast('Bairro desativado (oculto no cardápio)!');
+      } else {
+        btn.innerText = 'Ativo';
+        btn.className = 'px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px] cursor-pointer';
+        showToast('Bairro reativado no cardápio!');
+      }
+    }
+
+    function editBairroPrompt(btn) {
+      const tr = btn.closest('tr');
+      const nomeTd = tr.querySelector('td:first-child');
+      const taxaTd = tr.querySelector('td:nth-child(2)');
+      const currentNome = nomeTd.innerText;
+      const currentTaxa = taxaTd.innerText.replace('R$', '').trim().replace(',', '.');
+
+      const novoNome = prompt('Editar nome do bairro:', currentNome);
+      if (!novoNome) return;
+      const novaTaxa = prompt('Editar taxa de entrega (R$):', currentTaxa);
+      if (novaTaxa === null) return;
+
+      nomeTd.innerText = novoNome;
+      taxaTd.innerText = 'R$ ' + parseFloat(novaTaxa || 0).toFixed(2).replace('.', ',');
+      showToast(`Bairro "${novoNome}" atualizado com sucesso!`);
+    }
+
     function addBairroPrompt() {
-      const nome = prompt('Nome do Bairro:');
+      const nome = prompt('Nome do Bairro / Localidade:');
       if (!nome) return;
       const taxa = prompt('Taxa de entrega (ex: 8.00):', '5.00');
       const tbody = document.getElementById('bairros-tbody');
@@ -2045,12 +2209,15 @@
       tr.className = 'hover:bg-[#F8F9FA]/50 transition-colors';
       tr.innerHTML = `
         <td class="py-3.5 px-4 font-bold text-[#1A1D20]">${nome}</td>
-        <td class="py-3.5 px-4 font-bold text-emerald-600">R$ ${parseFloat(taxa).toFixed(2).replace('.', ',')}</td>
-        <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Ativo</span></td>
-        <td class="py-3.5 px-4 text-right"><button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Remover</button></td>
+        <td class="py-3.5 px-4 font-bold text-emerald-600">R$ ${parseFloat(taxa || 0).toFixed(2).replace('.', ',')}</td>
+        <td class="py-3.5 px-4"><button onclick="toggleBairroStatus(this)" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-[11px] cursor-pointer">Ativo</button></td>
+        <td class="py-3.5 px-4 text-right space-x-2">
+          <button onclick="editBairroPrompt(this)" class="text-[#FF5E1E] font-bold hover:underline">Editar</button>
+          <button onclick="this.closest('tr').remove(); showToast('Bairro removido!')" class="text-rose-600 font-bold hover:underline">Excluir</button>
+        </td>
       `;
       tbody.appendChild(tr);
-      showToast(`Bairro "${nome}" cadastrado com taxa de R$ ${parseFloat(taxa).toFixed(2).replace('.', ',')}!`);
+      showToast(`Bairro "${nome}" cadastrado com taxa de R$ ${parseFloat(taxa || 0).toFixed(2).replace('.', ',')}!`);
     }
 
     let scheduleDays = [

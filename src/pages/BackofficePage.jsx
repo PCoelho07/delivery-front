@@ -3,6 +3,8 @@ import { BackofficeTopbar } from '../components/backoffice/BackofficeTopbar'
 import { MenuVitrineView } from '../components/backoffice/menu/MenuVitrineView'
 import { TemplatesView } from '../components/backoffice/templates/TemplatesView'
 import { ScheduleView } from '../components/backoffice/schedule/ScheduleView'
+import { DeliveryView } from '../components/backoffice/delivery/DeliveryView'
+import { PaymentsView } from '../components/backoffice/payments/PaymentsView'
 import { useStoreAdmin } from '../store/useStoreAdmin'
 
 export function BackofficePage() {
@@ -37,27 +39,9 @@ export function BackofficePage() {
 
           {activeTab === 'horarios' && <ScheduleView />}
 
-          {activeTab === 'entregas' && (
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs">
-                <h3 className="font-extrabold text-base text-[#1A1D20]">🛵 Bairros & Taxas de Entrega</h3>
-                <p className="text-xs text-[#6C757D] mt-1">
-                  Aqui ficará a tabela de regiões atendidas e os valores em R$ de entrega por bairro.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'entregas' && <DeliveryView />}
 
-          {activeTab === 'pagamentos' && (
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs">
-                <h3 className="font-extrabold text-base text-[#1A1D20]">💳 Pagamentos & Chave PIX</h3>
-                <p className="text-xs text-[#6C757D] mt-1">
-                  Aqui ficarão os dados da chave PIX e as bandeiras de cartão/dinheiro aceitas no estabelecimento.
-                </p>
-              </div>
-            </div>
-          )}
+          {activeTab === 'pagamentos' && <PaymentsView />}
 
           {activeTab === 'loja' && (
             <div className="max-w-4xl mx-auto space-y-4">

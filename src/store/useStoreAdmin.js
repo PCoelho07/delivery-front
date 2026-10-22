@@ -97,6 +97,38 @@ const DEFAULT_SCHEDULE = [
   { id: 'dom', name: 'Domingo', shortName: 'Dom', open: true, start: '18:00', end: '23:30' },
 ]
 
+export const DEFAULT_NEIGHBORHOODS = [
+  { id: 'nb-centro', name: 'Centro', fee: 3.0, active: true },
+  { id: 'nb-jd-america', name: 'Jardim América', fee: 4.0, active: true },
+  { id: 'nb-vila-nova', name: 'Vila Nova', fee: 5.0, active: true },
+  { id: 'nb-bela-vista', name: 'Bela Vista', fee: 5.0, active: true },
+  { id: 'nb-alto-boa-vista', name: 'Alto da Boa Vista', fee: 6.0, active: true },
+  { id: 'nb-distrito-industrial', name: 'Distrito Industrial', fee: 8.0, active: false },
+]
+
+export const DEFAULT_DELIVERY_CONFIG = {
+  pricingMode: 'by_neighborhood', // 'fixed' | 'by_neighborhood'
+  fixedFee: 5.0,
+  estimatedDelivery: '40 - 50 min',
+  estimatedPickup: '20 - 30 min',
+  allowPickup: true,
+  minOrder: 15.0,
+}
+
+export const DEFAULT_PAYMENT_CONFIG = {
+  methods: {
+    money: true,
+    pix: true,
+    credit: true,
+    debit: true,
+  },
+  pix: {
+    keyType: 'cnpj', // 'cnpj' | 'cpf' | 'email' | 'phone' | 'random'
+    key: '00.000.000/0001-00',
+    beneficiary: 'Brasa Burger',
+  },
+}
+
 /**
  * Calcula o status real de atendimento da loja (automático vs pausas manuais)
  */
@@ -110,6 +142,7 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
       subtext: 'Pausa acionada manualmente no painel',
       clientTag: 'Fechado temporariamente',
       variant: 'paused',
+      todayHours: 'Pausado',
     }
   }
 
@@ -122,6 +155,7 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
       subtext: 'Abertura manual fora do horário programado',
       clientTag: 'Aberto',
       variant: 'open',
+      todayHours: 'Aberto agora',
     }
   }
 
@@ -152,11 +186,13 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
         subtext: 'Sem expediente programado para hoje',
         clientTag: 'Fechado',
         variant: 'closed',
+        todayHours: 'Fechado hoje',
       }
     }
 
     const start = todaySchedule.start || '18:00'
     const end = todaySchedule.end || '23:30'
+    const formattedHours = `${start} às ${end}`
 
     // Lógica para horário convencional vs madrugada (ex: 18:00 às 00:30)
     let inWindow = false
@@ -175,6 +211,7 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
         subtext: `Atendimento hoje até às ${end}`,
         clientTag: 'Aberto',
         variant: 'open',
+        todayHours: formattedHours,
       }
     } else {
       return {
@@ -185,6 +222,7 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
         subtext: `Fechado no momento (abre hoje às ${start})`,
         clientTag: 'Fechado',
         variant: 'closed',
+        todayHours: formattedHours,
       }
     }
   } catch (err) {
@@ -224,6 +262,28 @@ const loadInitialState = () => {
       if (!parsed.storeStatusMode) {
         parsed.storeStatusMode = 'auto'
       }
+      if (!Array.isArray(parsed.neighborhoods) || parsed.neighborhoods.length === 0) {
+        parsed.neighborhoods = DEFAULT_NEIGHBORHOODS
+      }
+      if (!parsed.deliveryConfig) {
+        parsed.deliveryConfig = DEFAULT_DELIVERY_CONFIG
+      } else {
+        parsed.deliveryConfig = { ...DEFAULT_DELIVERY_CONFIG, ...parsed.deliveryConfig }
+      }
+      if (!parsed.paymentConfig) {
+        parsed.paymentConfig = DEFAULT_PAYMENT_CONFIG
+      } else {
+        parsed.paymentConfig = {
+          methods: {
+            ...DEFAULT_PAYMENT_CONFIG.methods,
+            ...(parsed.paymentConfig.methods || {}),
+          },
+          pix: {
+            ...DEFAULT_PAYMENT_CONFIG.pix,
+            ...(parsed.paymentConfig.pix || {}),
+          },
+        }
+      }
       return parsed
     }
   } catch (error) {
@@ -249,6 +309,9 @@ const loadInitialState = () => {
     products: DEFAULT_PRODUCTS,
     schedule: DEFAULT_SCHEDULE,
     timezone: 'America/Sao_Paulo',
+    deliveryConfig: DEFAULT_DELIVERY_CONFIG,
+    neighborhoods: DEFAULT_NEIGHBORHOODS,
+    paymentConfig: DEFAULT_PAYMENT_CONFIG,
   }
 }
 
@@ -266,6 +329,9 @@ export const useStoreAdmin = create((set, get) => ({
   products: initial.products || DEFAULT_PRODUCTS,
   schedule: initial.schedule || DEFAULT_SCHEDULE,
   timezone: initial.timezone || 'America/Sao_Paulo',
+  deliveryConfig: initial.deliveryConfig || DEFAULT_DELIVERY_CONFIG,
+  neighborhoods: initial.neighborhoods || DEFAULT_NEIGHBORHOODS,
+  paymentConfig: initial.paymentConfig || DEFAULT_PAYMENT_CONFIG,
 
   // Fuso Horário
   setTimezone: (timezone) => {
@@ -676,6 +742,113 @@ export const useStoreAdmin = create((set, get) => ({
     get().persist()
   },
 
+  // Gestão de Bairros & Taxas de Entrega
+  updateDeliveryConfig: (partial) => {
+    set((state) => ({
+      deliveryConfig: { ...state.deliveryConfig, ...partial },
+    }))
+    get().persist()
+  },
+
+  setDeliveryPricingMode: (mode) => {
+    set((state) => ({
+      deliveryConfig: { ...state.deliveryConfig, pricingMode: mode },
+    }))
+    get().persist()
+  },
+
+  addNeighborhood: ({ name, fee, active = true }) => {
+    const trimmed = (name || '').trim()
+    if (!trimmed) return false
+
+    const newNeighborhood = {
+      id: `nb-${Date.now()}`,
+      name: trimmed,
+      fee: Math.max(0, Number(fee) || 0),
+      active: active !== false,
+    }
+
+    set((state) => ({
+      neighborhoods: [...state.neighborhoods, newNeighborhood],
+    }))
+    get().persist()
+    return true
+  },
+
+  updateNeighborhood: (id, partial) => {
+    set((state) => ({
+      neighborhoods: state.neighborhoods.map((n) =>
+        n.id === id
+          ? {
+              ...n,
+              ...partial,
+              name: partial.name !== undefined ? partial.name.trim() : n.name,
+              fee:
+                partial.fee !== undefined
+                  ? Math.max(0, Number(partial.fee) || 0)
+                  : n.fee,
+            }
+          : n
+      ),
+    }))
+    get().persist()
+  },
+
+  toggleNeighborhoodActive: (id) => {
+    set((state) => ({
+      neighborhoods: state.neighborhoods.map((n) =>
+        n.id === id ? { ...n, active: !n.active } : n
+      ),
+    }))
+    get().persist()
+  },
+
+  deleteNeighborhood: (id) => {
+    set((state) => ({
+      neighborhoods: state.neighborhoods.filter((n) => n.id !== id),
+    }))
+    get().persist()
+  },
+
+  setFullNeighborhoods: (newList) => {
+    set({ neighborhoods: newList })
+    get().persist()
+  },
+
+  // Pagamentos & Chave PIX
+  updatePaymentMethods: (partial) => {
+    set((state) => ({
+      paymentConfig: {
+        ...state.paymentConfig,
+        methods: { ...state.paymentConfig.methods, ...partial },
+      },
+    }))
+    get().persist()
+  },
+
+  togglePaymentMethod: (methodKey) => {
+    set((state) => ({
+      paymentConfig: {
+        ...state.paymentConfig,
+        methods: {
+          ...state.paymentConfig.methods,
+          [methodKey]: !state.paymentConfig.methods[methodKey],
+        },
+      },
+    }))
+    get().persist()
+  },
+
+  updatePixConfig: (partial) => {
+    set((state) => ({
+      paymentConfig: {
+        ...state.paymentConfig,
+        pix: { ...state.paymentConfig.pix, ...partial },
+      },
+    }))
+    get().persist()
+  },
+
   persist: () => {
     try {
       const state = get()
@@ -689,6 +862,9 @@ export const useStoreAdmin = create((set, get) => ({
         products: state.products,
         schedule: state.schedule,
         timezone: state.timezone,
+        deliveryConfig: state.deliveryConfig,
+        neighborhoods: state.neighborhoods,
+        paymentConfig: state.paymentConfig,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     } catch (e) {
