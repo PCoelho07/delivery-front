@@ -218,43 +218,41 @@ function TemplateModalContent({ onClose, templateToEdit }) {
         </button>
       </div>
 
-      {/* Formulário com Scroll Interno */}
+      {/* Formulário com Scroll Interno e Rodapé Fixo */}
       <form
         onSubmit={handleSubmit}
-        className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6"
+        className="flex-1 flex flex-col min-h-0"
       >
-        {/* Seção 1: Dados Gerais do Template */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-[#1A1D20] mb-1">
-              Nome do Template *
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Hambúrgueres Artesanais, Pizzas Grandes, Açaí no Copo"
-              required
-              className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold outline-none transition-all"
-            />
-            <span className="text-[11px] text-[#6C757D] mt-1 block">
-              As primeiras letras serão ajustadas em Title Case automaticamente.
-            </span>
-          </div>
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+          {/* Seção 1: Dados Gerais do Template */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-[#1A1D20] mb-1">
+                Nome do Template *
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Hambúrgueres Artesanais, Pizzas Grandes, Açaí no Copo"
+                required
+                className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold outline-none transition-all"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#1A1D20] mb-1">
-              Descrição do Template (Opcional)
-            </label>
-            <input
-              type="text"
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              placeholder="Ex: Ponto da carne, adicionais pagos e preferências sem ingrediente"
-              className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] outline-none transition-all"
-            />
+            <div>
+              <label className="block text-xs font-bold text-[#1A1D20] mb-1">
+                Descrição do Template (Opcional)
+              </label>
+              <input
+                type="text"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Ex: Ponto da carne, adicionais pagos e preferências sem ingrediente"
+                className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] outline-none transition-all"
+              />
+            </div>
           </div>
-        </div>
 
         {/* Seção 2: Grupos de Complementos */}
         <div className="space-y-3 pt-2 border-t border-[#F1F3F5]">
@@ -436,9 +434,10 @@ function TemplateModalContent({ onClose, templateToEdit }) {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Rodapé com Ações */}
-        <div className="pt-4 border-t border-[#E9ECEF] flex items-center justify-end gap-3 sticky bottom-0 bg-white">
+      {/* Rodapé Fixo com Ações */}
+        <div className="p-4 sm:p-5 border-t border-[#E9ECEF] flex items-center justify-end gap-3 shrink-0 bg-white">
           <button
             type="button"
             onClick={onClose}
@@ -448,7 +447,7 @@ function TemplateModalContent({ onClose, templateToEdit }) {
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all cursor-pointer"
+            className="px-6 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all cursor-pointer"
           >
             {templateToEdit ? 'Salvar Alterações' : 'Criar Template'}
           </button>

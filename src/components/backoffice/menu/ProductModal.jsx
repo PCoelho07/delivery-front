@@ -196,8 +196,9 @@ export function ProductModal({
         {/* Form Body com scroll */}
         <form
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 custom-scrollbar"
+          className="flex-1 flex flex-col min-h-0"
         >
+          <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 custom-scrollbar">
           {/* Seção 1: Upload com Compressão Automática & Pré-visualização */}
           <div>
             <label className="block text-xs font-bold text-[#1A1D20] mb-1.5">
@@ -304,7 +305,7 @@ export function ProductModal({
                 )}
 
                 <p className="text-[11px] text-[#6C757D]">
-                  Fotos pesadas são automaticamente otimizadas em WebP para que o cardápio abra instantaneamente no celular do cliente.
+                  Formatos recomendados: JPG, PNG ou WebP.
                 </p>
               </div>
             </div>
@@ -544,26 +545,27 @@ export function ProductModal({
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="pt-3 border-t border-[#E9ECEF] flex items-center justify-end gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-[#E9ECEF] text-xs font-bold text-[#6C757D] hover:bg-[#F8F9FA] transition-all cursor-pointer"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={isCompressing || categories.length === 0}
-              className="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{productToEdit ? 'Salvar Alterações' : 'Cadastrar Produto'}</span>
-            </button>
-          </div>
-        </form>
+        {/* Actions Rodapé Fixo */}
+        <div className="p-4 sm:p-5 border-t border-[#E9ECEF] flex items-center justify-end gap-2.5 shrink-0 bg-white">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-[#E9ECEF] text-xs font-bold text-[#6C757D] hover:bg-[#F8F9FA] transition-all cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={isCompressing || categories.length === 0}
+            className="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-[#FF5E1E]/20 transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{productToEdit ? 'Salvar Alterações' : 'Cadastrar Produto'}</span>
+          </button>
+        </div>
+      </form>
       </div>
     </div>
   )
