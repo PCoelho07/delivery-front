@@ -1,15 +1,17 @@
 import { Plus } from 'lucide-react'
 import { formatCurrency } from '../../lib/utils'
 
-export function ProductCard({ item, onSelect }) {
+export function ProductCard({ item, onSelect, isStoreClosed = false }) {
   const isAvailable = item.available !== false
 
   return (
     <article
-      onClick={() => isAvailable && onSelect?.(item)}
+      onClick={() => onSelect?.(item)}
       className={`bg-white rounded-2xl p-3 flex items-center gap-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all ${
-        isAvailable
+        isAvailable && !isStoreClosed
           ? 'hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] cursor-pointer'
+          : isStoreClosed
+          ? 'opacity-85 hover:bg-slate-50/70 cursor-not-allowed'
           : 'opacity-70 cursor-not-allowed'
       }`}
     >
@@ -67,7 +69,15 @@ export function ProductCard({ item, onSelect }) {
             {formatCurrency(item.price)}
           </span>
 
-          {isAvailable ? (
+          {!isAvailable ? (
+            <span className="text-[11px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+              Esgotado
+            </span>
+          ) : isStoreClosed ? (
+            <span className="text-[10.5px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+              Fechado
+            </span>
+          ) : (
             <button
               type="button"
               onClick={(e) => {
@@ -79,10 +89,6 @@ export function ProductCard({ item, onSelect }) {
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
             </button>
-          ) : (
-            <span className="text-[11px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-              Esgotado
-            </span>
           )}
         </div>
       </div>

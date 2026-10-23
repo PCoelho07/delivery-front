@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Plus, Trash2, Layers } from 'lucide-react'
+import { X, Plus, Trash2, Puzzle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { formatTitleCase } from '../../../utils/textUtils'
@@ -197,7 +197,7 @@ function TemplateModalContent({ onClose, templateToEdit }) {
       <div className="p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0 bg-white">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-orange-100 text-[#FF5E1E] flex items-center justify-center font-bold text-lg shrink-0">
-            <Layers className="w-5 h-5 text-[#FF5E1E]" />
+            <Puzzle className="w-5 h-5 text-[#FF5E1E]" />
           </div>
           <div>
             <h3 className="font-extrabold text-base text-[#1A1D20]">

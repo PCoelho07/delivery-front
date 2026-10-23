@@ -1,0 +1,716 @@
+import { useState, useMemo, useEffect } from 'react'
+import {
+  ClipboardList,
+  ShoppingBag,
+  DollarSign,
+  Timer,
+  Receipt,
+  Plus,
+  Volume2,
+  VolumeX,
+  Sparkles,
+  ChefHat,
+  Bike,
+  CheckCircle2,
+  RotateCcw,
+  Search,
+  X,
+  LayoutGrid,
+  List,
+  Store,
+  Trash2,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useCustomerStore } from '../../../store/useCustomerStore'
+import { formatCurrency } from '../../../lib/utils'
+import { OrderCard } from './OrderCard'
+import { OrdersTableView } from './OrdersTableView'
+import { ThermalReceiptModal } from './ThermalReceiptModal'
+
+// Pedidos demonstrativos para alimentar o Kanban caso ainda não haja pedidos no store
+const DEFAULT_DEMO_ORDERS = [
+  {
+    orderId: '#1042',
+    status: 'aceito',
+    createdAt: 'Hoje às 21:42',
+    elapsedTime: 'há 4 min',
+    deliveryMethod: 'delivery',
+    customer: {
+      name: 'Lucas Silva',
+      phone: '(84) 99876-5432',
+    },
+    address: {
+      street: 'Rua das Flores',
+      number: '142',
+      neighborhoodName: 'Centro',
+      complement: 'Apt 201',
+    },
+    items: [
+      {
+        cartItemId: 'item-demo-1',
+        name: 'Brasa Master Picanha',
+        product: { name: 'Brasa Master Picanha' },
+        quantity: 1,
+        price: 38.9,
+        totalPrice: 42.9,
+        options: [
+          { name: 'Ponto da carne', value: 'Ao ponto' },
+          { name: 'Bacon Extra', value: '+R$ 4,00' },
+        ],
+        notes: 'Sem cebola crua por favor',
+      },
+    ],
+    deliveryFee: 6.0,
+    subtotal: 42.9,
+    total: 48.9,
+    paymentMethod: 'pix',
+    pix: {
+      key: '12.345.678/0001-90',
+      beneficiary: 'Brasa Burger',
+    },
+  },
+  {
+    orderId: '#1041',
+    status: 'preparo',
+    createdAt: 'Hoje às 21:32',
+    elapsedTime: 'há 14 min',
+    deliveryMethod: 'pickup',
+    customer: {
+      name: 'Mariana Costa',
+      phone: '(84) 99123-4567',
+    },
+    address: null,
+    items: [
+      {
+        cartItemId: 'item-demo-2',
+        name: 'Smash Bacon Duplo',
+        product: { name: 'Smash Bacon Duplo' },
+        quantity: 2,
+        price: 28.9,
+        totalPrice: 57.8,
+        options: [{ name: 'Molho extra', value: 'Maionese da casa' }],
+      },
+    ],
+    deliveryFee: 0,
+    subtotal: 57.8,
+    total: 57.8,
+    paymentMethod: 'credit',
+  },
+  {
+    orderId: '#1040',
+    status: 'entrega',
+    createdAt: 'Hoje às 21:15',
+    elapsedTime: 'há 28 min',
+    deliveryMethod: 'delivery',
+    customer: {
+      name: 'Carlos Eduardo',
+      phone: '(84) 98765-4321',
+    },
+    address: {
+      street: 'Av. Brasil',
+      number: '500',
+      neighborhoodName: 'Jardim América',
+      complement: 'Bloco B',
+    },
+    items: [
+      {
+        cartItemId: 'item-demo-3',
+        name: 'Combo Casal Smash',
+        product: { name: 'Combo Casal Smash' },
+        quantity: 1,
+        price: 64.9,
+        totalPrice: 64.9,
+        options: [{ name: 'Refrigerante', value: 'Coca-Cola 1.5L' }],
+      },
+    ],
+    deliveryFee: 7.5,
+    subtotal: 64.9,
+    total: 72.4,
+    paymentMethod: 'money',
+    changeFor: 100,
+  },
+  {
+    orderId: '#1039',
+    status: 'concluido',
+    createdAt: 'Hoje às 20:45',
+    elapsedTime: 'concluído',
+    deliveryMethod: 'delivery',
+    customer: {
+      name: 'Fernanda Lima',
+      phone: '(84) 99444-2211',
+    },
+    address: {
+      street: 'Rua da Paz',
+      number: '88',
+      neighborhoodName: 'Centro',
+    },
+    items: [
+      {
+        cartItemId: 'item-demo-4',
+        name: 'Smash Salada Burger',
+        product: { name: 'Smash Salada Burger' },
+        quantity: 1,
+        price: 26.9,
+        totalPrice: 26.9,
+      },
+    ],
+    deliveryFee: 5.0,
+    subtotal: 26.9,
+    total: 31.9,
+    paymentMethod: 'pix',
+  },
+]
+
+export function OrdersView() {
+  const storeOrders = useCustomerStore((state) => state.orders)
+  const addStoreOrder = useCustomerStore((state) => state.addOrder)
+  const updateStoreOrderStatus = useCustomerStore((state) => state.updateOrderStatus)
+  const setStoreOrders = useCustomerStore((state) => state.setOrders)
+  const clearStoreOrders = useCustomerStore((state) => state.clearOrders)
+
+  // Sincronização multi-abas em tempo real via storage event
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'delivery-customer-cache-v1') {
+        useCustomerStore.persist.rehydrate()
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  // Modos de visualização: 'kanban' | 'list'
+  const [viewMode, setViewMode] = useState('kanban')
+
+  // Filtro de busca textual (#ID, nome do cliente ou item)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Filtro por modalidade: 'all' | 'delivery' | 'pickup'
+  const [deliveryFilter, setDeliveryFilter] = useState('all')
+
+  // Controle de compactação da coluna de Concluídos (para suportar dezenas de pedidos sem poluição)
+  const [completedCompact, setCompletedCompact] = useState(true)
+
+  // Controle de som de novo pedido
+  const [soundEnabled, setSoundEnabled] = useState(true)
+
+  // Pedido selecionado para impressão de comanda térmica
+  const [orderToPrint, setOrderToPrint] = useState(null)
+
+  // Todos os pedidos registrados
+  const allOrders = storeOrders
+
+  // Métricas do Topo (sempre calculadas sobre o total do dia)
+  const metrics = useMemo(() => {
+    const totalCount = allOrders.length
+    const totalRevenue = allOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0)
+    const ticketMedio = totalCount > 0 ? totalRevenue / totalCount : 0
+
+    return {
+      count: totalCount,
+      revenue: totalRevenue,
+      ticket: ticketMedio,
+      kitchenTime: '18 min',
+    }
+  }, [allOrders])
+
+  // Pedidos Filtrados por busca e modalidade
+  const filteredOrders = useMemo(() => {
+    return allOrders.filter((o) => {
+      // Filtro por modalidade
+      if (deliveryFilter === 'delivery' && o.deliveryMethod !== 'delivery') return false
+      if (deliveryFilter === 'pickup' && o.deliveryMethod !== 'pickup') return false
+
+      // Filtro de busca textual
+      if (!searchQuery.trim()) return true
+      const query = searchQuery.toLowerCase()
+      const matchId = (o.orderId || '').toLowerCase().includes(query)
+      const matchName = (o.customer?.name || '').toLowerCase().includes(query)
+      const matchPhone = (o.customer?.phone || '').includes(query)
+      const matchItem = (o.items || []).some((it) => (it.name || it.product?.name || '').toLowerCase().includes(query))
+      const matchNeighborhood = (o.address?.neighborhoodName || '').toLowerCase().includes(query)
+
+      return matchId || matchName || matchPhone || matchItem || matchNeighborhood
+    })
+  }, [allOrders, searchQuery, deliveryFilter])
+
+  // Colunas do Kanban (alimentadas com os pedidos filtrados)
+  const newOrders = filteredOrders.filter((o) => o.status === 'aceito' || o.status === 'novo')
+  const inPrepOrders = filteredOrders.filter((o) => o.status === 'preparo')
+  const inDeliveryOrders = filteredOrders.filter((o) => o.status === 'entrega')
+  const completedOrders = filteredOrders.filter((o) => o.status === 'concluido')
+
+  // Avançar Status
+  const handleAdvance = (orderId, nextStatus) => {
+    updateStoreOrderStatus(orderId, nextStatus)
+    const targetOrder = allOrders.find((o) => o.orderId === orderId)
+    const isPickup = targetOrder?.deliveryMethod === 'pickup'
+
+    const messages = {
+      preparo: 'Pedido enviado para a Cozinha!',
+      entrega: isPickup ? 'Pedido pronto para retirada no balcão!' : 'Pedido saiu para Entrega!',
+      concluido: isPickup ? 'Pedido retirado e finalizado com sucesso!' : 'Pedido entregue e concluído com sucesso!',
+    }
+    toast.success(messages[nextStatus] || 'Status atualizado com sucesso!')
+  }
+
+  // Voltar Status
+  const handleRewind = (orderId, prevStatus) => {
+    updateStoreOrderStatus(orderId, prevStatus)
+    toast.info('Status retrocedido.')
+  }
+
+  // Alternar Som de Notificação
+  const handleToggleSound = () => {
+    const next = !soundEnabled
+    setSoundEnabled(next)
+    toast.info(next ? 'Alerta sonoro ativado!' : 'Alerta sonoro silenciado.')
+  }
+
+  // Simular Novo Pedido
+  const handleSimulateOrder = () => {
+    const randomId = `#${Math.floor(1000 + Math.random() * 9000)}`
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('pt-BR')
+    const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    const simulated = {
+      orderId: randomId,
+      status: 'aceito',
+      createdAt: `${dateStr} às ${timeStr}`,
+      elapsedTime: `${dateStr} às ${timeStr}`,
+      deliveryMethod: Math.random() > 0.3 ? 'delivery' : 'pickup',
+      customer: {
+        name: 'Cliente ' + randomId,
+        phone: '(84) 99999-8888',
+      },
+      address: {
+        street: 'Rua Principal',
+        number: '10',
+        neighborhoodName: 'Centro',
+      },
+      items: [
+        {
+          cartItemId: `sim-${Date.now()}`,
+          name: 'Brasa Master Picanha',
+          product: { name: 'Brasa Master Picanha' },
+          quantity: 1,
+          price: 34.9,
+          totalPrice: 34.9,
+          options: [{ name: 'Bacon', value: 'Extra (+R$ 4,00)' }],
+        },
+      ],
+      deliveryFee: 5.0,
+      subtotal: 38.9,
+      total: 43.9,
+      paymentMethod: 'pix',
+      pix: {
+        key: '12.345.678/0001-90',
+        beneficiary: 'Brasa Burger',
+      },
+    }
+
+    addStoreOrder(simulated)
+    toast.success(`Novo pedido ${randomId} recebido com sucesso!`)
+  }
+
+  // Restaurar Pedidos de Demonstração
+  const handleResetDemo = () => {
+    setStoreOrders(DEFAULT_DEMO_ORDERS)
+    toast.info('Kanban restaurado com os pedidos de demonstração.')
+  }
+
+  // Limpar Todos os Pedidos (Zerar fila e testes)
+  const handleClearOrders = () => {
+    clearStoreOrders()
+    toast.success('Todos os pedidos de teste foram removidos!')
+  }
+
+  return (
+    <div className="space-y-4 max-w-7xl mx-auto">
+      {/* Top Header */}
+      <div className="bg-white rounded-2xl border border-[#E9ECEF] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-[#FF5E1E]" />
+            <span>Gestor de Pedidos em Tempo Real</span>
+          </h2>
+          <p className="text-xs text-[#6C757D] mt-0.5">
+            Acompanhe a fila de produção, avance etapas do pedido e imprima comandas térmicas para a cozinha.
+          </p>
+        </div>
+
+        {/* Ações do Header */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Alternador de Visualização: Kanban vs Lista */}
+          <div className="bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode('kanban')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'kanban'
+                  ? 'bg-[#FF5E1E] text-white shadow-xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Kanban</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-[#FF5E1E] text-white shadow-xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              <span>Lista Compacta</span>
+            </button>
+          </div>
+
+          {/* Som de Alerta */}
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              soundEnabled
+                ? 'bg-orange-50 border-orange-200 text-[#FF5E1E] hover:bg-orange-100'
+                : 'bg-slate-50 border-[#E9ECEF] text-[#6C757D] hover:bg-slate-100'
+            }`}
+            title={soundEnabled ? 'Som ativado' : 'Som desativado'}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            <span className="hidden md:inline">{soundEnabled ? 'Alerta Ativo' : 'Mudo'}</span>
+          </button>
+
+          {/* Zerar Pedidos */}
+          <button
+            type="button"
+            onClick={handleClearOrders}
+            className="p-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Apagar todos os pedidos de teste"
+          >
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span className="hidden md:inline">Zerar Pedidos</span>
+          </button>
+
+          {/* Restaurar Demonstração */}
+          <button
+            type="button"
+            onClick={handleResetDemo}
+            className="p-2.5 rounded-xl border border-[#E9ECEF] bg-white hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Recarregar exemplos"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span className="hidden md:inline">Resetar</span>
+          </button>
+
+          {/* Simular Pedido */}
+          <button
+            type="button"
+            onClick={handleSimulateOrder}
+            className="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Simular Pedido</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Cards de Métricas Principais (KPIs) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Card 1: Pedidos Hoje */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[#6C757D] font-medium">Pedidos Hoje</p>
+            <h3 className="text-2xl font-black text-[#1A1D20] mt-0.5">{metrics.count}</h3>
+            <p className="text-[11px] text-emerald-600 font-bold mt-0.5">● Operação ativa</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center">
+            <ShoppingBag className="w-5 h-5 text-[#FF5E1E]" />
+          </div>
+        </div>
+
+        {/* Card 2: Faturamento Estimado */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[#6C757D] font-medium">Faturamento Estimado</p>
+            <h3 className="text-2xl font-black text-[#1A1D20] mt-0.5">
+              {formatCurrency(metrics.revenue)}
+            </h3>
+            <p className="text-[11px] text-[#6C757D] mt-0.5">Vendas acumuladas hoje</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <DollarSign className="w-5 h-5 text-emerald-600" />
+          </div>
+        </div>
+
+        {/* Card 3: Tempo Médio Cozinha */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[#6C757D] font-medium">Tempo Médio Cozinha</p>
+            <h3 className="text-2xl font-black text-[#1A1D20] mt-0.5">{metrics.kitchenTime}</h3>
+            <p className="text-[11px] text-blue-600 font-bold mt-0.5">Preparo dentro da meta</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <Timer className="w-5 h-5 text-blue-600" />
+          </div>
+        </div>
+
+        {/* Card 4: Ticket Médio */}
+        <div className="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[#6C757D] font-medium">Ticket Médio</p>
+            <h3 className="text-2xl font-black text-[#1A1D20] mt-0.5">
+              {formatCurrency(metrics.ticket)}
+            </h3>
+            <p className="text-[11px] text-[#6C757D] mt-0.5">Média por pedido</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <Receipt className="w-5 h-5 text-purple-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* Barra de Filtros e Busca Rápida (Essencial para dias com 50+ pedidos) */}
+      <div className="bg-white rounded-2xl border border-[#E9ECEF] p-3 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {/* Campo de Busca Rápida */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-4 h-4 text-[#6C757D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por #nº pedido, cliente, item ou bairro..."
+            className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl pl-9 pr-8 py-2 text-xs text-[#1A1D20] font-semibold outline-none transition-all placeholder:text-[#9CA3AF]"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="w-6 h-6 rounded-full hover:bg-slate-200 text-[#6C757D] absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Filtros por Modalidade & Contagem */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF]">
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                deliveryFilter === 'all'
+                  ? 'bg-white text-[#1A1D20] shadow-2xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+            >
+              Todos ({allOrders.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('delivery')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                deliveryFilter === 'delivery'
+                  ? 'bg-white text-[#FF5E1E] shadow-2xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+            >
+              <Bike className="w-3 h-3" />
+              <span>Entrega</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('pickup')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                deliveryFilter === 'pickup'
+                  ? 'bg-white text-blue-600 shadow-2xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+            >
+              <Store className="w-3 h-3" />
+              <span>Balcão</span>
+            </button>
+          </div>
+
+          {searchQuery && (
+            <span className="text-[11px] font-bold text-[#FF5E1E] bg-orange-50 border border-orange-200 px-2.5 py-1.5 rounded-xl">
+              {filteredOrders.length} {filteredOrders.length === 1 ? 'encontrado' : 'encontrados'}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* RENDERIZAÇÃO: MODO KANBAN VS MODO LISTA */}
+      {viewMode === 'list' ? (
+        <OrdersTableView
+          orders={filteredOrders}
+          onAdvance={handleAdvance}
+          onPrint={setOrderToPrint}
+        />
+      ) : (
+        /* 4 Colunas do Kanban com Rolagem Independente por Coluna */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 items-start">
+          {/* Coluna 1: Novos Pedidos */}
+          <div className="flex flex-col bg-amber-50/40 rounded-2xl p-3 border border-amber-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+            {/* Cabeçalho Fixo da Coluna */}
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-amber-200/50 shrink-0">
+              <span className="font-extrabold text-xs uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Novos Pedidos</span>
+              </span>
+              <span className="bg-amber-200 text-amber-900 font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                {newOrders.length}
+              </span>
+            </div>
+
+            {/* Lista com Scroll Interno Independente */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pt-3 pr-1 scrollbar-thin">
+              {newOrders.length === 0 ? (
+                <div className="bg-white/80 rounded-xl p-8 text-center border border-dashed border-amber-200">
+                  <p className="text-xs text-[#6C757D]">Nenhum pedido pendente</p>
+                </div>
+              ) : (
+                newOrders.map((order) => (
+                  <OrderCard
+                    key={order.orderId}
+                    order={order}
+                    onAdvance={handleAdvance}
+                    onPrint={setOrderToPrint}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 2: Em Preparo (Cozinha) */}
+          <div className="flex flex-col bg-blue-50/40 rounded-2xl p-3 border border-blue-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+            {/* Cabeçalho Fixo da Coluna */}
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-blue-200/50 shrink-0">
+              <span className="font-extrabold text-xs uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <ChefHat className="w-3.5 h-3.5 text-blue-600" />
+                <span>Em Preparo</span>
+              </span>
+              <span className="bg-blue-200 text-blue-900 font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                {inPrepOrders.length}
+              </span>
+            </div>
+
+            {/* Lista com Scroll Interno Independente */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pt-3 pr-1 scrollbar-thin">
+              {inPrepOrders.length === 0 ? (
+                <div className="bg-white/80 rounded-xl p-8 text-center border border-dashed border-blue-200">
+                  <p className="text-xs text-[#6C757D]">Cozinha livre</p>
+                </div>
+              ) : (
+                inPrepOrders.map((order) => (
+                  <OrderCard
+                    key={order.orderId}
+                    order={order}
+                    onAdvance={handleAdvance}
+                    onRewind={handleRewind}
+                    onPrint={setOrderToPrint}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 3: Pronto / Em Rota */}
+          <div className="flex flex-col bg-purple-50/40 rounded-2xl p-3 border border-purple-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+            {/* Cabeçalho Fixo da Coluna */}
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-purple-200/50 shrink-0">
+              <span className="font-extrabold text-xs uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-purple-500" />
+                <div className="flex items-center gap-1.5">
+                  <Bike className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                  <Store className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                </div>
+                <span>Pronto / Em Rota</span>
+              </span>
+              <span className="bg-purple-200 text-purple-900 font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                {inDeliveryOrders.length}
+              </span>
+            </div>
+
+            {/* Lista com Scroll Interno Independente */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-3 pt-3 pr-1 scrollbar-thin">
+              {inDeliveryOrders.length === 0 ? (
+                <div className="bg-white/80 rounded-xl p-8 text-center border border-dashed border-purple-200">
+                  <p className="text-xs text-[#6C757D]">Nenhum pedido pronto ou em rota</p>
+                </div>
+              ) : (
+                inDeliveryOrders.map((order) => (
+                  <OrderCard
+                    key={order.orderId}
+                    order={order}
+                    onAdvance={handleAdvance}
+                    onRewind={handleRewind}
+                    onPrint={setOrderToPrint}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Coluna 4: Concluídos (com Visual Compacto para economizar espaço com dezenas de pedidos) */}
+          <div className="flex flex-col bg-emerald-50/40 rounded-2xl p-3 border border-emerald-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+            {/* Cabeçalho Fixo da Coluna com Botão de Compactar */}
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-emerald-200/50 shrink-0">
+              <span className="font-extrabold text-xs uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Concluídos</span>
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCompletedCompact(!completedCompact)}
+                  className="text-[10px] font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                  title="Alternar entre visual compacto e detalhado"
+                >
+                  {completedCompact ? 'Modo Compacto' : 'Modo Completo'}
+                </button>
+                <span className="bg-emerald-200 text-emerald-900 font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                  {completedOrders.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Lista com Scroll Interno Independente */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-2 pt-3 pr-1 scrollbar-thin">
+              {completedOrders.length === 0 ? (
+                <div className="bg-white/80 rounded-xl p-8 text-center border border-dashed border-emerald-200">
+                  <p className="text-xs text-[#6C757D]">Nenhum pedido finalizado</p>
+                </div>
+              ) : (
+                completedOrders.map((order) => (
+                  <OrderCard
+                    key={order.orderId}
+                    order={order}
+                    compact={completedCompact}
+                    onRewind={handleRewind}
+                    onPrint={setOrderToPrint}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Impressão Térmica 80mm */}
+      {orderToPrint && (
+        <ThermalReceiptModal
+          order={orderToPrint}
+          onClose={() => setOrderToPrint(null)}
+        />
+      )}
+    </div>
+  )
+}

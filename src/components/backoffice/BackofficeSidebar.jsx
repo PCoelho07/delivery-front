@@ -2,6 +2,7 @@ import {
   UtensilsCrossed,
   Puzzle,
   ClipboardList,
+  CircleDollarSign,
   Clock,
   MapPin,
   CreditCard,
@@ -25,6 +26,11 @@ export function BackofficeSidebar() {
 
   const navItems = [
     {
+      id: 'pedidos',
+      label: 'Gestor de Pedidos',
+      icon: ClipboardList,
+    },
+    {
       id: 'cardapio',
       label: 'Cardápio & Vitrine',
       icon: UtensilsCrossed,
@@ -35,9 +41,9 @@ export function BackofficeSidebar() {
       icon: Puzzle,
     },
     {
-      id: 'pedidos',
-      label: 'Gestor de Pedidos',
-      icon: ClipboardList,
+      id: 'financeiro',
+      label: 'Financeiro',
+      icon: CircleDollarSign,
     },
     {
       id: 'horarios',

@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Plus,
   Sparkles,
+  UtensilsCrossed,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -135,8 +136,9 @@ export function MenuVitrineView() {
       {/* Top Header com Botões da Vitrine */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-extrabold text-[#1A1D20]">
-            Cardápio & Vitrine de Produtos
+          <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+            <UtensilsCrossed className="w-5 h-5 text-[#FF5E1E]" />
+            <span>Cardápio & Vitrine de Produtos</span>
           </h2>
           <p className="text-xs text-[#6C757D] mt-0.5">
             Cadastre as categorias da vitrine, vincule templates de adicionais e controle produtos esgotados em tempo real.

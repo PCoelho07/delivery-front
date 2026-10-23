@@ -8,6 +8,7 @@ import {
   Truck,
   ShoppingBag,
 } from 'lucide-react'
+import { formatCurrency } from '../../lib/utils'
 
 const DAYS_ORDER = [
   { id: 'dom', label: 'Domingo' },
@@ -124,6 +125,18 @@ export function StoreInfoModal({ isOpen, onClose, store = {} }) {
                     </span>
                   </p>
                 )}
+
+                <p className="flex items-center gap-1.5">
+                  <Banknote className="w-3.5 h-3.5 text-[#FF5E1E] shrink-0" />
+                  <span>
+                    Taxa de entrega:{' '}
+                    <strong className="text-[#1A1D20]">
+                      {store.deliveryPricingMode === 'fixed'
+                        ? `Taxa fixa (${formatCurrency(store.fixedDeliveryFee ?? 3.0)})`
+                        : 'Variável por bairro'}
+                    </strong>
+                  </span>
+                </p>
               </div>
             </div>
           </div>

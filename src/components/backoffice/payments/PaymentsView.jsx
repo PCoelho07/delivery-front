@@ -77,7 +77,7 @@ export function PaymentsView() {
   )
   const [draftPixKey, setDraftPixKey] = useState(paymentConfig?.pix?.key || '')
   const [draftBeneficiary, setDraftBeneficiary] = useState(
-    paymentConfig?.pix?.beneficiary || 'Brasa Burger'
+    paymentConfig?.pix?.beneficiary ?? 'Brasa Burger'
   )
 
   const [copiedPreview, setCopiedPreview] = useState(false)
@@ -96,7 +96,7 @@ export function PaymentsView() {
     const pixChanged =
       draftPixKeyType !== (savedPix.keyType || 'cnpj') ||
       draftPixKey !== (savedPix.key || '') ||
-      draftBeneficiary !== (savedPix.beneficiary || 'Brasa Burger')
+      draftBeneficiary !== (savedPix.beneficiary ?? 'Brasa Burger')
 
     return methodsChanged || pixChanged
   }, [draftMethods, draftPixKeyType, draftPixKey, draftBeneficiary, paymentConfig])
@@ -186,14 +186,42 @@ export function PaymentsView() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Top Header */}
-      <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs">
-        <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
-          <CreditCard className="w-5 h-5 text-[#FF5E1E]" />
-          <span>Pagamentos & Chave PIX</span>
-        </h2>
-        <p className="text-xs text-[#6C757D] mt-0.5">
-          Defina as formas de pagamento disponíveis e configure a chave PIX do estabelecimento.
-        </p>
+      <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-[#FF5E1E]" />
+            <span>Pagamentos & Chave PIX</span>
+            {isDirty && (
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                Alterações pendentes
+              </span>
+            )}
+          </h2>
+          <p className="text-xs text-[#6C757D] mt-0.5">
+            Defina as formas de pagamento disponíveis e configure a chave PIX do estabelecimento.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleDiscard}
+              className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Descartar</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>Salvar Pagamentos</span>
+          </button>
+        </div>
       </div>
 
       {/* Card 1: Formas de Pagamento Aceitas */}
@@ -361,18 +389,21 @@ export function PaymentsView() {
           </div>
         </div>
 
-        {/* Nome do Titular / Beneficiário da Conta */}
-        <div className="space-y-1 pt-1">
+        {/* Nome do Titular / Nome da Conta PIX */}
+        <div className="space-y-1.5 pt-1">
           <label className="block text-xs font-bold text-[#1A1D20]">
-            Nome do Titular / Beneficiário da Conta PIX <span className="text-[#FF5E1E]">*</span>
+            Nome da Conta / Titular do PIX (Favorecido) <span className="text-[#FF5E1E]">*</span>
           </label>
           <input
             type="text"
             value={draftBeneficiary}
             onChange={(e) => setDraftBeneficiary(e.target.value)}
-            placeholder="Ex: Brasa Burger Hamburgueria Ltda"
+            placeholder="Ex: Carlos Henrique da Silva ou Brasa Burger Ltda"
             className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold outline-none transition-all placeholder:text-[#9CA3AF]"
           />
+          <p className="text-[11px] text-[#6C757D]">
+            Nome exibido ao cliente no momento do pagamento para conferência bancária. Não precisa ser obrigatoriamente o nome da loja — pode ser o nome do proprietário ou titular da conta onde o valor cai.
+          </p>
         </div>
 
         {/* Prévia Visual da Chave PIX */}
@@ -394,7 +425,7 @@ export function PaymentsView() {
                   {draftPixKey}
                 </span>
                 <span className="text-[10px] text-[#6C757D] block mt-0.5 truncate">
-                  Titular: <strong>{draftBeneficiary || 'Nome da Loja'}</strong>
+                  Nome na Conta / Titular: <strong>{draftBeneficiary.trim() || 'Não informado'}</strong>
                 </span>
               </div>
 
@@ -422,13 +453,13 @@ export function PaymentsView() {
           </div>
         )}
 
-        {/* Rodapé ÚNICO com botão Salvar e feedback de status */}
-        <div className="pt-3 border-t border-[#F1F3F5] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Rodapé ÚNICO com feedback de status */}
+        <div className="pt-3 border-t border-[#F1F3F5] flex items-center justify-between">
           <div>
             {isDirty ? (
               <p className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span>Você tem alterações não salvas. Clique em &ldquo;Salvar Pagamentos&rdquo; para aplicar ao cardápio.</span>
+                <span>Você tem alterações não salvas. Clique em &ldquo;Salvar Pagamentos&rdquo; no topo para aplicar ao cardápio.</span>
               </p>
             ) : (
               <p className="text-[11px] text-[#6C757D] flex items-center gap-1">
@@ -436,27 +467,6 @@ export function PaymentsView() {
                 <span>Formas de pagamento e chave PIX salvas e sincronizadas com a loja.</span>
               </p>
             )}
-          </div>
-
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            {isDirty && (
-              <button
-                type="button"
-                onClick={handleDiscard}
-                className="px-4 py-2.5 rounded-xl border border-[#E9ECEF] hover:bg-slate-100 text-[#6C757D] hover:text-[#1A1D20] font-bold text-xs transition-all cursor-pointer"
-              >
-                Descartar
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSave}
-              className="px-6 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Save className="w-4 h-4" />
-              <span>{isDirty ? 'Salvar Pagamentos' : 'Pagamentos Salvos'}</span>
-            </button>
           </div>
         </div>
       </div>

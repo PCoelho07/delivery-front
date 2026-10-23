@@ -31,6 +31,16 @@ export const useCustomerStore = create(
           profile: { name: '', phone: '', cpf: '' },
         }),
 
+      clearOrders: () =>
+        set({
+          orders: [],
+        }),
+
+      setOrders: (ordersList) =>
+        set({
+          orders: ordersList,
+        }),
+
       saveAddress: (addressData) =>
         set((state) => {
           const updated = { ...state.address, ...addressData }

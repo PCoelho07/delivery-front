@@ -52,6 +52,28 @@ export function DeliveryView() {
     String(deliveryConfig?.minOrder ?? '15.00')
   )
 
+  // Verifica se há alterações pendentes no rascunho em relação ao estado salvo
+  const isDirty = useMemo(() => {
+    const parsedFixed = Math.max(0, parseFloat(String(fixedFee).replace(',', '.')) || 0)
+    const parsedMin = Math.max(0, parseFloat(String(minOrder).replace(',', '.')) || 0)
+    return (
+      pricingMode !== (deliveryConfig?.pricingMode || 'by_neighborhood') ||
+      parsedFixed !== Number(deliveryConfig?.fixedFee ?? 5.0) ||
+      estimatedDelivery.trim() !== (deliveryConfig?.estimatedDelivery || '40 - 50 min') ||
+      estimatedPickup.trim() !== (deliveryConfig?.estimatedPickup || '20 - 30 min') ||
+      allowPickup !== (deliveryConfig?.allowPickup ?? true) ||
+      parsedMin !== Number(deliveryConfig?.minOrder ?? 15.0)
+    )
+  }, [
+    pricingMode,
+    fixedFee,
+    estimatedDelivery,
+    estimatedPickup,
+    allowPickup,
+    minOrder,
+    deliveryConfig,
+  ])
+
   // Filtro de busca de bairros
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -89,6 +111,17 @@ export function DeliveryView() {
     })
 
     toast.success('Configurações de entrega e prazos salvas com sucesso!')
+  }
+
+  // Descartar alterações e restaurar valores salvos
+  const handleDiscard = () => {
+    setPricingMode(deliveryConfig?.pricingMode || 'by_neighborhood')
+    setFixedFee(String(deliveryConfig?.fixedFee ?? '5.00'))
+    setEstimatedDelivery(deliveryConfig?.estimatedDelivery || '40 - 50 min')
+    setEstimatedPickup(deliveryConfig?.estimatedPickup || '20 - 30 min')
+    setAllowPickup(deliveryConfig?.allowPickup ?? true)
+    setMinOrder(String(deliveryConfig?.minOrder ?? '15.00'))
+    toast.info('Alterações descartadas.')
   }
 
   // Alternar modalidade de cobrança (rascunho, salva ao clicar em Salvar Configurações)
@@ -130,31 +163,46 @@ export function DeliveryView() {
       {/* Top Header */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+          <h2 className="text-base font-extrabold text-[#1A1D20] flex flex-wrap items-center gap-2">
             <Truck className="w-5 h-5 text-[#FF5E1E]" />
             <span>Bairros & Taxas de Entrega</span>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-orange-50 text-[#FF5E1E] border-orange-200">
-              {pricingMode === 'fixed'
-                ? `Taxa Fixa (${formatCurrency(Number(fixedFee) || 0)})`
+              {deliveryConfig?.pricingMode === 'fixed'
+                ? `Taxa Fixa (${formatCurrency(Number(deliveryConfig?.fixedFee) || 0)})`
                 : 'Taxa por Bairro'}
             </span>
+            {isDirty && (
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                Alterações pendentes
+              </span>
+            )}
           </h2>
           <p className="text-xs text-[#6C757D] mt-0.5">
-            Defina a modalidade de cobrança, os prazos estimados e gerencie as localidades atendidas.
+            Defina a modalidade de cobrança, os prazos estimados e clique em <strong>Salvar Configurações</strong> para aplicar.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setNeighborhoodToEdit(null)
-            setIsNeighborhoodModalOpen(true)
-          }}
-          className="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Novo Bairro</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleDiscard}
+              className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Descartar</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSaveGeneralConfig}
+            className="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>Salvar Configurações</span>
+          </button>
+        </div>
       </div>
 
       {/* Card 1: Modalidade de Cobrança & Prazos Estimados */}
@@ -289,7 +337,6 @@ export function DeliveryView() {
                   min="0"
                   value={fixedFee}
                   onChange={(e) => setFixedFee(e.target.value)}
-                  onBlur={() => handleSaveGeneralConfig()}
                   placeholder="5.00"
                   className="w-20 text-xs font-black text-[#1A1D20] outline-none"
                 />
@@ -374,15 +421,6 @@ export function DeliveryView() {
               Permitir retirada no balcão sem taxa de entrega
             </span>
           </div>
-
-          <button
-            type="button"
-            onClick={handleSaveGeneralConfig}
-            className="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center justify-center gap-2 cursor-pointer self-end sm:self-auto"
-          >
-            <Save className="w-4 h-4" />
-            <span>Salvar Configurações</span>
-          </button>
         </div>
       </div>
 

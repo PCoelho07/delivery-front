@@ -14,6 +14,7 @@ import {
   Store,
   Truck,
   User,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -50,7 +51,6 @@ export function OrderConfirmationModal({
   const orders = useCustomerStore((state) => state.orders)
   const saveProfile = useCustomerStore((state) => state.saveProfile)
   const clearProfile = useCustomerStore((state) => state.clearProfile)
-  const updateOrderStatus = useCustomerStore((state) => state.updateOrderStatus)
   const rateOrder = useCustomerStore((state) => state.rateOrder)
   const rateOrderItem = useCustomerStore((state) => state.rateOrderItem)
 
@@ -64,22 +64,40 @@ export function OrderConfirmationModal({
   const [editCpf, setEditCpf] = useState(formatCpfMask(profile?.cpf || ''))
   const [ratingOrderId, setRatingOrderId] = useState(null)
 
+  // Localiza pedido em andamento no histórico caso não tenha sido passado activeOrder
+  const activeExistingOrder = orders.find(
+    (o) => o.status !== 'concluido' && o.status !== 'entregue' && o.status !== 'cancelado'
+  )
+
+  const orderFromStore = activeOrder?.orderId
+    ? orders.find((o) => o.orderId === activeOrder.orderId)
+    : null
+
   const currentOrder =
-    orders.find((o) => o.orderId === activeOrder?.orderId) ||
+    orderFromStore ||
     activeOrder ||
-    orders[0] ||
-    null
+    activeExistingOrder ||
+    (orders.length > 0 ? orders[0] : null)
+
+  const isDelivered = Boolean(
+    currentOrder && (currentOrder.status === 'concluido' || currentOrder.status === 'entregue')
+  )
+  const isOrderActive = Boolean(
+    currentOrder && !isDelivered && currentOrder.status !== 'cancelado'
+  )
+
+  const [dismissDeliveredBanner, setDismissDeliveredBanner] = useState(false)
+  const showDeliveredBanner = isDelivered && !dismissDeliveredBanner
 
   const currentStatusId = currentOrder?.status || 'aceito'
   const instagramUrl =
     currentOrder?.instagramUrl || store?.instagramUrl || 'https://instagram.com'
 
-  const pixData = currentOrder?.pix ||
-    store?.pix || {
-      key: '00000000000',
-      keyType: 'Chave PIX',
-      beneficiary: store?.name || 'Brasa Burger',
-    }
+  const pixData = currentOrder?.pix || {
+    key: store?.pix?.key || '00000000000',
+    keyType: store?.pix?.keyType || 'Chave PIX',
+    beneficiary: store?.pix?.beneficiary || store?.name || 'Brasa Burger',
+  }
 
   const handleCopyPix = async () => {
     try {
@@ -99,13 +117,6 @@ export function OrderConfirmationModal({
       orderToSend
     )
     window.open(url, '_blank', 'noopener,noreferrer')
-  }
-
-  const handleStatusChange = (statusId) => {
-    if (!currentOrder) return
-    updateOrderStatus(currentOrder.orderId, statusId)
-    const step = ORDER_STATUS_STEPS.find((s) => s.id === statusId)
-    toast.success(`Status atualizado: ${step?.label}`)
   }
 
   const handleRateProduct = (cartItemId, productName, stars) => {
@@ -144,6 +155,121 @@ export function OrderConfirmationModal({
     toast.success(`Obrigado pela sua avaliação de ${stars} estrelas!`)
   }
 
+  const renderRecentOrders = () => (
+    <section className="bg-white rounded-2xl p-4 shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-3.5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[16px] font-bold text-[#1A1D20]">
+          Últimos pedidos
+        </h2>
+        <span className="text-[12px] text-[#6C757D]">
+          {orders.length} {orders.length === 1 ? 'pedido' : 'pedidos'}
+        </span>
+      </div>
+
+      {orders.length === 0 ? (
+        <p className="text-[13px] text-[#6C757D] py-4 text-center">
+          Você ainda não realizou nenhum pedido neste aparelho.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((ord) => (
+            <article
+              key={ord.orderId}
+              className="rounded-2xl border border-gray-100 bg-[#F8F9FA] p-3.5 space-y-2.5"
+            >
+              <div className="space-y-1 text-[13px] text-[#1A1D20]">
+                <div className="flex items-center justify-between">
+                  <p>
+                    <span className="font-bold">Pedido:</span> #
+                    {ord.orderId}
+                  </p>
+                  {ord.rating && (
+                    <span className="inline-flex items-center gap-1 text-[12px] font-bold text-[#FF5E1E] bg-[#FFF3EE] px-2 py-0.5 rounded-full">
+                      <Star className="w-3 h-3 fill-[#FF5E1E]" />
+                      {ord.rating},0
+                    </span>
+                  )}
+                </div>
+                <p>
+                  <span className="font-bold">Data:</span> {ord.createdAt}
+                </p>
+                <p>
+                  <span className="font-bold">Valor:</span>{' '}
+                  {formatCurrency(ord.total)}
+                </p>
+                <p>
+                  <span className="font-bold">Local:</span>{' '}
+                  {ord.storeName}
+                </p>
+
+                <div className="pt-1 text-[12.5px] text-[#6C757D] space-y-0.5">
+                  {(ord.items || []).map((item, idx) => (
+                    <p key={item.cartItemId || idx}>
+                      {item.quantity || 1}x {item.product?.name || item.name || 'Item'}
+                    </p>
+                  ))}
+                </div>
+              </div>
+
+              {ratingOrderId === ord.orderId && (
+                <div className="bg-white rounded-xl p-2.5 border border-[#E2E5E9] flex items-center justify-between">
+                  <span className="text-[12px] font-semibold text-[#1A1D20]">
+                    Sua nota:
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => handleSelectStar(ord.orderId, star)}
+                        className="p-1 text-[#FF5E1E] hover:scale-110 transition-transform cursor-pointer"
+                      >
+                        <Star className="w-5 h-5 fill-[#FF5E1E]" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => onRepeatOrder?.(ord)}
+                  className="py-2 px-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Repetir
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onBackToMenu}
+                  className="py-2 px-2.5 rounded-xl bg-white hover:bg-gray-50 text-[#1A1D20] border border-[#E2E5E9] text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Store className="w-3.5 h-3.5 text-[#6C757D]" />
+                  Cardápio
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setRatingOrderId((prev) =>
+                      prev === ord.orderId ? null : ord.orderId
+                    )
+                  }
+                  className="py-2 px-2.5 rounded-xl bg-[#FFF3EE] hover:bg-[#FFE6DC] text-[#FF5E1E] text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Star className="w-3.5 h-3.5" />
+                  Avaliar
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+
   return (
     <div
       role="dialog"
@@ -166,7 +292,7 @@ export function OrderConfirmationModal({
 
             <div>
               <h1 className="text-[20px] font-bold text-[#1A1D20] tracking-tight leading-tight">
-                {activeOrder ? 'Pedido enviado!' : 'Minha conta'}
+                {isOrderActive ? 'Pedido enviado!' : 'Últimos pedidos'}
               </h1>
               <p className="text-[12px] text-[#6C757D]">
                 {store?.name || 'Brasa Burger'}
@@ -185,8 +311,38 @@ export function OrderConfirmationModal({
 
         {/* Conteúdo Rolável */}
         <div className="flex-1 overflow-y-auto px-4 pb-10 space-y-5">
-          {/* 1. Card de Confirmação do Pedido Atual + Status + PIX + WhatsApp */}
-          {currentOrder && (
+          {/* Alerta de Pedido Concluído / Entregue / Retirado */}
+          {!isOrderActive && showDeliveredBanner && currentOrder && (
+            <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[14.5px] font-bold text-emerald-950 truncate">
+                    Pedido #{currentOrder.orderId} {currentOrder.deliveryMethod === 'pickup' ? 'retirado' : 'entregue'}!
+                  </h3>
+                  <p className="text-[12px] text-emerald-700">
+                    {currentOrder.deliveryMethod === 'pickup'
+                      ? 'Seu pedido foi retirado com sucesso. Bom apetite!'
+                      : 'Seu pedido foi entregue com sucesso. Bom apetite!'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDismissDeliveredBanner(true)}
+                className="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-100 transition-colors cursor-pointer shrink-0"
+                aria-label="Fechar aviso"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* 1. Card de Confirmação do Pedido Atual + Status + PIX + WhatsApp (APENAS se estiver ativo) */}
+          {isOrderActive && currentOrder && (
             <section className="bg-white rounded-2xl p-4 shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-4">
               {/* Cabeçalho do Pedido */}
               <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3.5">
@@ -211,27 +367,87 @@ export function OrderConfirmationModal({
                 </div>
               </div>
 
-              {/* Etapas de Status do Pedido (Aceito / Em preparo / Saiu para entrega) */}
-              <div className="grid grid-cols-3 gap-1.5 bg-[#F8F9FA] p-1.5 rounded-xl border border-gray-100">
-                {ORDER_STATUS_STEPS.map((step) => {
-                  const isActive = currentStatusId === step.id
-                  const StepIcon = step.icon
-                  return (
-                    <button
-                      key={step.id}
-                      type="button"
-                      onClick={() => handleStatusChange(step.id)}
-                      className={`py-2 px-2 rounded-lg text-[11.5px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        isActive
-                          ? 'bg-[#FF5E1E] text-white shadow-xs'
-                          : 'text-[#6C757D] hover:text-[#1A1D20]'
-                      }`}
-                    >
-                      <StepIcon className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{step.label}</span>
-                    </button>
-                  )
-                })}
+              {/* Etapas de Status do Pedido (Indicador de Progresso - Atualizado pelo Restaurante) */}
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-1.5 bg-[#F8F9FA] p-1.5 rounded-xl border border-gray-100 select-none">
+                  {ORDER_STATUS_STEPS.map((step, idx) => {
+                    const currentIdx = ORDER_STATUS_STEPS.findIndex((s) => s.id === currentStatusId)
+                    const isFinished = currentStatusId === 'concluido'
+                    const isCurrent = currentStatusId === step.id
+                    const isPast = isFinished || (currentIdx !== -1 && idx < currentIdx)
+
+                    const isPix = currentOrder?.paymentMethod === 'pix'
+                    const isPickup = currentOrder?.deliveryMethod === 'pickup'
+
+                    let stepLabel = step.label
+                    let StepIcon = step.icon
+
+                    if (step.id === 'aceito') {
+                      if (isPix) stepLabel = 'Aguardando pagamento'
+                    } else if (step.id === 'entrega') {
+                      if (isPickup) {
+                        stepLabel = 'Pronto p/ retirada'
+                        StepIcon = Store
+                      }
+                    }
+
+                    if (isPast && !isCurrent) {
+                      StepIcon = CheckCircle2
+                    } else if (step.id === 'aceito' && isPix && isCurrent) {
+                      StepIcon = Clock
+                    }
+
+                    return (
+                      <div
+                        key={step.id}
+                        className={`py-2 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                          isCurrent
+                            ? 'bg-[#FF5E1E] text-white shadow-xs'
+                            : isPast
+                            ? 'bg-orange-50 text-[#FF5E1E] border border-orange-200/60'
+                            : 'text-[#9CA3AF] bg-transparent'
+                        }`}
+                      >
+                        <StepIcon className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{stepLabel}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Aviso contextual quando o status for "entrega" (Pronto no balcão vs Saiu para entrega) */}
+                {currentStatusId === 'entrega' && (
+                  <div
+                    className={`border rounded-xl px-3 py-2 text-center text-xs font-bold flex items-center justify-center gap-2 ${
+                      currentOrder.deliveryMethod === 'pickup'
+                        ? 'bg-blue-50 text-blue-900 border-blue-200'
+                        : 'bg-purple-50 text-purple-900 border-purple-200'
+                    }`}
+                  >
+                    {currentOrder.deliveryMethod === 'pickup' ? (
+                      <>
+                        <Store className="w-4 h-4 text-blue-600 shrink-0" />
+                        <span>Seu pedido está pronto! Já pode vir retirar no balcão.</span>
+                      </>
+                    ) : (
+                      <>
+                        <Truck className="w-4 h-4 text-purple-600 shrink-0" />
+                        <span>Seu pedido saiu para entrega! Fique atento ao entregador.</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {currentStatusId === 'concluido' && (
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl px-3 py-2 text-center text-xs font-bold flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      {currentOrder.deliveryMethod === 'pickup'
+                        ? 'Pedido retirado no balcão e concluído com sucesso!'
+                        : 'Pedido entregue e concluído com sucesso!'}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Estimativa de Tempo de Espera */}
@@ -245,7 +461,7 @@ export function OrderConfirmationModal({
                 </span>
               </div>
 
-              {/* Box da Chave PIX (00000000000) */}
+              {/* Box da Chave PIX */}
               <div className="rounded-2xl border border-[#FF5E1E]/30 bg-[#FFF3EE]/60 p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] font-bold uppercase tracking-wider text-[#FF5E1E]">
@@ -301,51 +517,95 @@ export function OrderConfirmationModal({
                   )}
 
                 <div className="border-t border-gray-200/70 pt-2 space-y-1.5">
-                  {(currentOrder.items || []).map((item) => (
-                    <div key={item.cartItemId} className="space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          {item.quantity}x {item.product.name}
-                        </span>
-                        <span className="font-semibold">
-                          {formatCurrency(item.totalPrice)}
-                        </span>
-                      </div>
+                  {(currentOrder.items || []).map((item, idx) => {
+                    const itemName = item.product?.name || item.name || 'Item'
+                    const itemPrice = item.totalPrice ?? (item.price ? item.price * (item.quantity || 1) : 0)
+                    const itemNotes = item.observation || item.notes
+                    const rawOptions =
+                      Array.isArray(item.options) && item.options.length > 0
+                        ? item.options.map((opt) =>
+                            typeof opt === 'string'
+                              ? opt
+                              : opt.name && opt.name !== 'Opção' && opt.name !== 'Adicional'
+                              ? `${opt.name}: ${opt.value}`
+                              : opt.value || opt.name || ''
+                          )
+                        : [
+                            ...(Array.isArray(item.preferences)
+                              ? item.preferences.map((p) =>
+                                  p.groupName ? `${p.groupName}: ${p.name}` : p.name
+                                )
+                              : []),
+                            ...(Array.isArray(item.addons)
+                              ? item.addons.map(
+                                  (a) =>
+                                    `${a.name}${a.price ? ` (+${formatCurrency(a.price)})` : ''}`
+                                )
+                              : []),
+                          ]
 
-                      {showProductRating && (
-                        <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-100">
-                          <span className="text-[11.5px] text-[#6C757D]">
-                            Avaliar produto:
+                    const optionsList = Array.from(new Set(rawOptions.filter(Boolean)))
+
+                    return (
+                      <div key={item.cartItemId || idx} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {item.quantity || 1}x {itemName}
                           </span>
-                          <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => {
-                              const filled = (item.rating || 0) >= star
-                              return (
-                                <button
-                                  key={star}
-                                  type="button"
-                                  onClick={() =>
-                                    handleRateProduct(
-                                      item.cartItemId,
-                                      item.product.name,
-                                      star
-                                    )
-                                  }
-                                  className="p-0.5 text-[#FF5E1E] hover:scale-110 transition-transform cursor-pointer"
-                                >
-                                  <Star
-                                    className={`w-3.5 h-3.5 ${
-                                      filled ? 'fill-[#FF5E1E]' : ''
-                                    }`}
-                                  />
-                                </button>
-                              )
-                            })}
-                          </div>
+                          <span className="font-semibold">
+                            {formatCurrency(itemPrice)}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {/* Opções e Adicionais selecionados */}
+                        {optionsList.length > 0 && (
+                          <p className="text-[11px] text-[#6C757D] pl-2 line-clamp-2">
+                            {optionsList.join(' • ')}
+                          </p>
+                        )}
+
+                        {/* Observação do Item */}
+                        {itemNotes && (
+                          <p className="text-[11px] font-semibold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-0.5 inline-block">
+                            Obs: {itemNotes}
+                          </p>
+                        )}
+
+                        {showProductRating && (
+                          <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-gray-100">
+                            <span className="text-[11.5px] text-[#6C757D]">
+                              Avaliar produto:
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map((star) => {
+                                const filled = (item.rating || 0) >= star
+                                return (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() =>
+                                      handleRateProduct(
+                                        item.cartItemId,
+                                        itemName,
+                                        star
+                                      )
+                                    }
+                                    className="p-0.5 text-[#FF5E1E] hover:scale-110 transition-transform cursor-pointer"
+                                  >
+                                    <Star
+                                      className={`w-3.5 h-3.5 ${
+                                        filled ? 'fill-[#FF5E1E]' : ''
+                                      }`}
+                                    />
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
 
                 <div className="border-t border-gray-200/70 pt-2 space-y-1">
@@ -432,6 +692,22 @@ export function OrderConfirmationModal({
                 <span>Acompanhar pedido no WhatsApp</span>
               </button>
             </section>
+          )}
+
+          {/* Quando NÃO há pedido ativo: exibe PRIMEIRO Últimos Pedidos e o botão Voltar ao Cardápio */}
+          {!isOrderActive && (
+            <>
+              {renderRecentOrders()}
+
+              <button
+                type="button"
+                onClick={onBackToMenu}
+                className="w-full h-12 bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white font-semibold text-[15px] rounded-2xl px-5 flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs"
+              >
+                <Store className="w-5 h-5 stroke-[2.2]" />
+                <span>Voltar ao cardápio</span>
+              </button>
+            </>
           )}
 
           {/* 2. Card: Meu Perfil (Armazenado em Cache com Máscaras) */}
@@ -560,119 +836,8 @@ export function OrderConfirmationModal({
             )}
           </section>
 
-          {/* 3. Card: Últimos Pedidos (Histórico com Repetir, Cardápio e Avaliar) */}
-          <section className="bg-white rounded-2xl p-4 shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-3.5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-bold text-[#1A1D20]">
-                Últimos pedidos
-              </h2>
-              <span className="text-[12px] text-[#6C757D]">
-                {orders.length} {orders.length === 1 ? 'pedido' : 'pedidos'}
-              </span>
-            </div>
-
-            {orders.length === 0 ? (
-              <p className="text-[13px] text-[#6C757D] py-4 text-center">
-                Você ainda não realizou nenhum pedido neste aparelho.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {orders.map((ord) => (
-                  <article
-                    key={ord.orderId}
-                    className="rounded-2xl border border-gray-100 bg-[#F8F9FA] p-3.5 space-y-2.5"
-                  >
-                    <div className="space-y-1 text-[13px] text-[#1A1D20]">
-                      <div className="flex items-center justify-between">
-                        <p>
-                          <span className="font-bold">Pedido:</span> #
-                          {ord.orderId}
-                        </p>
-                        {ord.rating && (
-                          <span className="inline-flex items-center gap-1 text-[12px] font-bold text-[#FF5E1E] bg-[#FFF3EE] px-2 py-0.5 rounded-full">
-                            <Star className="w-3 h-3 fill-[#FF5E1E]" />
-                            {ord.rating},0
-                          </span>
-                        )}
-                      </div>
-                      <p>
-                        <span className="font-bold">Data:</span> {ord.createdAt}
-                      </p>
-                      <p>
-                        <span className="font-bold">Valor:</span>{' '}
-                        {formatCurrency(ord.total)}
-                      </p>
-                      <p>
-                        <span className="font-bold">Local:</span>{' '}
-                        {ord.storeName}
-                      </p>
-
-                      <div className="pt-1 text-[12.5px] text-[#6C757D] space-y-0.5">
-                        {(ord.items || []).map((item) => (
-                          <p key={item.cartItemId}>
-                            {item.quantity}x {item.product.name}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-
-                    {ratingOrderId === ord.orderId && (
-                      <div className="bg-white rounded-xl p-2.5 border border-[#E2E5E9] flex items-center justify-between">
-                        <span className="text-[12px] font-semibold text-[#1A1D20]">
-                          Sua nota:
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => handleSelectStar(ord.orderId, star)}
-                              className="p-1 text-[#FF5E1E] hover:scale-110 transition-transform cursor-pointer"
-                            >
-                              <Star className="w-5 h-5 fill-[#FF5E1E]" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-3 gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => onRepeatOrder?.(ord)}
-                        className="py-2 px-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        Repetir
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={onBackToMenu}
-                        className="py-2 px-2.5 rounded-xl bg-white hover:bg-gray-50 text-[#1A1D20] border border-[#E2E5E9] text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Store className="w-3.5 h-3.5 text-[#6C757D]" />
-                        Cardápio
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setRatingOrderId((prev) =>
-                            prev === ord.orderId ? null : ord.orderId
-                          )
-                        }
-                        className="py-2 px-2.5 rounded-xl bg-[#FFF3EE] hover:bg-[#FFE6DC] text-[#FF5E1E] text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <Star className="w-3.5 h-3.5" />
-                        Avaliar
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+          {/* 3. Card: Últimos Pedidos (quando pedido ativo, exibido após o perfil) */}
+          {isOrderActive && renderRecentOrders()}
         </div>
       </div>
     </div>

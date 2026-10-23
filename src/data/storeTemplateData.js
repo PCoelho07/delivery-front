@@ -22,7 +22,6 @@ export const DEFAULT_STORE_PREVIEW = {
   tagline: 'Brasa Burger · Feito na brasa',
   rating: '4,9',
   reviewsCount: 248,
-  distance: '1,2 km',
   minOrder: 10.0,
   openingHours: '18h às 23h',
   estimatedTime: '30 - 50 minutos',

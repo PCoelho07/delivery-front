@@ -4,6 +4,7 @@ import {
   Pencil,
   Trash2,
   CheckCircle2,
+  Puzzle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -55,7 +56,8 @@ export function TemplatesView() {
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
-            <span>🧩 Templates de Complementos</span>
+            <Puzzle className="w-5 h-5 text-[#FF5E1E]" />
+            <span>Templates de Complementos</span>
             <span className="text-xs font-bold text-[#FF5E1E] bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
               {activeTemplates.length} {activeTemplates.length === 1 ? 'modelo' : 'modelos'}
             </span>

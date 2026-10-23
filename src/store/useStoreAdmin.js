@@ -133,6 +133,23 @@ export const DEFAULT_PAYMENT_CONFIG = {
  * Calcula o status real de atendimento da loja (automático vs pausas manuais)
  */
 export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_Paulo', statusMode = 'auto') {
+  // Sempre descobre o horário programado para o dia de hoje
+  let formattedHours = '18:00 às 23:30'
+  try {
+    const dayMap = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
+    const now = new Date()
+    const todayIndex = now.getDay()
+    const todayId = dayMap[todayIndex]
+    const todaySchedule = Array.isArray(schedule) ? schedule.find((d) => d.id === todayId) : null
+    if (todaySchedule && todaySchedule.open) {
+      formattedHours = `${todaySchedule.start || '18:00'} às ${todaySchedule.end || '23:30'}`
+    } else if (todaySchedule && !todaySchedule.open) {
+      formattedHours = 'Sem expediente hoje'
+    }
+  } catch {
+    formattedHours = '18:00 às 23:30'
+  }
+
   if (statusMode === 'paused') {
     return {
       isOpen: false,
@@ -142,7 +159,7 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
       subtext: 'Pausa acionada manualmente no painel',
       clientTag: 'Fechado temporariamente',
       variant: 'paused',
-      todayHours: 'Pausado',
+      todayHours: formattedHours,
     }
   }
 
@@ -155,7 +172,7 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
       subtext: 'Abertura manual fora do horário programado',
       clientTag: 'Aberto',
       variant: 'open',
-      todayHours: 'Aberto agora',
+      todayHours: formattedHours,
     }
   }
 
@@ -318,7 +335,7 @@ const loadInitialState = () => {
 const initial = loadInitialState()
 
 export const useStoreAdmin = create((set, get) => ({
-  activeTab: 'cardapio',
+  activeTab: 'pedidos',
   isMobileSidebarOpen: false,
   isStoreOpen: initial.isStoreOpen ?? true,
   storeStatusMode: initial.storeStatusMode || 'auto',
@@ -869,6 +886,18 @@ export const useStoreAdmin = create((set, get) => ({
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     } catch (e) {
       console.warn('Falha ao persistir dados administrativos:', e)
+    }
+  },
+
+  reloadFromStorage: () => {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        set((state) => ({ ...state, ...parsed }))
+      }
+    } catch (e) {
+      console.warn('Falha ao recarregar dados do localStorage:', e)
     }
   },
 }))

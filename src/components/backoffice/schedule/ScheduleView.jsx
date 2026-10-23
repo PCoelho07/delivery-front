@@ -217,14 +217,36 @@ export function ScheduleView() {
           </p>
         </div>
 
-        <button
-          onClick={handleResetDefault}
-          title="Carregar horários padrão no rascunho"
-          className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Restaurar Padrão</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleResetDefault}
+            title="Carregar horários padrão no rascunho"
+            className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Restaurar Padrão</span>
+          </button>
+
+          {isDirty && (
+            <button
+              type="button"
+              onClick={handleDiscardChanges}
+              className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Descartar</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSaveChanges}
+            className="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>Salvar Horários</span>
+          </button>
+        </div>
       </div>
 
       {/* Bloco Unificado: Fuso Horário & Configuração Rápida */}
@@ -493,13 +515,13 @@ export function ScheduleView() {
           })}
         </div>
 
-        {/* Rodapé com Feedback e Botão Salvar Horários */}
-        <div className="pt-4 border-t border-[#F1F3F5] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Rodapé com Feedback de Sincronização */}
+        <div className="pt-4 border-t border-[#F1F3F5] flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isDirty ? (
               <p className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                <span>Você tem alterações não salvas. Clique em &ldquo;Salvar Horários&rdquo; para aplicar.</span>
+                <span>Você tem alterações não salvas. Clique em &ldquo;Salvar Horários&rdquo; no topo para aplicar.</span>
               </p>
             ) : (
               <p className="text-[11px] text-[#6C757D] flex items-center gap-1">
@@ -507,27 +529,6 @@ export function ScheduleView() {
                 <span>Horários sincronizados e ativos no cardápio da loja.</span>
               </p>
             )}
-          </div>
-
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            {isDirty && (
-              <button
-                type="button"
-                onClick={handleDiscardChanges}
-                className="px-4 py-2.5 rounded-xl border border-[#E9ECEF] hover:bg-slate-100 text-[#6C757D] hover:text-[#1A1D20] font-bold text-xs transition-all cursor-pointer"
-              >
-                Descartar
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSaveChanges}
-              className="px-6 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-98 text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Save className="w-4 h-4" />
-              <span>{isDirty ? 'Salvar Horários' : 'Horários Salvos'}</span>
-            </button>
           </div>
         </div>
       </div>

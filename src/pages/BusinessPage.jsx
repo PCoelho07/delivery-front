@@ -73,6 +73,20 @@ export function BusinessPage() {
     [cartItems]
   )
 
+  // Sincronização multi-abas em tempo real (quando admin atualiza status em outra aba)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'delivery-customer-cache-v1') {
+        useCustomerStore.persist?.rehydrate?.()
+      }
+      if (e.key === 'delivery_admin_store_v3') {
+        useStoreAdmin.getState().reloadFromStorage?.()
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
   // Se houver parâmetro de loja na URL (/:businessName), sincroniza com o estado da API
   useEffect(() => {
     const syncTenant = async () => {
@@ -100,8 +114,20 @@ export function BusinessPage() {
       : {
           ...DEFAULT_STORE_PREVIEW,
           name: adminStoreInfo?.name || DEFAULT_STORE_PREVIEW.name,
+          subtitle: adminStoreInfo?.subtitle || DEFAULT_STORE_PREVIEW.subtitle,
           minOrder: adminStoreInfo?.minOrder ?? DEFAULT_STORE_PREVIEW.minOrder,
           whatsapp: adminStoreInfo?.whatsapp || DEFAULT_STORE_PREVIEW.whatsapp,
+          phone: adminStoreInfo?.phone || DEFAULT_STORE_PREVIEW.phone,
+          instagram: adminStoreInfo?.instagram || '@brasaburger',
+          instagramUrl: adminStoreInfo?.instagram
+            ? (adminStoreInfo.instagram.startsWith('http')
+                ? adminStoreInfo.instagram
+                : `https://instagram.com/${adminStoreInfo.instagram.replace(/^@/, '')}`)
+            : DEFAULT_STORE_PREVIEW.instagramUrl,
+          bannerUrl: adminStoreInfo?.bannerUrl || DEFAULT_STORE_PREVIEW.bannerUrl,
+          logoUrl: adminStoreInfo?.logoUrl || DEFAULT_STORE_PREVIEW.logoUrl,
+          cnpj: adminStoreInfo?.cnpj || '',
+          corporateName: adminStoreInfo?.corporateName || '',
         }
 
     return {
@@ -220,12 +246,27 @@ export function BusinessPage() {
     }
   }
 
+  const isStoreClosed = storeData.isOpen === false || storeData.statusMode === 'paused'
+
+  // Ao clicar em um produto da vitrine
+  const handleSelectProduct = (product) => {
+    if (isStoreClosed) {
+      toast.warning(
+        storeData.statusMode === 'paused'
+          ? 'O restaurante pausou o atendimento no momento e não está aceitando novos pedidos.'
+          : 'O restaurante está fechado no momento. Verifique nossos horários de funcionamento.'
+      )
+      return
+    }
+    setSelectedProduct(product)
+  }
+
   // Ao adicionar item na Tela 2, salva na sacola e retorna ao cardápio exibindo a barra da Tela 3
   const handleConfirmAddToCart = (cartPayload) => {
-    if (storeData.statusMode === 'paused') {
-      toast.warning('Aviso: o estabelecimento está pausado temporariamente no momento.')
-    } else if (storeData.isOpen === false) {
-      toast.warning('Aviso: o estabelecimento está fechado no momento.')
+    if (isStoreClosed) {
+      toast.error('O restaurante está fechado no momento. Não é possível adicionar itens ao carrinho.')
+      setSelectedProduct(null)
+      return
     }
     addItemToCart(cartPayload)
     setSelectedProduct(null)
@@ -352,7 +393,8 @@ export function BusinessPage() {
                       <ProductCard
                         key={item.id}
                         item={item}
-                        onSelect={(product) => setSelectedProduct(product)}
+                        isStoreClosed={isStoreClosed}
+                        onSelect={handleSelectProduct}
                       />
                     ))}
                   </div>

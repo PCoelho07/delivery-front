@@ -116,6 +116,12 @@
           </div>
         </button>
 
+        <!-- 3.1. Financeiro -->
+        <button onclick="switchTab('financeiro')" id="nav-financeiro" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Financeiro</span>
+        </button>
+
         <!-- 4. Horários -->
         <button onclick="switchTab('horarios')" id="nav-horarios" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20] transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -277,28 +283,36 @@
               <p class="text-xs text-[#6C757D] font-medium">Pedidos Hoje</p>
               <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">28</h3>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-bold">🛵</div>
+            <div class="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center">
+              <svg class="w-5 h-5 text-[#FF5E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            </div>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs text-[#6C757D] font-medium">Faturamento Estimado</p>
               <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">R$ 1.240,50</h3>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">💰</div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v22m5-18H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+            </div>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs text-[#6C757D] font-medium">Tempo Médio Cozinha</p>
               <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">18 min</h3>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">⏱️</div>
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
           </div>
           <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-sm flex items-center justify-between">
             <div>
               <p class="text-xs text-[#6C757D] font-medium">Ticket Médio</p>
               <h3 class="text-xl font-extrabold text-[#1A1D20] mt-0.5">R$ 44,30</h3>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">📊</div>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1zM8 7h8m-8 4h8m-8 4h5"/></svg>
+            </div>
           </div>
         </div>
 
@@ -331,7 +345,9 @@
               <div class="flex items-center justify-between pt-1">
                 <span class="text-xs font-bold text-[#1A1D20]">Total: R$ 48,90</span>
                 <div class="flex items-center gap-1.5">
-                  <button onclick="showToast('Imprimindo comanda térmica 80mm...')" class="p-1.5 bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1D20] rounded-lg text-xs" title="Imprimir Comanda">🖨️</button>
+                  <button onclick="showToast('Imprimindo comanda térmica 80mm...')" class="p-1.5 bg-[#F8F9FA] hover:bg-slate-200 text-[#1A1D20] rounded-lg text-xs" title="Imprimir Comanda">
+                    <svg class="w-4 h-4 text-[#1A1D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-2 4H8v-6h8v6z"/></svg>
+                  </button>
                   <button onclick="showToast('Pedido #1042 avançado para Cozinha!')" class="px-2.5 py-1.5 bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold rounded-lg transition-all">Aceitar ➔</button>
                 </div>
               </div>
@@ -637,7 +653,7 @@
             <div>
               <label class="block text-xs font-bold text-[#1A1D20] mb-1">Tipo de Chave PIX</label>
               <div class="relative">
-                <select class="w-full bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E] focus:bg-white appearance-none cursor-pointer">
+                <select id="preview-pix-key-type" onchange="handlePreviewPixTypeChange(this.value)" class="w-full bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E] focus:bg-white appearance-none cursor-pointer">
                   <option value="cnpj" selected>CNPJ (Pessoa Jurídica)</option>
                   <option value="cpf">CPF (Pessoa Física)</option>
                   <option value="phone">Telefone / WhatsApp</option>
@@ -651,13 +667,14 @@
             </div>
 
             <div>
-              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Chave PIX</label>
-              <input type="text" value="12.345.678/0001-90" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold font-mono focus:outline-none focus:border-[#FF5E1E]">
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1" id="preview-pix-key-label">Chave PIX (CNPJ)</label>
+              <input type="text" id="preview-pix-key-input" oninput="updatePixPreview()" value="12.345.678/0001-90" placeholder="00.000.000/0000-00" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold font-mono focus:outline-none focus:border-[#FF5E1E]">
             </div>
 
             <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome do Beneficiário / Titular da Conta</label>
-              <input type="text" value="Brasa Burger Hamburgueria Ltda" placeholder="Ex: Nome da sua empresa ou titular" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold focus:outline-none focus:border-[#FF5E1E]">
+              <label class="block text-xs font-bold text-[#1A1D20] mb-1">Nome da Conta / Titular do PIX (Favorecido)</label>
+              <input type="text" id="preview-pix-beneficiary-input" oninput="updatePixPreview()" value="Carlos Henrique da Silva" placeholder="Ex: Nome da sua empresa ou titular da conta (ex: João Silva)" class="w-full bg-white border border-[#E9ECEF] rounded-xl px-3 py-2 text-xs text-[#1A1D20] font-semibold focus:outline-none focus:border-[#FF5E1E]">
+              <p class="text-[11px] text-[#6C757D] mt-1">Nome da conta bancária exibido para conferência ao pagar via PIX (pode ser o nome do titular ou da empresa).</p>
             </div>
           </div>
 
@@ -665,8 +682,8 @@
           <div class="p-3.5 bg-[#F8F9FA] rounded-xl border border-[#E9ECEF] flex items-center justify-between gap-3 text-xs">
             <div>
               <span class="text-[11px] text-[#6C757D] block font-medium">Pré-visualização da Chave PIX</span>
-              <span class="font-mono font-bold text-[#1A1D20]">12.345.678/0001-90</span>
-              <span class="text-[11px] text-[#6C757D] block">Titular: Brasa Burger Hamburgueria Ltda</span>
+              <span class="font-mono font-bold text-[#1A1D20]" id="preview-pix-display-key">12.345.678/0001-90</span>
+              <span class="text-[11px] text-[#6C757D] block" id="preview-pix-display-titular">Titular: Carlos Henrique da Silva</span>
             </div>
             <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-lg border border-emerald-200">
               Ativo no Checkout
@@ -674,7 +691,7 @@
           </div>
 
           <div class="pt-2 flex justify-end">
-            <button onclick="showToast('Configurações de pagamento salvas!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center gap-2">
+            <button onclick="savePaymentSettings()" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
               Salvar Pagamentos
             </button>
@@ -711,6 +728,233 @@
             <button onclick="showToast('Dados da loja salvos com sucesso!')" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-sm shadow-md shadow-[#FF5E1E]/20 transition-all">
               Salvar Alterações
             </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 8. TAB: FINANCEIRO ================= -->
+      <section id="tab-financeiro-content" class="tab-pane hidden space-y-6 max-w-5xl mx-auto">
+        <!-- Topo com Filtros de Período -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-[#FF5E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <h2 class="text-base font-extrabold text-[#1A1D20]">Financeiro & Faturamento</h2>
+            </div>
+            <p class="text-xs text-[#6C757D] mt-1">
+              Consolidado de faturamento, total de pedidos e ticket médio das vendas realizadas pelo aplicativo.
+            </p>
+          </div>
+
+          <!-- Filtros Rápidos & Seletor de Data -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] flex items-center gap-1">
+              <button onclick="setFinancialPeriod('today')" id="btn-period-today" class="period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-[#6C757D] hover:text-[#1A1D20]">Hoje</button>
+              <button onclick="setFinancialPeriod('week')" id="btn-period-week" class="period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-[#6C757D] hover:text-[#1A1D20]">Últimos 7 dias</button>
+              <button onclick="setFinancialPeriod('month')" id="btn-period-month" class="period-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-[#FF5E1E] text-white shadow-xs">Este Mês</button>
+            </div>
+            <div class="relative">
+              <input type="date" id="filter-financial-date" onchange="handleDateFilterChange(this.value)" class="bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3 py-1.5 text-xs text-[#1A1D20] font-semibold outline-none focus:border-[#FF5E1E] transition-all">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Cards de Métricas Principais (KPIs) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Faturamento Bruto -->
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-4.5 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#6C757D]">Faturamento Total</span>
+              <div class="w-8 h-8 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-[#1A1D20]" id="kpi-faturamento">R$ 14.850,00</div>
+            <div class="text-[11px] text-[#6C757D] flex items-center gap-1">
+              <span class="text-emerald-600 font-bold">● Vendas válidas</span>
+              <span id="kpi-period-label">neste mês</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Pedidos Concluídos -->
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-4.5 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#6C757D]">Pedidos Vendidos</span>
+              <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-[#1A1D20]" id="kpi-pedidos">186</div>
+            <div class="text-[11px] text-[#6C757D]">Entregas e retiradas finalizadas</div>
+          </div>
+
+          <!-- Card 3: Ticket Médio -->
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-4.5 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#6C757D]">Ticket Médio</span>
+              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-[#1A1D20]" id="kpi-ticket">R$ 79,84</div>
+            <div class="text-[11px] text-[#6C757D]">Média de valor gasto por cliente</div>
+          </div>
+
+          <!-- Card 4: Tempo Médio -->
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-4.5 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#6C757D]">Tempo Médio de Entrega</span>
+              <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+            </div>
+            <div class="text-2xl font-black text-[#1A1D20]" id="kpi-tempo">35 min</div>
+            <div class="text-[11px] text-[#6C757D]">Do aceite do pedido até a entrega</div>
+          </div>
+        </div>
+
+        <!-- Distribuição Simples: Métodos de Pagamento & Modalidade -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Formas de Pagamento no Período -->
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-extrabold text-sm text-[#1A1D20]">Formas de Pagamento</h3>
+              <span class="text-[11px] font-bold text-[#6C757D]" id="pay-total-count">186 pedidos</span>
+            </div>
+            <div class="space-y-2.5">
+              <div class="p-3 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">⚡</span>
+                  <div>
+                    <span class="font-bold text-[#1A1D20] block">PIX</span>
+                    <span class="text-[10px] text-[#6C757D]" id="pay-pix-sub">112 pedidos (60%)</span>
+                  </div>
+                </div>
+                <span class="font-bold text-[#1A1D20]" id="pay-pix-val">R$ 8.910,00</span>
+              </div>
+              <div class="p-3 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">💳</span>
+                  <div>
+                    <span class="font-bold text-[#1A1D20] block">Cartão na Entrega / Maquininha</span>
+                    <span class="text-[10px] text-[#6C757D]" id="pay-card-sub">58 pedidos (31%)</span>
+                  </div>
+                </div>
+                <span class="font-bold text-[#1A1D20]" id="pay-card-val">R$ 4.740,00</span>
+              </div>
+              <div class="p-3 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">💵</span>
+                  <div>
+                    <span class="font-bold text-[#1A1D20] block">Dinheiro</span>
+                    <span class="text-[10px] text-[#6C757D]" id="pay-cash-sub">16 pedidos (9%)</span>
+                  </div>
+                </div>
+                <span class="font-bold text-[#1A1D20]" id="pay-cash-val">R$ 1.200,00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tipo de Atendimento -->
+          <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-extrabold text-sm text-[#1A1D20]">Tipo de Pedido</h3>
+              <span class="text-[11px] font-bold text-[#6C757D]">Entrega vs Balcão</span>
+            </div>
+            <div class="space-y-2.5">
+              <div class="p-3 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🛵</span>
+                  <div>
+                    <span class="font-bold text-[#1A1D20] block">Delivery (Entrega em Domicílio)</span>
+                    <span class="text-[10px] text-[#6C757D]" id="type-delivery-sub">142 pedidos (76%)</span>
+                  </div>
+                </div>
+                <span class="font-bold text-[#1A1D20]" id="type-delivery-val">R$ 11.640,00</span>
+              </div>
+              <div class="p-3 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-base">🛍️</span>
+                  <div>
+                    <span class="font-bold text-[#1A1D20] block">Retirada no Balcão</span>
+                    <span class="text-[10px] text-[#6C757D]" id="type-pickup-sub">44 pedidos (24%)</span>
+                  </div>
+                </div>
+                <span class="font-bold text-[#1A1D20]" id="type-pickup-val">R$ 3.210,00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela Consolidada por Dia / Histórico de Fechamento -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="font-extrabold text-sm text-[#1A1D20]">Histórico de Vendas por Dia</h3>
+              <p class="text-xs text-[#6C757D]">Detalhamento diário do faturamento e métricas operacionais.</p>
+            </div>
+            <div class="text-xs font-bold text-[#FF5E1E] bg-orange-50 px-3 py-1 rounded-xl border border-orange-200 shrink-0">
+              <span id="table-days-count">5 dias com vendas</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-[#E9ECEF] text-[#6C757D] font-bold">
+                  <th class="pb-3 pl-2">Data</th>
+                  <th class="pb-3 text-center">Pedidos</th>
+                  <th class="pb-3 text-right">Faturamento</th>
+                  <th class="pb-3 text-right">Ticket Médio</th>
+                  <th class="pb-3 text-center">Tempo Médio</th>
+                  <th class="pb-3 pr-2 text-right">Mais Usado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E9ECEF]" id="financial-table-body">
+                <tr class="hover:bg-[#F8F9FA] transition-colors">
+                  <td class="py-3 pl-2 font-bold text-[#1A1D20]">Hoje (22/10)</td>
+                  <td class="py-3 text-center font-semibold text-[#1A1D20]">24</td>
+                  <td class="py-3 text-right font-extrabold text-[#1A1D20]">R$ 1.940,00</td>
+                  <td class="py-3 text-right font-semibold text-[#6C757D]">R$ 80,83</td>
+                  <td class="py-3 text-center text-[#6C757D]">32 min</td>
+                  <td class="py-3 pr-2 text-right font-semibold text-emerald-600">⚡ PIX (68%)</td>
+                </tr>
+                <tr class="hover:bg-[#F8F9FA] transition-colors">
+                  <td class="py-3 pl-2 font-bold text-[#1A1D20]">Ontem (21/10)</td>
+                  <td class="py-3 text-center font-semibold text-[#1A1D20]">38</td>
+                  <td class="py-3 text-right font-extrabold text-[#1A1D20]">R$ 3.020,00</td>
+                  <td class="py-3 text-right font-semibold text-[#6C757D]">R$ 79,47</td>
+                  <td class="py-3 text-center text-[#6C757D]">36 min</td>
+                  <td class="py-3 pr-2 text-right font-semibold text-emerald-600">⚡ PIX (60%)</td>
+                </tr>
+                <tr class="hover:bg-[#F8F9FA] transition-colors">
+                  <td class="py-3 pl-2 font-bold text-[#1A1D20]">20/10/2026</td>
+                  <td class="py-3 text-center font-semibold text-[#1A1D20]">31</td>
+                  <td class="py-3 text-right font-extrabold text-[#1A1D20]">R$ 2.480,00</td>
+                  <td class="py-3 text-right font-semibold text-[#6C757D]">R$ 80,00</td>
+                  <td class="py-3 text-center text-[#6C757D]">34 min</td>
+                  <td class="py-3 pr-2 text-right font-semibold text-blue-600">💳 Cartão (55%)</td>
+                </tr>
+                <tr class="hover:bg-[#F8F9FA] transition-colors">
+                  <td class="py-3 pl-2 font-bold text-[#1A1D20]">19/10/2026</td>
+                  <td class="py-3 text-center font-semibold text-[#1A1D20]">45</td>
+                  <td class="py-3 text-right font-extrabold text-[#1A1D20]">R$ 3.650,00</td>
+                  <td class="py-3 text-right font-semibold text-[#6C757D]">R$ 81,11</td>
+                  <td class="py-3 text-center text-[#6C757D]">40 min</td>
+                  <td class="py-3 pr-2 text-right font-semibold text-emerald-600">⚡ PIX (64%)</td>
+                </tr>
+                <tr class="hover:bg-[#F8F9FA] transition-colors">
+                  <td class="py-3 pl-2 font-bold text-[#1A1D20]">18/10/2026</td>
+                  <td class="py-3 text-center font-semibold text-[#1A1D20]">48</td>
+                  <td class="py-3 text-right font-extrabold text-[#1A1D20]">R$ 3.760,00</td>
+                  <td class="py-3 text-right font-semibold text-[#6C757D]">R$ 78,33</td>
+                  <td class="py-3 text-center text-[#6C757D]">38 min</td>
+                  <td class="py-3 pr-2 text-right font-semibold text-emerald-600">⚡ PIX (58%)</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -2114,6 +2358,7 @@
         cardapio: 'Cardápio & Vitrine de Produtos',
         templates: 'Templates de Complementos & Adicionais',
         pedidos: 'Gestor de Pedidos',
+        financeiro: 'Financeiro & Faturamento',
         horarios: 'Horários da Semana',
         entregas: 'Bairros & Taxas de Entrega',
         pagamentos: 'Pagamentos & Chave PIX',
@@ -2148,6 +2393,139 @@
 
     function toggleSound() {
       showToast('🔔 Alerta sonoro de novo pedido alternado com sucesso!');
+    }
+
+    // ==========================================
+    // CONTROLES DE PAGAMENTO & PIX
+    // ==========================================
+    function handlePreviewPixTypeChange(type) {
+      const labels = {
+        cnpj: 'Chave PIX (CNPJ)',
+        cpf: 'Chave PIX (CPF)',
+        phone: 'Chave PIX (Telefone)',
+        email: 'Chave PIX (E-mail)',
+        random: 'Chave PIX (Aleatória EVP)'
+      };
+      const placeholders = {
+        cnpj: '00.000.000/0000-00',
+        cpf: '000.000.000-00',
+        phone: '(00) 00000-0000',
+        email: 'pix@exemplo.com.br',
+        random: '123e4567-e89b-12d3-a456-426614174000'
+      };
+      const labelEl = document.getElementById('preview-pix-key-label');
+      const inputEl = document.getElementById('preview-pix-key-input');
+      if (labelEl) labelEl.innerText = labels[type] || 'Chave PIX';
+      if (inputEl) inputEl.placeholder = placeholders[type] || '';
+      updatePixPreview();
+    }
+
+    function updatePixPreview() {
+      const keyVal = document.getElementById('preview-pix-key-input')?.value || 'Não informada';
+      const beneficiaryVal = document.getElementById('preview-pix-beneficiary-input')?.value || 'Não informado';
+      const displayKey = document.getElementById('preview-pix-display-key');
+      const displayTitular = document.getElementById('preview-pix-display-titular');
+      if (displayKey) displayKey.innerText = keyVal;
+      if (displayTitular) displayTitular.innerText = 'Titular: ' + beneficiaryVal;
+    }
+
+    function savePaymentSettings() {
+      updatePixPreview();
+      showToast('Configurações de pagamento e nome da conta PIX salvas com sucesso!');
+    }
+
+    // ==========================================
+    // CONTROLES DO FINANCEIRO
+    // ==========================================
+    function setFinancialPeriod(period) {
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.classList.remove('bg-[#FF5E1E]', 'text-white', 'shadow-xs');
+        btn.classList.add('text-[#6C757D]');
+      });
+      const activeBtn = document.getElementById('btn-period-' + period);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#FF5E1E]', 'text-white', 'shadow-xs');
+        activeBtn.classList.remove('text-[#6C757D]');
+      }
+
+      const dateInput = document.getElementById('filter-financial-date');
+      if (dateInput) dateInput.value = '';
+
+      if (period === 'today') {
+        document.getElementById('kpi-faturamento').innerText = 'R$ 1.940,00';
+        document.getElementById('kpi-pedidos').innerText = '24';
+        document.getElementById('kpi-ticket').innerText = 'R$ 80,83';
+        document.getElementById('kpi-tempo').innerText = '32 min';
+        document.getElementById('kpi-period-label').innerText = 'hoje';
+        document.getElementById('pay-total-count').innerText = '24 pedidos';
+        document.getElementById('pay-pix-val').innerText = 'R$ 1.320,00';
+        document.getElementById('pay-pix-sub').innerText = '16 pedidos (67%)';
+        document.getElementById('pay-card-val').innerText = 'R$ 480,00';
+        document.getElementById('pay-card-sub').innerText = '6 pedidos (25%)';
+        document.getElementById('pay-cash-val').innerText = 'R$ 140,00';
+        document.getElementById('pay-cash-sub').innerText = '2 pedidos (8%)';
+        document.getElementById('type-delivery-val').innerText = 'R$ 1.550,00';
+        document.getElementById('type-delivery-sub').innerText = '19 pedidos (79%)';
+        document.getElementById('type-pickup-val').innerText = 'R$ 390,00';
+        document.getElementById('type-pickup-sub').innerText = '5 pedidos (21%)';
+        document.getElementById('table-days-count').innerText = '1 dia selecionado';
+        showToast('📅 Exibindo faturamento e pedidos de Hoje');
+      } else if (period === 'week') {
+        document.getElementById('kpi-faturamento').innerText = 'R$ 14.850,00';
+        document.getElementById('kpi-pedidos').innerText = '186';
+        document.getElementById('kpi-ticket').innerText = 'R$ 79,84';
+        document.getElementById('kpi-tempo').innerText = '35 min';
+        document.getElementById('kpi-period-label').innerText = 'nos últimos 7 dias';
+        document.getElementById('pay-total-count').innerText = '186 pedidos';
+        document.getElementById('pay-pix-val').innerText = 'R$ 8.910,00';
+        document.getElementById('pay-pix-sub').innerText = '112 pedidos (60%)';
+        document.getElementById('pay-card-val').innerText = 'R$ 4.740,00';
+        document.getElementById('pay-card-sub').innerText = '58 pedidos (31%)';
+        document.getElementById('pay-cash-val').innerText = 'R$ 1.200,00';
+        document.getElementById('pay-cash-sub').innerText = '16 pedidos (9%)';
+        document.getElementById('type-delivery-val').innerText = 'R$ 11.640,00';
+        document.getElementById('type-delivery-sub').innerText = '142 pedidos (76%)';
+        document.getElementById('type-pickup-val').innerText = 'R$ 3.210,00';
+        document.getElementById('type-pickup-sub').innerText = '44 pedidos (24%)';
+        document.getElementById('table-days-count').innerText = '5 dias com vendas';
+        showToast('📅 Exibindo faturamento dos Últimos 7 dias');
+      } else {
+        document.getElementById('kpi-faturamento').innerText = 'R$ 38.420,00';
+        document.getElementById('kpi-pedidos').innerText = '482';
+        document.getElementById('kpi-ticket').innerText = 'R$ 79,70';
+        document.getElementById('kpi-tempo').innerText = '36 min';
+        document.getElementById('kpi-period-label').innerText = 'neste mês';
+        document.getElementById('pay-total-count').innerText = '482 pedidos';
+        document.getElementById('pay-pix-val').innerText = 'R$ 23.050,00';
+        document.getElementById('pay-pix-sub').innerText = '290 pedidos (60%)';
+        document.getElementById('pay-card-val').innerText = 'R$ 12.280,00';
+        document.getElementById('pay-card-sub').innerText = '154 pedidos (32%)';
+        document.getElementById('pay-cash-val').innerText = 'R$ 3.090,00';
+        document.getElementById('pay-cash-sub').innerText = '38 pedidos (8%)';
+        document.getElementById('type-delivery-val').innerText = 'R$ 29.840,00';
+        document.getElementById('type-delivery-sub').innerText = '375 pedidos (78%)';
+        document.getElementById('type-pickup-val').innerText = 'R$ 8.580,00';
+        document.getElementById('type-pickup-sub').innerText = '107 pedidos (22%)';
+        document.getElementById('table-days-count').innerText = 'Mês de Outubro / 2026';
+        showToast('📅 Exibindo faturamento do Mês Atual');
+      }
+    }
+
+    function handleDateFilterChange(dateVal) {
+      if (!dateVal) return;
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.classList.remove('bg-[#FF5E1E]', 'text-white', 'shadow-xs');
+        btn.classList.add('text-[#6C757D]');
+      });
+      const parts = dateVal.split('-');
+      const formatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateVal;
+      document.getElementById('kpi-faturamento').innerText = 'R$ 1.940,00';
+      document.getElementById('kpi-pedidos').innerText = '24';
+      document.getElementById('kpi-ticket').innerText = 'R$ 80,83';
+      document.getElementById('kpi-tempo').innerText = '32 min';
+      document.getElementById('kpi-period-label').innerText = `em ${formatted}`;
+      document.getElementById('table-days-count').innerText = `Filtrado por: ${formatted}`;
+      showToast(`📅 Exibindo fechamento de ${formatted}`);
     }
 
     function setPreviewPricingMode(mode) {

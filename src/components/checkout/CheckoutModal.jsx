@@ -195,7 +195,10 @@ export function CheckoutModal({
 
     const now = new Date()
     const formattedDate = now.toLocaleDateString('pt-BR')
-    const formattedTime = now.toLocaleTimeString('pt-BR')
+    const formattedTime = now.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     const orderId = String(Math.floor(100000000 + Math.random() * 900000000))
     const parsedChange =
       paymentMethod === 'money'
@@ -205,7 +208,7 @@ export function CheckoutModal({
     const newOrder = {
       orderId,
       status: 'aceito',
-      createdAt: `${formattedDate} ${formattedTime}`,
+      createdAt: `${formattedDate} às ${formattedTime}`,
       storeName: store?.name || 'Brasa Burger',
       storePhone: store?.phone || '(00) 00000-0000',
       whatsapp: store?.whatsapp || '5500000000000',
@@ -227,17 +230,48 @@ export function CheckoutModal({
               complement: complement.trim(),
             }
           : null,
-      items: [...items],
+      items: items.map((item) => {
+        const obs = (item.observation || item.notes || '').trim()
+        const addonsList = Array.isArray(item.addons) ? item.addons : []
+        const prefsList = Array.isArray(item.preferences) ? item.preferences : []
+        const optionsList = Array.isArray(item.options) ? item.options : []
+
+        const unifiedOptions =
+          optionsList.length > 0
+            ? optionsList
+            : [
+                ...prefsList.map((p) => ({
+                  name: p.groupName || 'Opção',
+                  value: p.name || '',
+                })),
+                ...addonsList.map((a) => ({
+                  name: 'Adicional',
+                  value: `${a.name}${a.price ? ` (+${formatCurrency(a.price)})` : ''}`,
+                })),
+              ]
+
+        return {
+          ...item,
+          name: item.name || item.product?.name || 'Item',
+          price: item.unitPrice ?? item.price ?? 0,
+          totalPrice: item.totalPrice ?? ((item.unitPrice ?? item.price ?? 0) * (item.quantity || 1)),
+          notes: obs,
+          observation: obs,
+          addons: addonsList,
+          preferences: prefsList,
+          options: unifiedOptions,
+        }
+      }),
       subtotal,
       discount: 0,
       deliveryFee: deliveryFee || 0,
       total: finalTotal,
       paymentMethod,
       changeFor: parsedChange,
-      pix: store?.pix || {
-        key: '00000000000',
-        keyType: 'Chave PIX',
-        beneficiary: store?.name || 'Brasa Burger',
+      pix: {
+        key: store?.pix?.key || '00000000000',
+        keyType: store?.pix?.keyType || 'Chave PIX',
+        beneficiary: store?.pix?.beneficiary || store?.name || 'Brasa Burger',
       },
       rating: null,
     }
@@ -527,7 +561,12 @@ export function CheckoutModal({
 
                 <div className="col-span-8">
                   <label className="block text-[12px] text-[#6C757D] mb-1">
-                    Bairro / condomínio *
+                    Bairro / condomínio *{' '}
+                    {pricingMode === 'fixed' && (
+                      <span className="font-semibold text-[#FF5E1E]">
+                        (Taxa fixa: {formatCurrency(fixedDeliveryFee)})
+                      </span>
+                    )}
                   </label>
                   {activeNeighborhoods.length > 0 ? (
                     <div className="relative">
@@ -549,12 +588,13 @@ export function CheckoutModal({
                         <option value="">Selecione o bairro</option>
                         {activeNeighborhoods.map((n) => (
                           <option key={n.id} value={n.id}>
-                            {n.name}{' '}
                             {pricingMode === 'fixed'
-                              ? `(Taxa fixa ${formatCurrency(fixedDeliveryFee)})`
-                              : n.fee > 0
-                              ? `(+ ${formatCurrency(n.fee)})`
-                              : '(Grátis)'}
+                              ? n.name
+                              : `${n.name} ${
+                                  n.fee > 0
+                                    ? `(+ ${formatCurrency(n.fee)})`
+                                    : '(Grátis)'
+                                }`}
                           </option>
                         ))}
                       </select>

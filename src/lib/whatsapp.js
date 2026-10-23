@@ -22,15 +22,20 @@ export function formatWhatsAppOrderMessage(order) {
     0
   )
 
-  const itemsLines = (order.items || [])
+  const itemsLines = (order?.items || [])
     .map((item) => {
       const extras = [
         ...(item.addons || []).map((a) => a.name),
         ...(item.preferences || []).map((p) => p.name),
-      ].join(', ')
-      const obs = item.observation ? ` [Obs: ${item.observation}]` : ''
+        ...(item.options || []).map((o) => `${o.name || ''}: ${o.value || ''}`),
+      ]
+        .filter(Boolean)
+        .join(', ')
+      const obs = item.notes || item.observation ? ` [Obs: ${item.notes || item.observation}]` : ''
       const details = extras ? ` (${extras})` : ''
-      return `➡️ *${item.quantity}x ${item.product.name}${details}${obs} ${formatCurrency(item.totalPrice)}*`
+      const itemName = item.product?.name || item.name || 'Item'
+      const itemPrice = item.totalPrice ?? (item.price ? item.price * (item.quantity || 1) : 0)
+      return `➡️ *${item.quantity || 1}x ${itemName}${details}${obs} ${formatCurrency(itemPrice)}*`
     })
     .join('\n')
 
