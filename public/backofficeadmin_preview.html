@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Super Admin | NumInstante Delivery</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#FF5E1E',
+              hover: '#E64E12',
+              light: '#FFF4EE',
+              surface: '#FFF8F5'
+            },
+            admin: {
+              DEFAULT: '#1E293B',
+              hover: '#0F172A',
+              accent: '#3B82F6',
+              purple: '#8B5CF6'
+            },
+            surface: {
+              bg: '#F8F9FA',
+              card: '#FFFFFF',
+              border: '#E9ECEF',
+              text: '#1A1D20',
+              muted: '#6C757D'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F8F9FA;
+      color: #1A1D20;
+    }
+    button, [role="button"], a {
+      cursor: pointer;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-modal {
+      animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes toastSlide {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-toast {
+      animation: toastSlide 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-[#F8F9FA]">
+
+  <!-- ========================================================================= -->
+  <!-- ==================== BANNER DE MODO DE SUPORTE (IMPERSONATE) ============ -->
+  <!-- ========================================================================= -->
+  <div id="support-mode-banner" class="hidden bg-gradient-to-r from-amber-600 via-orange-600 to-[#FF5E1E] text-white px-4 py-2.5 shadow-md flex items-center justify-between z-50 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">Modo de Suporte Ativo</span>
+          <span class="text-sm font-extrabold" id="support-store-name">Brasa Burguer</span>
+          <span class="text-xs opacity-90 hidden sm:inline" id="support-store-cnpj">· CNPJ: 12.345.678/0001-90</span>
+        </div>
+        <p class="text-[11px] text-white/90">
+          Você tem permissão para configurar dados, cardápio, horários e taxas. Dados sensíveis (Kanban de pedidos e faturamento) permanecem restritos à loja.
+        </p>
+      </div>
+    </div>
+    <button onclick="exitSupportMode()" class="px-3.5 py-1.5 rounded-xl bg-white text-[#1A1D20] hover:bg-slate-100 text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 shrink-0 ml-4">
+      <svg class="w-3.5 h-3.5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/></svg>
+      <span>Sair para Painel Admin</span>
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== HEADER SUPER ADMIN ================================= -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-[#E9ECEF] h-16 flex items-center justify-between px-6 shrink-0 z-40">
+    <div class="flex items-center gap-3">
+      <!-- Logo do SaaS Super Admin -->
+      <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-base shadow-xs">
+        <svg class="w-5 h-5 text-[#FF5E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-sm tracking-tight text-slate-900">NumInstante <span class="text-[#FF5E1E]">Admin</span></span>
+          <span class="text-[10px] font-black uppercase bg-slate-900 text-white px-2 py-0.5 rounded-md tracking-wider">Super Admin</span>
+        </div>
+        <p class="text-[11px] text-[#6C757D] leading-none mt-0.5">Gestão Global da Plataforma Delivery</p>
+      </div>
+    </div>
+
+    <!-- Ticker de Métricas Globais da Plataforma & Perfil -->
+    <div class="flex items-center gap-4">
+      <div class="hidden lg:flex items-center gap-5 text-xs border-r border-[#E9ECEF] pr-5">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[#6C757D]">Lojas Ativas:</span>
+          <strong class="text-slate-900" id="header-active-count">20</strong>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[#6C757D]">Em Teste (Trial):</span>
+          <strong class="text-amber-600" id="header-trial-count">3</strong>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[#6C757D]">MRR Estimado:</span>
+          <strong class="text-emerald-700 font-extrabold" id="header-mrr-val">R$ 2.490,00</strong>
+        </div>
+      </div>
+
+      <!-- Perfil do Super Admin -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-800">
+          SA
+        </div>
+        <div class="hidden sm:block text-left">
+          <span class="font-bold text-xs text-slate-900 block leading-tight">Master Admin</span>
+          <span class="text-[10.5px] text-[#6C757D]">admin@numinstante.com</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== CONTAINER PRINCIPAL (SIDEBAR + CONTEÚDO) =========== -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- ==================== SIDEBAR LATERAL DO ADMIN ========================== -->
+    <aside id="main-sidebar" class="w-64 bg-white border-r border-[#E9ECEF] flex flex-col justify-between shrink-0 z-30">
+      
+      <!-- MENU SUPER ADMIN (3 OPÇÕES REQUISITADAS) -->
+      <div class="p-4 space-y-1.5" id="admin-nav-menu">
+        <div class="px-3 pb-2 text-[10px] font-extrabold text-[#6C757D] uppercase tracking-wider">
+          Módulos da Plataforma
+        </div>
+
+        <!-- 1. Empresas Vinculadas -->
+        <button onclick="switchAdminTab('empresas')" id="nav-btn-empresas" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs transition-all bg-slate-900 text-white shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <span>Empresas Vinculadas</span>
+          </div>
+          <span class="bg-white/20 text-white text-[10.5px] font-black px-2 py-0.5 rounded-full" id="nav-badge-companies">24</span>
+        </button>
+
+        <!-- 2. Controle de Assinatura -->
+        <button onclick="switchAdminTab('assinaturas')" id="nav-btn-assinaturas" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs text-[#6C757D] hover:bg-slate-50 hover:text-slate-900 transition-all">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+            <span>Controle de Assinatura</span>
+          </div>
+          <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-1.5 py-0.5 rounded-full" id="nav-badge-pending">3 pendentes</span>
+        </button>
+
+        <!-- 3. Configuração do Perfil de Admin -->
+        <button onclick="switchAdminTab('perfil')" id="nav-btn-perfil" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs text-[#6C757D] hover:bg-slate-50 hover:text-slate-900 transition-all">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Configuração do Perfil</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- MENU SECUNDÁRIO DO MODO DE SUPORTE (EXIBIDO APENAS QUANDO ENTRAMOS NA LOJA) -->
+      <div class="p-4 space-y-1.5 hidden border-t border-[#E9ECEF]" id="support-nav-menu">
+        <div class="px-3 pb-2 text-[10px] font-extrabold text-amber-700 uppercase tracking-wider flex items-center justify-between">
+          <span>Configurar Loja</span>
+          <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-black">Suporte</span>
+        </div>
+
+        <button onclick="switchSupportTab('cardapio')" id="sup-btn-cardapio" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs bg-[#FF5E1E] text-white transition-all shadow-xs">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          <span>Cardápio & Vitrine</span>
+        </button>
+
+        <button onclick="switchSupportTab('horarios')" id="sup-btn-horarios" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs text-[#6C757D] hover:bg-slate-50 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Horários & Fuso</span>
+        </button>
+
+        <button onclick="switchSupportTab('entregas')" id="sup-btn-entregas" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs text-[#6C757D] hover:bg-slate-50 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span>Bairros & Taxas</span>
+        </button>
+
+        <button onclick="switchSupportTab('pagamentos')" id="sup-btn-pagamentos" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs text-[#6C757D] hover:bg-slate-50 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          <span>Pagamentos & PIX</span>
+        </button>
+
+        <button onclick="switchSupportTab('loja')" id="sup-btn-loja" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs text-[#6C757D] hover:bg-slate-50 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+          <span>Dados do Restaurante</span>
+        </button>
+
+        <!-- ÁREAS BLOQUEADAS POR PRIVACIDADE/LGPD (COM ÍCONE DE CADEADO) -->
+        <div class="pt-2">
+          <div class="px-3 pb-1 text-[9px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <span>Privacidade & LGPD</span>
+          </div>
+
+          <button onclick="promptPrivacyRestriction('kanban')" class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all">
+            <div class="flex items-center gap-2">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <span>Gestor de Pedidos</span>
+            </div>
+            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded font-bold">Bloqueado</span>
+          </button>
+
+          <button onclick="promptPrivacyRestriction('financeiro')" class="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all">
+            <div class="flex items-center gap-2">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Financeiro da Loja</span>
+            </div>
+            <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded font-bold">Bloqueado</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Rodapé da Sidebar -->
+      <div class="p-4 border-t border-[#E9ECEF] text-xs text-[#6C757D] space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-slate-800">Plataforma</span>
+          <span class="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10.5px]">Online v1.4</span>
+        </div>
+        <p class="text-[11px] leading-tight">NumInstante SaaS Management &copy; 2026</p>
+      </div>
+    </aside>
+
+    <!-- ==================== ÁREA DE TRABALHO DINÂMICA ========================== -->
+    <main class="flex-1 overflow-y-auto p-6 bg-[#F8F9FA] custom-scrollbar">
+
+      <!-- ========================================================================= -->
+      <!-- ==================== TAB 1: EMPRESAS VINCULADAS ========================= -->
+      <!-- ========================================================================= -->
+      <section id="tab-empresas" class="space-y-6 max-w-6xl mx-auto">
+        
+        <!-- Header da Seção + Botão de Nova Empresa -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-900 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              </div>
+              <h1 class="text-base font-extrabold text-[#1A1D20]">Empresas Vinculadas na Plataforma</h1>
+            </div>
+            <p class="text-xs text-[#6C757D] mt-1">
+              Gerencie os restaurantes cadastrados, ative/desative acessos ou entre em modo de suporte para configurar a loja.
+            </p>
+          </div>
+
+          <button onclick="openNewCompanyModal()" class="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-2 cursor-pointer self-start md:self-auto shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Cadastrar Nova Empresa</span>
+          </button>
+        </div>
+
+        <!-- 4 Cards de Resumo Rápido -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Total de Lojas</span>
+            <div class="text-2xl font-black text-slate-900" id="card-total-companies">24</div>
+            <span class="text-[11px] text-slate-500">Cadastradas na base</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Lojas Ativas</span>
+            <div class="text-2xl font-black text-emerald-600" id="card-active-companies">20</div>
+            <span class="text-[11px] text-emerald-600 font-bold">● Cardápios online</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Em Período de Teste</span>
+            <div class="text-2xl font-black text-amber-600" id="card-trial-companies">3</div>
+            <span class="text-[11px] text-amber-600">Trial de 7 a 14 dias</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Desativadas / Canceladas</span>
+            <div class="text-2xl font-black text-rose-600" id="card-inactive-companies">1</div>
+            <span class="text-[11px] text-rose-600">Acesso suspenso</span>
+          </div>
+        </div>
+
+        <!-- Barra de Busca e Filtros Rápidos de Situação -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <!-- Filtro por Status Pills -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+            <button onclick="filterCompanies('all')" id="filter-btn-all" class="comp-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-slate-900 text-white shadow-xs">
+              Todas (24)
+            </button>
+            <button onclick="filterCompanies('active')" id="filter-btn-active" class="comp-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] border border-[#E9ECEF]">
+              Ativas (20)
+            </button>
+            <button onclick="filterCompanies('trial')" id="filter-btn-trial" class="comp-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] border border-[#E9ECEF]">
+              Em Teste (3)
+            </button>
+            <button onclick="filterCompanies('inactive')" id="filter-btn-inactive" class="comp-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] border border-[#E9ECEF]">
+              Desativadas (1)
+            </button>
+          </div>
+
+          <!-- Input de Busca -->
+          <div class="relative w-full md:w-80">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="input-search-companies" oninput="handleSearchCompanies(this.value)" placeholder="Buscar por nome, CNPJ ou telefone..." class="w-full pl-9 pr-8 py-2 text-xs bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900 font-semibold transition-all">
+          </div>
+        </div>
+
+        <!-- Grade de Cards de Empresas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="companies-grid">
+          <!-- Gerado dinamicamente via JS com dados realistas -->
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- ==================== TAB 2: CONTROLE DE ASSINATURA ====================== -->
+      <!-- ========================================================================= -->
+      <section id="tab-assinaturas" class="hidden space-y-6 max-w-6xl mx-auto">
+        <!-- Topo da Seção de Assinaturas -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+              </div>
+              <h1 class="text-base font-extrabold text-[#1A1D20]">Controle de Assinaturas & Cobranças</h1>
+            </div>
+            <p class="text-xs text-[#6C757D] mt-1">
+              Acompanhe quem pagou no mês, renove ciclos de +30 dias, gerencie planos gratuitos e suspenda perfis inadimplentes.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+              ● Próximo Lote de Cobrança: 01/11/2026
+            </span>
+          </div>
+        </div>
+
+        <!-- Cards Financeiros do SaaS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4.5 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Faturamento Recorrente (MRR)</span>
+            <div class="text-2xl font-black text-slate-900">R$ 2.490,00</div>
+            <span class="text-[11px] text-emerald-600 font-bold">+12% este mês</span>
+          </div>
+
+          <div class="bg-white p-4.5 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Assinaturas Pagas (Em Dia)</span>
+            <div class="text-2xl font-black text-emerald-600" id="sub-paid-count">19</div>
+            <span class="text-[11px] text-slate-500">Ciclo de 30 dias ativo</span>
+          </div>
+
+          <div class="bg-white p-4.5 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Vencendo em Breve (&le; 5 dias)</span>
+            <div class="text-2xl font-black text-amber-600" id="sub-due-count">3</div>
+            <span class="text-[11px] text-amber-600 font-semibold">Exige contato / lembrete</span>
+          </div>
+
+          <div class="bg-white p-4.5 rounded-2xl border border-[#E9ECEF] shadow-xs space-y-1">
+            <span class="text-xs font-semibold text-[#6C757D]">Atrasadas / Inadimplentes</span>
+            <div class="text-2xl font-black text-rose-600" id="sub-overdue-count">2</div>
+            <span class="text-[11px] text-rose-600 font-semibold">Risco de suspensão</span>
+          </div>
+        </div>
+
+        <!-- Tabela Detalhada de Assinaturas -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="font-extrabold text-sm text-slate-900">Listagem de Estabelecimentos & Vencimentos</h3>
+              <p class="text-xs text-[#6C757D]">Clique em <strong>"Marcar Pago"</strong> para renovar o acesso por mais 30 dias ou cobre via WhatsApp.</p>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <select id="filter-plan-select" onchange="renderSubscriptionsTable()" class="bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3 py-1.5 text-xs text-slate-900 font-semibold outline-none focus:border-[#FF5E1E]">
+                <option value="all">Todos os Planos</option>
+                <option value="pago">Apenas Planos Pagos</option>
+                <option value="trial">Apenas Planos Grátis / Trial</option>
+                <option value="overdue">Apenas Atrasadas</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-[#E9ECEF] text-[#6C757D] font-bold">
+                  <th class="pb-3 pl-2">Empresa</th>
+                  <th class="pb-3">Plano</th>
+                  <th class="pb-3">Valor Mensal</th>
+                  <th class="pb-3">Próximo Vencimento</th>
+                  <th class="pb-3 text-center">Status</th>
+                  <th class="pb-3 pr-2 text-right">Ações de Cobrança</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E9ECEF]" id="subscriptions-table-body">
+                <!-- Preenchido via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- ==================== TAB 3: CONFIGURAÇÃO DO PERFIL ADMIN ================= -->
+      <!-- ========================================================================= -->
+      <section id="tab-perfil" class="hidden space-y-6 max-w-4xl mx-auto">
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            <h1 class="text-base font-extrabold text-[#1A1D20]">Configuração do Perfil de Administrador</h1>
+          </div>
+          <p class="text-xs text-[#6C757D] mt-1">
+            Defina suas credenciais de acesso master e os parâmetros globais da plataforma SaaS.
+          </p>
+        </div>
+
+        <!-- Formulário de Credenciais Master -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs space-y-5">
+          <h2 class="font-extrabold text-sm text-slate-900 border-b border-[#E9ECEF] pb-3">Credenciais de Acesso Super Admin</h2>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700">Nome do Administrador</label>
+              <input type="text" id="admin-name-input" value="Master Admin" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700">E-mail de Login</label>
+              <input type="email" id="admin-email-input" value="admin@numinstante.com" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700">Nova Senha Master</label>
+              <input type="password" placeholder="••••••••••••" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700">Confirmar Nova Senha</label>
+              <input type="password" placeholder="••••••••••••" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+            </div>
+          </div>
+        </div>
+
+        <!-- Parâmetros Globais do SaaS -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs space-y-5">
+          <h2 class="font-extrabold text-sm text-slate-900 border-b border-[#E9ECEF] pb-3">Configurações Gerais da Plataforma</h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700">Dias de Teste Grátis (Trial Padrão)</label>
+              <input type="number" value="7" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+              <p class="text-[10.5px] text-[#6C757D]">Tempo concedido antes de exigir assinatura paga.</p>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-slate-700">Chave PIX do Super Admin (para receber mensalidades)</label>
+              <input type="text" value="financeiro@numinstante.com" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+              <p class="text-[10.5px] text-[#6C757D]">Chave exibida no lembrete de cobrança às lojas.</p>
+            </div>
+
+            <div class="space-y-1 sm:col-span-2">
+              <label class="text-xs font-bold text-slate-700">WhatsApp Oficial do Suporte Técnico</label>
+              <input type="text" value="(84) 99999-8888" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+            </div>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button onclick="saveAdminSettings()" class="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>Salvar Alterações do Perfil</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- ==================== TAB 4: MODO DE SUPORTE (CONTEÚDO DA LOJA) ========== -->
+      <!-- ========================================================================= -->
+      <section id="tab-support-store-view" class="hidden space-y-6 max-w-5xl mx-auto">
+        <!-- Cardápio / Setup da Loja Selecionada -->
+        <div class="bg-white rounded-2xl border border-amber-300 bg-amber-50/20 p-5 shadow-xs flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-black text-lg">
+              🍔
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-base font-extrabold text-[#1A1D20]" id="support-active-title">Configurando: Brasa Burguer</h2>
+                <span class="bg-amber-100 text-amber-900 font-extrabold text-[10.5px] px-2 py-0.5 rounded-full">Acesso de Suporte</span>
+              </div>
+              <p class="text-xs text-[#6C757D]">
+                Você pode cadastrar produtos, editar valores, adicionar categorias, ajustar bairros e taxas.
+              </p>
+            </div>
+          </div>
+
+          <button onclick="exitSupportMode()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs shrink-0">
+            Encerrar Suporte
+          </button>
+        </div>
+
+        <!-- Exemplo de Conteúdo Editável em Suporte -->
+        <div class="bg-white rounded-2xl border border-[#E9ECEF] p-6 shadow-xs space-y-4" id="support-dynamic-pane">
+          <div class="flex items-center justify-between pb-3 border-b border-[#E9ECEF]">
+            <h3 class="font-extrabold text-sm text-[#1A1D20]" id="support-section-title">Cardápio & Vitrine da Loja</h3>
+            <button onclick="showToast('Produto de teste adicionado via suporte!')" class="px-3.5 py-1.5 rounded-xl bg-[#FF5E1E] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>Adicionar Produto</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="support-items-demo">
+            <div class="p-3.5 rounded-xl border border-[#E9ECEF] bg-slate-50 flex items-center justify-between">
+              <div>
+                <span class="font-extrabold text-xs text-slate-900 block">Brasa Burger Especial</span>
+                <span class="text-[11px] text-slate-500">Categoria: Hambúrgueres · R$ 34,90</span>
+              </div>
+              <button onclick="showToast('Editando produto...')" class="text-xs font-bold text-[#FF5E1E] hover:underline">Editar</button>
+            </div>
+
+            <div class="p-3.5 rounded-xl border border-[#E9ECEF] bg-slate-50 flex items-center justify-between">
+              <div>
+                <span class="font-extrabold text-xs text-slate-900 block">Batata Rústica com Alecrim</span>
+                <span class="text-[11px] text-slate-500">Categoria: Acompanhamentos · R$ 18,00</span>
+              </div>
+              <button onclick="showToast('Editando produto...')" class="text-xs font-bold text-[#FF5E1E] hover:underline">Editar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== MODAL DE PRIVACIDADE E RESTRIÇÃO LGPD ============== -->
+  <!-- ========================================================================= -->
+  <div id="modal-privacy" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-[#E9ECEF] animate-modal space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+
+      <div class="text-center space-y-1.5">
+        <h3 class="font-black text-base text-slate-900" id="privacy-modal-title">Acesso Restrito por Privacidade (LGPD)</h3>
+        <p class="text-xs text-[#6C757D] leading-relaxed" id="privacy-modal-desc">
+          Para garantir o sigilo das operações do restaurante e respeitar os dados dos clientes finais, essa seção é confidencial e não pode ser visualizada pelo suporte técnico da plataforma.
+        </p>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+        <div class="font-bold text-slate-800">O que você PODE configurar no suporte:</div>
+        <div>✓ Dados cadastrais, endereço e logo</div>
+        <div>✓ Cardápio, categorias e opcionais</div>
+        <div>✓ Horários de atendimento e fuso horário</div>
+        <div>✓ Taxas de entrega e bairros atendidos</div>
+      </div>
+
+      <button onclick="closePrivacyModal()" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all">
+        Entendido, Voltar
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== MODAL DE NOVA EMPRESA ============================== -->
+  <!-- ========================================================================= -->
+  <div id="modal-new-company" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-[#E9ECEF] animate-modal space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-[#E9ECEF]">
+        <h3 class="font-black text-base text-slate-900">Cadastrar Nova Empresa</h3>
+        <button onclick="closeNewCompanyModal()" class="text-slate-400 hover:text-slate-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form onsubmit="handleCreateCompanySubmit(event)" class="space-y-3.5">
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-slate-700">Nome do Estabelecimento *</label>
+          <input type="text" id="new-comp-name" required placeholder="Ex: Cantina Di Napoli" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-700">Telefone / WhatsApp *</label>
+            <input type="text" id="new-comp-phone" required placeholder="(84) 99999-9999" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-700">CNPJ *</label>
+            <input type="text" id="new-comp-cnpj" required placeholder="00.000.000/0001-00" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-700">Plano Inicial</label>
+            <select id="new-comp-plan" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+              <option value="trial">Trial Grátis (7 dias)</option>
+              <option value="basico">Plano Básico (R$ 49,00/mês)</option>
+              <option value="pro" selected>Plano Pro (R$ 99,00/mês)</option>
+              <option value="enterprise">Plano Ilimitado (R$ 199,00/mês)</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-700">Status Inicial</label>
+            <select id="new-comp-status" class="w-full px-3.5 py-2 text-xs font-semibold bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl outline-none focus:border-[#FF5E1E] focus:bg-white text-slate-900">
+              <option value="active">Ativa (Acesso Liberado)</option>
+              <option value="inactive">Desativada (Acesso Bloqueado)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2 border-t border-[#E9ECEF]">
+          <button type="button" onclick="closeNewCompanyModal()" class="px-4 py-2 rounded-xl border border-[#E9ECEF] text-xs font-bold text-slate-600 hover:bg-slate-50">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold shadow-sm">
+            Cadastrar Empresa
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONTAINER DE TOASTS -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ========================================================================= -->
+  <!-- ==================== JAVASCRIPT DE REATIVIDADE ========================== -->
+  <!-- ========================================================================= -->
+  <script>
+    // BASE DE DADOS DEMONSTRATIVA COMPLETA
+    let companies = [
+      {
+        id: 1,
+        name: 'Brasa Burguer',
+        slug: 'brasaburguer',
+        cnpj: '12.345.678/0001-90',
+        phone: '(84) 99876-5432',
+        owner: 'Lucas Silva',
+        status: 'active', // active, trial, inactive
+        plan: 'pro',
+        planName: 'Plano Pro',
+        price: 99.00,
+        nextBilling: '28/10/2026',
+        isPaid: true,
+        daysLeft: 4,
+        productsCount: 18,
+        createdAt: '12/03/2026'
+      },
+      {
+        id: 2,
+        name: 'Pizzaria Bella Massa',
+        slug: 'bellamassa',
+        cnpj: '98.765.432/0001-11',
+        phone: '(84) 98765-4321',
+        owner: 'Mariana Costa',
+        status: 'active',
+        plan: 'pro',
+        planName: 'Plano Pro',
+        price: 99.00,
+        nextBilling: '25/10/2026',
+        isPaid: true,
+        daysLeft: 1,
+        productsCount: 32,
+        createdAt: '01/04/2026'
+      },
+      {
+        id: 3,
+        name: 'Açaí Tropical Raiz',
+        slug: 'acaitropical',
+        cnpj: '45.123.789/0001-55',
+        phone: '(84) 99112-3344',
+        owner: 'Carlos Eduardo',
+        status: 'trial',
+        plan: 'trial',
+        planName: 'Trial Grátis',
+        price: 0.00,
+        nextBilling: '29/10/2026',
+        isPaid: true,
+        daysLeft: 5,
+        productsCount: 12,
+        createdAt: '22/10/2026'
+      },
+      {
+        id: 4,
+        name: 'Sushi Zen Japanese',
+        slug: 'sushizen',
+        cnpj: '33.999.888/0001-22',
+        phone: '(84) 99444-5566',
+        owner: 'Renato Takahashi',
+        status: 'active',
+        plan: 'enterprise',
+        planName: 'Plano Ilimitado',
+        price: 199.00,
+        nextBilling: '05/11/2026',
+        isPaid: true,
+        daysLeft: 12,
+        productsCount: 45,
+        createdAt: '15/01/2026'
+      },
+      {
+        id: 5,
+        name: 'Pastelaria do Beto',
+        slug: 'pasteldobeto',
+        cnpj: '77.888.999/0001-33',
+        phone: '(84) 98888-2211',
+        owner: 'Roberto Souza',
+        status: 'inactive',
+        plan: 'basico',
+        planName: 'Plano Básico',
+        price: 49.00,
+        nextBilling: '18/10/2026',
+        isPaid: false,
+        daysLeft: -6,
+        productsCount: 15,
+        createdAt: '10/02/2026'
+      },
+      {
+        id: 6,
+        name: 'Café & Confeitaria Doce Vida',
+        slug: 'doceda',
+        cnpj: '11.222.333/0001-44',
+        phone: '(84) 99777-6655',
+        owner: 'Fabiana Lima',
+        status: 'active',
+        plan: 'basico',
+        planName: 'Plano Básico',
+        price: 49.00,
+        nextBilling: '26/10/2026',
+        isPaid: false,
+        daysLeft: 2,
+        productsCount: 24,
+        createdAt: '20/05/2026'
+      }
+    ];
+
+    let currentCompanyFilter = 'all';
+    let currentSearchTerm = '';
+    let currentImpersonatedCompany = null;
+
+    // Toast Notification Utility
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-600' : type === 'warning' ? 'bg-amber-600' : 'bg-slate-900';
+      toast.className = `${bg} text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 pointer-events-auto animate-toast`;
+      toast.innerHTML = `
+        <svg class="w-4 h-4 text-[#FF5E1E]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // NAVEGAÇÃO ENTRE AS 3 ABAS DO SUPER ADMIN
+    function switchAdminTab(tabKey) {
+      const tabs = ['empresas', 'assinaturas', 'perfil'];
+      tabs.forEach(t => {
+        const sec = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`nav-btn-${t}`);
+        if (sec) sec.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('bg-slate-900', 'text-white', 'shadow-xs');
+          btn.classList.add('text-[#6C757D]');
+        }
+      });
+
+      const activeSec = document.getElementById(`tab-${tabKey}`);
+      const activeBtn = document.getElementById(`nav-btn-${tabKey}`);
+      if (activeSec) activeSec.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-xs');
+        activeBtn.classList.remove('text-[#6C757D]');
+      }
+
+      // Garante que o painel de suporte fica oculto ao trocar de aba do admin
+      const supSec = document.getElementById('tab-support-store-view');
+      if (supSec) supSec.classList.add('hidden');
+    }
+
+    // FILTRO DE EMPRESAS POR STATUS
+    function filterCompanies(statusKey) {
+      currentCompanyFilter = statusKey;
+      document.querySelectorAll('.comp-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-slate-900', 'text-white', 'shadow-xs');
+        btn.classList.add('bg-[#F8F9FA]', 'text-[#6C757D]', 'border', 'border-[#E9ECEF]');
+      });
+      const activeBtn = document.getElementById(`filter-btn-${statusKey}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-xs');
+        activeBtn.classList.remove('bg-[#F8F9FA]', 'text-[#6C757D]', 'border', 'border-[#E9ECEF]');
+      }
+      renderCompaniesGrid();
+    }
+
+    // BUSCA TEXTUAL DE EMPRESAS
+    function handleSearchCompanies(query) {
+      currentSearchTerm = query.toLowerCase().trim();
+      renderCompaniesGrid();
+    }
+
+    // RENDER DA GRADE DE EMPRESAS
+    function renderCompaniesGrid() {
+      const grid = document.getElementById('companies-grid');
+      grid.innerHTML = '';
+
+      const filtered = companies.filter(c => {
+        const matchesStatus = currentCompanyFilter === 'all' || c.status === currentCompanyFilter;
+        const matchesQuery = !currentSearchTerm || 
+          c.name.toLowerCase().includes(currentSearchTerm) ||
+          c.cnpj.includes(currentSearchTerm) ||
+          c.phone.includes(currentSearchTerm) ||
+          c.owner.toLowerCase().includes(currentSearchTerm);
+        return matchesStatus && matchesQuery;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl border border-dashed border-[#E9ECEF] p-12 text-center space-y-2">
+            <p class="font-extrabold text-sm text-slate-900">Nenhuma empresa encontrada</p>
+            <p class="text-xs text-[#6C757D]">Tente ajustar o termo da busca ou o filtro de situação.</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(c => {
+        const isSuspended = c.status === 'inactive';
+        const isTrial = c.status === 'trial';
+        
+        let statusBadge = '';
+        if (isSuspended) {
+          statusBadge = '<span class="inline-flex items-center gap-1 text-[10.5px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">● Desativada</span>';
+        } else if (isTrial) {
+          statusBadge = `<span class="inline-flex items-center gap-1 text-[10.5px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">● Em Teste (${c.daysLeft} dias)</span>`;
+        } else {
+          statusBadge = '<span class="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">● Ativa</span>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs hover:shadow-md transition-all space-y-3.5 flex flex-col justify-between';
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 text-[#FF5E1E] flex items-center justify-center font-black text-base shrink-0">
+                  ${c.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <h3 class="font-black text-sm text-slate-900 leading-tight">${c.name}</h3>
+                  <span class="text-[11px] text-[#6C757D] block">/${c.slug}</span>
+                </div>
+              </div>
+              ${statusBadge}
+            </div>
+
+            <div class="bg-[#F8F9FA] rounded-xl p-3 border border-[#E9ECEF] space-y-1.5 text-xs">
+              <div class="flex items-center justify-between text-[#6C757D]">
+                <span>CNPJ:</span>
+                <span class="font-bold text-slate-800">${c.cnpj}</span>
+              </div>
+              <div class="flex items-center justify-between text-[#6C757D]">
+                <span>Responsável:</span>
+                <span class="font-bold text-slate-800">${c.owner}</span>
+              </div>
+              <div class="flex items-center justify-between text-[#6C757D]">
+                <span>WhatsApp:</span>
+                <span class="font-bold text-slate-800">${c.phone}</span>
+              </div>
+              <div class="flex items-center justify-between text-[#6C757D] pt-1 border-t border-[#E9ECEF]">
+                <span>Plano Atual:</span>
+                <span class="font-extrabold text-[#FF5E1E]">${c.planName}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ações do Card -->
+          <div class="space-y-2 pt-2 border-t border-[#E9ECEF]">
+            <button onclick="enterSupportMode(${c.id})" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <span>Acessar como Suporte</span>
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button onclick="toggleCompanyStatus(${c.id})" class="flex-1 py-1.5 px-2 rounded-xl border border-[#E9ECEF] hover:bg-slate-50 text-[11px] font-bold ${isSuspended ? 'text-emerald-700 hover:text-emerald-800' : 'text-rose-600 hover:text-rose-700'} transition-all">
+                ${isSuspended ? 'Reativar Loja' : 'Desativar Perfil'}
+              </button>
+              <button onclick="openWhatsAppContact('${c.phone}', '${c.name}')" class="py-1.5 px-3 rounded-xl border border-[#E9ECEF] hover:bg-slate-50 text-[11px] font-bold text-slate-700 transition-all flex items-center gap-1" title="Falar no WhatsApp com o responsável">
+                <span>WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      updateMetricsSummary();
+    }
+
+    // ALTERNA STATUS ATIVA / DESATIVADA
+    function toggleCompanyStatus(id) {
+      const comp = companies.find(c => c.id === id);
+      if (!comp) return;
+
+      if (comp.status === 'inactive') {
+        comp.status = 'active';
+        showToast(`Loja "${comp.name}" reativada com sucesso!`);
+      } else {
+        comp.status = 'inactive';
+        showToast(`Loja "${comp.name}" desativada (acesso bloqueado).`, 'warning');
+      }
+      renderCompaniesGrid();
+      renderSubscriptionsTable();
+    }
+
+    // IMPERSONAÇÃO: ACESSAR COMO SUPORTE
+    function enterSupportMode(id) {
+      const comp = companies.find(c => c.id === id);
+      if (!comp) return;
+
+      currentImpersonatedCompany = comp;
+      document.getElementById('support-mode-banner').classList.remove('hidden');
+      document.getElementById('support-store-name').innerText = comp.name;
+      document.getElementById('support-store-cnpj').innerText = `· CNPJ: ${comp.cnpj}`;
+      document.getElementById('support-active-title').innerText = `Configurando: ${comp.name}`;
+
+      // Alterna navegação da sidebar para modo suporte
+      document.getElementById('admin-nav-menu').classList.add('hidden');
+      document.getElementById('support-nav-menu').classList.remove('hidden');
+
+      // Oculta abas admin e exibe a visualização da loja em suporte
+      document.getElementById('tab-empresas').classList.add('hidden');
+      document.getElementById('tab-assinaturas').classList.add('hidden');
+      document.getElementById('tab-perfil').classList.add('hidden');
+      document.getElementById('tab-support-store-view').classList.remove('hidden');
+
+      showToast(`Acesso de suporte iniciado para "${comp.name}".`);
+    }
+
+    // SAIR DO MODO DE SUPORTE
+    function exitSupportMode() {
+      currentImpersonatedCompany = null;
+      document.getElementById('support-mode-banner').classList.add('hidden');
+      document.getElementById('admin-nav-menu').classList.remove('hidden');
+      document.getElementById('support-nav-menu').classList.add('hidden');
+
+      // Restaura visão principal de Empresas
+      switchAdminTab('empresas');
+      showToast('Retornado ao Painel Master Super Admin.');
+    }
+
+    // AVISO DE RESTRIÇÃO DE PRIVACIDADE E LGPD
+    function promptPrivacyRestriction(area) {
+      const modal = document.getElementById('modal-privacy');
+      const title = document.getElementById('privacy-modal-title');
+      const desc = document.getElementById('privacy-modal-desc');
+
+      if (area === 'kanban') {
+        title.innerText = '🔒 Gestor de Pedidos (Kanban) Restrito';
+        desc.innerText = 'Por respeito à LGPD e à privacidade operacional, a tela de pedidos e dados pessoais dos clientes finais só podem ser vistos pela equipe do próprio restaurante.';
+      } else {
+        title.innerText = '🔒 Financeiro & Extrato Bancário Restrito';
+        desc.innerText = 'Os dados consolidados de faturamento, vendas e faturamento da loja pertencem exclusivamente aos proprietários do estabelecimento.';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closePrivacyModal() {
+      document.getElementById('modal-privacy').classList.add('hidden');
+    }
+
+    // TABELAS DE ASSINATURAS
+    function renderSubscriptionsTable() {
+      const tbody = document.getElementById('subscriptions-table-body');
+      tbody.innerHTML = '';
+
+      const filterVal = document.getElementById('filter-plan-select').value;
+      const filtered = companies.filter(c => {
+        if (filterVal === 'pago') return c.plan !== 'trial';
+        if (filterVal === 'trial') return c.plan === 'trial';
+        if (filterVal === 'overdue') return !c.isPaid || c.daysLeft < 0;
+        return true;
+      });
+
+      filtered.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-[#F8F9FA] transition-colors';
+
+        let badge = '';
+        if (!c.isPaid || c.daysLeft < 0) {
+          badge = '<span class="inline-flex items-center gap-1 font-extrabold text-[10.5px] text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">Atrasado</span>';
+        } else if (c.plan === 'trial') {
+          badge = `<span class="inline-flex items-center gap-1 font-extrabold text-[10.5px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Trial (${c.daysLeft}d)</span>`;
+        } else {
+          badge = '<span class="inline-flex items-center gap-1 font-extrabold text-[10.5px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Pago / Em Dia</span>';
+        }
+
+        tr.innerHTML = `
+          <td class="py-3 pl-2">
+            <span class="font-extrabold text-slate-900 block">${c.name}</span>
+            <span class="text-[11px] text-[#6C757D]">${c.owner} · ${c.phone}</span>
+          </td>
+          <td class="py-3 font-semibold text-slate-800">
+            ${c.planName}
+          </td>
+          <td class="py-3 font-bold text-slate-900">
+            ${c.price === 0 ? 'Gratuito' : 'R$ ' + c.price.toFixed(2).replace('.', ',')}
+          </td>
+          <td class="py-3 font-semibold text-slate-700">
+            ${c.nextBilling}
+          </td>
+          <td class="py-3 text-center">
+            ${badge}
+          </td>
+          <td class="py-3 pr-2 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="markSubscriptionPaid(${c.id})" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200 transition-all cursor-pointer" title="Marcar fatura do mês como paga e somar +30 dias">
+                ✓ Marcar Pago (+30d)
+              </button>
+              <button onclick="openWhatsAppContact('${c.phone}', '${c.name}', ${c.price}, '${c.nextBilling}')" class="px-2.5 py-1 rounded-lg border border-[#E9ECEF] hover:bg-slate-100 text-[11px] font-bold text-slate-700 transition-all cursor-pointer" title="Enviar lembrete de cobrança no WhatsApp">
+                💬 Cobrar
+              </button>
+              <button onclick="toggleCompanyStatus(${c.id})" class="p-1 rounded-lg text-slate-400 hover:text-rose-600 cursor-pointer" title="${c.status === 'inactive' ? 'Reativar' : 'Suspender por falta de pagamento'}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // MARCAR ASSINATURA COMO PAGA (+30 DIAS)
+    function markSubscriptionPaid(id) {
+      const comp = companies.find(c => c.id === id);
+      if (!comp) return;
+
+      comp.isPaid = true;
+      comp.status = 'active';
+      comp.daysLeft = 30;
+      comp.nextBilling = '24/11/2026';
+      showToast(`Assinatura de "${comp.name}" renovada por +30 dias!`);
+      renderSubscriptionsTable();
+      renderCompaniesGrid();
+    }
+
+    // COBRANÇA VIA WHATSAPP COM TEXTO PRÉ-FORMATADO
+    function openWhatsAppContact(phone, companyName, price = 99, dueDate = '28/10/2026') {
+      const cleanPhone = phone.replace(/\D/g, '');
+      const msg = encodeURIComponent(`Olá! Aqui é do suporte NumInstante Delivery. Passando para lembrar da renovação da sua assinatura do ${companyName} no valor de R$ ${price.toFixed(2).replace('.', ',')} com vencimento em ${dueDate}. Segue nossa chave PIX: financeiro@numinstante.com. Qualquer dúvida estamos à disposição!`);
+      window.open(`https://wa.me/55${cleanPhone}?text=${msg}`, '_blank');
+      showToast(`Abrindo WhatsApp de cobrança para ${companyName}...`);
+    }
+
+    // MODAL DE NOVA EMPRESA
+    function openNewCompanyModal() {
+      document.getElementById('modal-new-company').classList.remove('hidden');
+    }
+
+    function closeNewCompanyModal() {
+      document.getElementById('modal-new-company').classList.add('hidden');
+    }
+
+    function handleCreateCompanySubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-comp-name').value.trim();
+      const phone = document.getElementById('new-comp-phone').value.trim();
+      const cnpj = document.getElementById('new-comp-cnpj').value.trim();
+      const plan = document.getElementById('new-comp-plan').value;
+      const status = document.getElementById('new-comp-status').value;
+
+      const newId = companies.length + 1;
+      const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      let price = 99.00;
+      let planName = 'Plano Pro';
+      if (plan === 'basico') { price = 49.00; planName = 'Plano Básico'; }
+      if (plan === 'trial') { price = 0.00; planName = 'Trial Grátis'; }
+      if (plan === 'enterprise') { price = 199.00; planName = 'Plano Ilimitado'; }
+
+      companies.unshift({
+        id: newId,
+        name,
+        slug,
+        cnpj,
+        phone,
+        owner: 'Responsável ' + name,
+        status: plan === 'trial' ? 'trial' : status,
+        plan,
+        planName,
+        price,
+        nextBilling: '24/11/2026',
+        isPaid: true,
+        daysLeft: 30,
+        productsCount: 0,
+        createdAt: 'Hoje'
+      });
+
+      closeNewCompanyModal();
+      showToast(`Empresa "${name}" cadastrada com sucesso!`);
+      renderCompaniesGrid();
+      renderSubscriptionsTable();
+    }
+
+    // SALVAR CONFIGURAÇÕES DO ADMIN MASTER
+    function saveAdminSettings() {
+      showToast('Configurações do Super Admin salvas com sucesso!');
+    }
+
+    // ATUALIZA MÉTRICAS
+    function updateMetricsSummary() {
+      const total = companies.length;
+      const active = companies.filter(c => c.status === 'active').length;
+      const trial = companies.filter(c => c.status === 'trial').length;
+      const inactive = companies.filter(c => c.status === 'inactive').length;
+
+      document.getElementById('card-total-companies').innerText = total;
+      document.getElementById('card-active-companies').innerText = active;
+      document.getElementById('card-trial-companies').innerText = trial;
+      document.getElementById('card-inactive-companies').innerText = inactive;
+
+      document.getElementById('header-active-count').innerText = active;
+      document.getElementById('header-trial-count').innerText = trial;
+      document.getElementById('nav-badge-companies').innerText = total;
+    }
+
+    // INICIALIZAÇÃO
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCompaniesGrid();
+      renderSubscriptionsTable();
+    });
+  </script>
+</body>
+</html>
+

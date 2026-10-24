@@ -1,15 +1,20 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Smartphone, Building2 } from 'lucide-react'
+import { LayoutDashboard, Smartphone, Building2, ShieldCheck } from 'lucide-react'
 
 export function ViewSwitcherBar() {
   const { pathname } = useLocation()
+  const isSuperAdmin =
+    pathname.startsWith('/superadmin') || pathname.startsWith('/admin-saas')
   const isEmpresas =
-    pathname === '/empresas' ||
-    pathname === '/cadastro-empresas' ||
-    pathname === '/admin/api-health'
+    (pathname === '/empresas' ||
+      pathname === '/cadastro-empresas' ||
+      pathname === '/admin/api-health') &&
+    !isSuperAdmin
   const isBackoffice =
-    (pathname.startsWith('/admin') || pathname === '/backoffice') && !isEmpresas
-  const isCardapio = !isBackoffice && !isEmpresas
+    (pathname.startsWith('/admin') || pathname === '/backoffice') &&
+    !isEmpresas &&
+    !isSuperAdmin
+  const isCardapio = !isBackoffice && !isEmpresas && !isSuperAdmin
 
   return (
     <div className="w-full bg-[#1A1D20] text-white px-3 py-1.5 flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-[12px] z-50 shrink-0 border-b border-white/10 overflow-x-auto">
@@ -17,7 +22,7 @@ export function ViewSwitcherBar() {
         Modo de Visualização:
       </span>
 
-      {/* 1. Painel Backoffice */}
+      {/* 1. Painel Backoffice Lojista */}
       <Link
         to="/admin"
         className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold inline-flex items-center gap-1.5 transition-colors shrink-0 ${
@@ -55,7 +60,21 @@ export function ViewSwitcherBar() {
         <Building2 className="w-3.5 h-3.5" />
         <span>Cadastro de Empresas (API)</span>
       </Link>
+
+      {/* 4. Backoffice Super Admin */}
+      <Link
+        to="/superadmin"
+        className={`px-2.5 sm:px-3 py-1 rounded-lg font-semibold inline-flex items-center gap-1.5 transition-colors shrink-0 ${
+          isSuperAdmin
+            ? 'bg-[#FF5E1E] text-white shadow-xs'
+            : 'bg-white/10 text-white/80 hover:bg-white/15 hover:text-white'
+        }`}
+      >
+        <ShieldCheck className="w-3.5 h-3.5" />
+        <span>Super Admin</span>
+      </Link>
     </div>
   )
 }
+
 
