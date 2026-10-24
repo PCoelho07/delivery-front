@@ -19,10 +19,14 @@ import {
   List,
   Store,
   Trash2,
+  Radio,
+  RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCustomerStore } from '../../../store/useCustomerStore'
 import { formatCurrency } from '../../../lib/utils'
+import { playOrderChime } from '../../../utils/audio'
+import { useOrdersWebSocket } from '../../../hooks/useOrdersWebSocket'
 import { OrderCard } from './OrderCard'
 import { OrdersTableView } from './OrdersTableView'
 import { ThermalReceiptModal } from './ThermalReceiptModal'
@@ -163,7 +167,6 @@ const DEFAULT_DEMO_ORDERS = [
 
 export function OrdersView() {
   const storeOrders = useCustomerStore((state) => state.orders)
-  const addStoreOrder = useCustomerStore((state) => state.addOrder)
   const updateStoreOrderStatus = useCustomerStore((state) => state.updateOrderStatus)
   const setStoreOrders = useCustomerStore((state) => state.setOrders)
   const clearStoreOrders = useCustomerStore((state) => state.clearOrders)
@@ -196,6 +199,26 @@ export function OrdersView() {
 
   // Pedido selecionado para impressão de comanda térmica
   const [orderToPrint, setOrderToPrint] = useState(null)
+
+  // Conexão WebSocket Nativa com o backend em Go
+  const {
+    status: wsStatus,
+    isConnected: isWsConnected,
+    isReconnecting: isWsReconnecting,
+    reconnect: reconnectWs,
+    updateOrderStatus: sendWsStatusUpdate,
+    simulateIncomingMessage,
+  } = useOrdersWebSocket({
+    onNewOrder: (order) => {
+      if (soundEnabled) {
+        playOrderChime()
+      }
+      const orderNum = String(order.orderId || '').replace(/^#/, '')
+      toast.success(`Novo pedido #${orderNum} recebido!`, {
+        description: `${order.customer?.name || 'Cliente'} enviou um pedido no valor de ${formatCurrency(order.total || 0)}.`,
+      })
+    },
+  })
 
   // Todos os pedidos registrados
   const allOrders = storeOrders
@@ -243,6 +266,8 @@ export function OrdersView() {
   // Avançar Status
   const handleAdvance = (orderId, nextStatus) => {
     updateStoreOrderStatus(orderId, nextStatus)
+    sendWsStatusUpdate(orderId, nextStatus)
+
     const targetOrder = allOrders.find((o) => o.orderId === orderId)
     const isPickup = targetOrder?.deliveryMethod === 'pickup'
 
@@ -257,6 +282,7 @@ export function OrdersView() {
   // Voltar Status
   const handleRewind = (orderId, prevStatus) => {
     updateStoreOrderStatus(orderId, prevStatus)
+    sendWsStatusUpdate(orderId, prevStatus)
     toast.info('Status retrocedido.')
   }
 
@@ -264,10 +290,15 @@ export function OrdersView() {
   const handleToggleSound = () => {
     const next = !soundEnabled
     setSoundEnabled(next)
-    toast.info(next ? 'Alerta sonoro ativado!' : 'Alerta sonoro silenciado.')
+    if (next) {
+      playOrderChime()
+      toast.info('Alerta sonoro ativado (som de teste reproduzido).')
+    } else {
+      toast.info('Alerta sonoro silenciado.')
+    }
   }
 
-  // Simular Novo Pedido
+  // Simular Novo Pedido (Dispara via pipeline do WebSocket)
   const handleSimulateOrder = () => {
     const randomId = `#${Math.floor(1000 + Math.random() * 9000)}`
     const now = new Date()
@@ -309,8 +340,8 @@ export function OrdersView() {
       },
     }
 
-    addStoreOrder(simulated)
-    toast.success(`Novo pedido ${randomId} recebido com sucesso!`)
+    // Processa pelo simulador de mensagem do WebSocket
+    simulateIncomingMessage('ORDER_CREATED', simulated)
   }
 
   // Restaurar Pedidos de Demonstração
@@ -330,10 +361,43 @@ export function OrdersView() {
       {/* Top Header */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-[#FF5E1E]" />
-            <span>Gestor de Pedidos em Tempo Real</span>
-          </h2>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-[#FF5E1E]" />
+              <span>Gestor de Pedidos em Tempo Real</span>
+            </h2>
+
+            {/* Status do WebSocket Nativo Go */}
+            {isWsConnected ? (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
+                title="Conexão WebSocket ativa em tempo real com o backend Go"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Go WS Conectado</span>
+              </span>
+            ) : isWsReconnecting || wsStatus === 'CONNECTING' ? (
+              <button
+                type="button"
+                onClick={reconnectWs}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+                title="Aguardando servidor Go (:8080/ws/orders). Clique para reconectar."
+              >
+                <RefreshCw className="w-2.5 h-2.5 animate-spin text-amber-600" />
+                <span>Conectando Go WS...</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={reconnectWs}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
+                title="Servidor Go offline. Clique para reconectar."
+              >
+                <Radio className="w-2.5 h-2.5 text-slate-400" />
+                <span>Go WS Offline</span>
+              </button>
+            )}
+          </div>
           <p className="text-xs text-[#6C757D] mt-0.5">
             Acompanhe a fila de produção, avance etapas do pedido e imprima comandas térmicas para a cozinha.
           </p>
@@ -555,9 +619,9 @@ export function OrdersView() {
         /* 4 Colunas do Kanban com Rolagem Independente por Coluna */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 items-start">
           {/* Coluna 1: Novos Pedidos */}
-          <div className="flex flex-col bg-amber-50/40 rounded-2xl p-3 border border-amber-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+          <div className="flex flex-col bg-amber-50/40 rounded-2xl p-3 border border-amber-200/90 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
             {/* Cabeçalho Fixo da Coluna */}
-            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-amber-200/50 shrink-0">
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-amber-200/60 shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -588,9 +652,9 @@ export function OrdersView() {
           </div>
 
           {/* Coluna 2: Em Preparo (Cozinha) */}
-          <div className="flex flex-col bg-blue-50/40 rounded-2xl p-3 border border-blue-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+          <div className="flex flex-col bg-blue-50/40 rounded-2xl p-3 border border-blue-200/90 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
             {/* Cabeçalho Fixo da Coluna */}
-            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-blue-200/50 shrink-0">
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-blue-200/60 shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
                 <ChefHat className="w-3.5 h-3.5 text-blue-600" />
@@ -622,14 +686,14 @@ export function OrdersView() {
           </div>
 
           {/* Coluna 3: Pronto / Em Rota */}
-          <div className="flex flex-col bg-purple-50/40 rounded-2xl p-3 border border-purple-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+          <div className="flex flex-col bg-purple-50/40 rounded-2xl p-3 border border-purple-200/90 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
             {/* Cabeçalho Fixo da Coluna */}
-            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-purple-200/50 shrink-0">
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-purple-200/60 shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-purple-500" />
-                <div className="flex items-center gap-1.5">
-                  <Bike className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                  <Store className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <div className="flex items-center gap-1 text-purple-600 shrink-0">
+                  <Bike className="w-3.5 h-3.5" title="Entrega" />
+                  <Store className="w-3.5 h-3.5" title="Retirada" />
                 </div>
                 <span>Pronto / Em Rota</span>
               </span>
@@ -659,9 +723,9 @@ export function OrdersView() {
           </div>
 
           {/* Coluna 4: Concluídos (com Visual Compacto para economizar espaço com dezenas de pedidos) */}
-          <div className="flex flex-col bg-emerald-50/40 rounded-2xl p-3 border border-emerald-200/80 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
+          <div className="flex flex-col bg-emerald-50/40 rounded-2xl p-3 border border-emerald-200/90 max-h-[calc(100vh-320px)] min-h-[460px] overflow-hidden">
             {/* Cabeçalho Fixo da Coluna com Botão de Compactar */}
-            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-emerald-200/50 shrink-0">
+            <div className="flex items-center justify-between pb-2.5 px-1 border-b border-emerald-200/60 shrink-0">
               <span className="font-extrabold text-xs uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Concluídos</span>

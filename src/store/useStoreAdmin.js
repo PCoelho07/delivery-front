@@ -8,7 +8,7 @@ const DEFAULT_CATEGORIES = []
 const DEFAULT_TEMPLATES = [
   {
     id: 'tmpl-burger',
-    name: '🍔 Template Hambúrguer',
+    name: '🍔 Hambúrgueres (Ponto & Adicionais)',
     desc: 'Ponto da carne, adicionais pagos e preferências',
     groups: [
       {
@@ -39,7 +39,7 @@ const DEFAULT_TEMPLATES = [
   },
   {
     id: 'tmpl-pizza',
-    name: '🍕 Template Pizza',
+    name: '🍕 Pizzas (Bordas & Massas)',
     desc: 'Bordas recheadas e tipo de massa',
     groups: [
       {
@@ -59,7 +59,7 @@ const DEFAULT_TEMPLATES = [
   },
   {
     id: 'tmpl-acai',
-    name: '🍧 Template Açaí',
+    name: '🍧 Açaí (Acompanhamentos)',
     desc: 'Tamanho e acompanhamentos grátis',
     groups: [
       {
@@ -79,7 +79,7 @@ const DEFAULT_TEMPLATES = [
   },
   {
     id: 'tmpl-none',
-    name: '🚫 Nenhum (Item Simples / Bebida)',
+    name: '🚫 Nenhum (Sem adicionais / Bebida)',
     desc: 'Sem adicionais, vai direto para a sacola',
     groups: [],
   },

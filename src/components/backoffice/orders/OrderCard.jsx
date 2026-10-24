@@ -39,35 +39,31 @@ export function OrderCard({
     aceito: {
       nextLabel: 'Aceitar',
       nextStatus: 'preparo',
-      nextClass: 'bg-[#FF5E1E] hover:bg-[#E64E12] text-white',
-      borderClass: 'border-amber-200 hover:border-amber-300',
+      nextClass: 'bg-[#FF5E1E] hover:bg-[#E64E12] text-white shadow-xs',
+      borderClass: 'border-slate-200 hover:border-orange-300',
     },
     novo: {
       nextLabel: 'Aceitar',
       nextStatus: 'preparo',
-      nextClass: 'bg-[#FF5E1E] hover:bg-[#E64E12] text-white',
-      borderClass: 'border-amber-200 hover:border-amber-300',
+      nextClass: 'bg-[#FF5E1E] hover:bg-[#E64E12] text-white shadow-xs',
+      borderClass: 'border-slate-200 hover:border-orange-300',
     },
     preparo: {
-      nextLabel: isDelivery ? 'Saiu p/ Entrega' : 'Pronto p/ Retirada',
+      nextLabel: 'Pronto',
       nextStatus: 'entrega',
-      nextClass: isDelivery
-        ? 'bg-purple-600 hover:bg-purple-700 text-white'
-        : 'bg-blue-600 hover:bg-blue-700 text-white',
-      borderClass: 'border-blue-200 hover:border-blue-300',
+      nextClass: 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs',
+      borderClass: 'border-slate-200 hover:border-blue-300',
       prevStatus: 'aceito',
     },
     entrega: {
-      nextLabel: isDelivery ? 'Entregue' : 'Retirado',
+      nextLabel: 'Concluir',
       nextStatus: 'concluido',
-      nextClass: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-      borderClass: isDelivery
-        ? 'border-purple-200 hover:border-purple-300'
-        : 'border-blue-200 hover:border-blue-300',
+      nextClass: 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs',
+      borderClass: 'border-slate-200 hover:border-purple-300',
       prevStatus: 'preparo',
     },
     concluido: {
-      borderClass: 'border-emerald-200 hover:border-emerald-300',
+      borderClass: 'border-slate-200 hover:border-emerald-300',
       prevStatus: 'entrega',
     },
   }
@@ -80,38 +76,53 @@ export function OrderCard({
 
   // Badges de forma de pagamento
   const renderPaymentBadge = (isSmall = false) => {
+    const sizeClasses = isSmall
+      ? 'text-[9.5px] px-1.5 py-0.5'
+      : 'text-[10px] px-2 py-0.5'
+    const iconSize = isSmall ? 'w-2.5 h-2.5' : 'w-3 h-3'
+
     switch (order.paymentMethod) {
       case 'pix':
         return (
-          <span className={`inline-flex items-center gap-1 font-extrabold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 ${isSmall ? 'text-[9.5px] px-1.5 py-0.5' : 'text-[10px] px-2 py-0.5'}`}>
-            <QrCode className={isSmall ? 'w-2.5 h-2.5 text-emerald-600' : 'w-3 h-3 text-emerald-600'} />
+          <span
+            className={`inline-flex items-center gap-1 font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 ${sizeClasses}`}
+          >
+            <QrCode className={`${iconSize} text-emerald-600`} />
             <span>PIX</span>
           </span>
         )
       case 'credit':
         return (
-          <span className={`inline-flex items-center gap-1 font-extrabold rounded-md bg-blue-50 text-blue-700 border border-blue-200 ${isSmall ? 'text-[9.5px] px-1.5 py-0.5' : 'text-[10.5px] px-2 py-0.5'}`}>
-            <CreditCard className={isSmall ? 'w-2.5 h-2.5 text-blue-600' : 'w-3 h-3 text-blue-600'} />
+          <span
+            className={`inline-flex items-center gap-1 font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 ${sizeClasses}`}
+          >
+            <CreditCard className={`${iconSize} text-emerald-600`} />
             <span>Crédito</span>
           </span>
         )
       case 'debit':
         return (
-          <span className={`inline-flex items-center gap-1 font-extrabold rounded-md bg-sky-50 text-sky-700 border border-sky-200 ${isSmall ? 'text-[9.5px] px-1.5 py-0.5' : 'text-[10.5px] px-2 py-0.5'}`}>
-            <CreditCard className={isSmall ? 'w-2.5 h-2.5 text-sky-600' : 'w-3 h-3 text-sky-600'} />
+          <span
+            className={`inline-flex items-center gap-1 font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 ${sizeClasses}`}
+          >
+            <CreditCard className={`${iconSize} text-emerald-600`} />
             <span>Débito</span>
           </span>
         )
       case 'money':
         return (
-          <span className={`inline-flex items-center gap-1 font-extrabold rounded-md bg-amber-50 text-amber-800 border border-amber-200 ${isSmall ? 'text-[9.5px] px-1.5 py-0.5' : 'text-[10.5px] px-2 py-0.5'}`}>
-            <Banknote className={isSmall ? 'w-2.5 h-2.5 text-amber-600' : 'w-3 h-3 text-amber-600'} />
+          <span
+            className={`inline-flex items-center gap-1 font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 ${sizeClasses}`}
+          >
+            <Banknote className={`${iconSize} text-emerald-600`} />
             <span>Dinheiro</span>
           </span>
         )
       default:
         return (
-          <span className={`inline-flex items-center gap-1 font-extrabold rounded-md bg-slate-100 text-slate-700 ${isSmall ? 'text-[9.5px] px-1.5 py-0.5' : 'text-[10.5px] px-2 py-0.5'}`}>
+          <span
+            className={`inline-flex items-center gap-1 font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 ${sizeClasses}`}
+          >
             {order.paymentMethod || 'Pagamento'}
           </span>
         )
@@ -121,7 +132,7 @@ export function OrderCard({
   // Visual Compacto (ideal para dezenas de pedidos concluídos)
   if (compact && !isExpanded) {
     return (
-      <div className="bg-white rounded-xl p-2.5 border border-emerald-100 hover:border-emerald-200 shadow-2xs flex items-center justify-between gap-2 text-xs transition-all">
+      <div className="bg-white rounded-xl p-2.5 border border-slate-200 hover:border-emerald-300 shadow-2xs flex items-center justify-between gap-2 text-xs transition-all">
         <div className="min-w-0 flex items-center gap-1.5">
           <span className="font-black text-[#1A1D20] shrink-0 text-[11px]">
             {String(order.orderId).startsWith('#') ? order.orderId : `#${order.orderId}`}
@@ -204,13 +215,13 @@ export function OrderCard({
 
         <div className="shrink-0">
           {isDelivery ? (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200/80">
               <Bike className="w-3 h-3 text-purple-600 shrink-0" />
               <span>Entrega</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-              <Store className="w-3 h-3 text-blue-600 shrink-0" />
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200/80">
+              <Store className="w-3 h-3 text-purple-600 shrink-0" />
               <span>Retirada</span>
             </span>
           )}
@@ -267,7 +278,7 @@ export function OrderCard({
 
               {/* Observação especial */}
               {itemNotes && (
-                <p className="text-[10.5px] font-bold text-amber-900 bg-amber-50/80 px-2 py-0.5 rounded border border-amber-200 mt-0.5">
+                <p className="text-[10.5px] font-medium text-amber-900 bg-amber-50/80 px-2.5 py-1 rounded-lg border border-amber-200/70 mt-1">
                   Obs: {itemNotes}
                 </p>
               )}
@@ -277,21 +288,21 @@ export function OrderCard({
       </div>
 
       {/* Rodapé do Card: Total e Botões de Ação */}
-      <div className="flex items-center justify-between pt-0.5">
-        <div>
-          <span className="text-[10px] text-[#6C757D] block leading-none">Total</span>
+      <div className="flex items-center justify-between gap-2 pt-2 mt-2 border-t border-slate-100">
+        <div className="min-w-fit shrink-0">
+          <span className="text-[10px] text-[#6C757D] block leading-none font-medium">Total</span>
           <span className="text-xs font-black text-[#1A1D20]">
             {formatCurrency(order.total || 0)}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {/* Botão de Retroceder Status (se aplicável) */}
           {currentCfg.prevStatus && (
             <button
               type="button"
               onClick={() => onRewind?.(order.orderId, currentCfg.prevStatus)}
-              className="p-1.5 rounded-lg border border-[#E9ECEF] hover:bg-slate-100 text-[#6C757D] hover:text-[#1A1D20] transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
               title="Voltar status anterior"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -302,7 +313,7 @@ export function OrderCard({
           <button
             type="button"
             onClick={() => onPrint?.(order)}
-            className="p-1.5 rounded-lg border border-[#E9ECEF] hover:border-[#FF5E1E] bg-[#F8F9FA] hover:bg-orange-50 text-[#6C757D] hover:text-[#FF5E1E] transition-all cursor-pointer"
+            className="p-1.5 rounded-lg border border-slate-200 hover:border-orange-300 bg-slate-50/70 hover:bg-orange-50 text-slate-500 hover:text-[#FF5E1E] transition-all cursor-pointer shrink-0"
             title="Imprimir Comanda 80mm"
           >
             <Printer className="w-3.5 h-3.5" />
@@ -313,7 +324,7 @@ export function OrderCard({
             <button
               type="button"
               onClick={() => onAdvance?.(order.orderId, currentCfg.nextStatus)}
-              className={`px-3 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1 shadow-xs cursor-pointer ${currentCfg.nextClass}`}
+              className={`px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1 shadow-xs cursor-pointer shrink-0 whitespace-nowrap ${currentCfg.nextClass}`}
             >
               <span>{actionLabel}</span>
               {currentCfg.nextStatus === 'concluido' ? (
@@ -325,7 +336,7 @@ export function OrderCard({
           )}
 
           {order.status === 'concluido' && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shrink-0">
               <Check className="w-3.5 h-3.5" />
               <span>{isDelivery ? 'Entregue' : 'Retirado'}</span>
             </span>

@@ -1,6 +1,5 @@
 import {
   UtensilsCrossed,
-  Puzzle,
   ClipboardList,
   CircleDollarSign,
   Clock,
@@ -34,11 +33,6 @@ export function BackofficeSidebar() {
       id: 'cardapio',
       label: 'Cardápio & Vitrine',
       icon: UtensilsCrossed,
-    },
-    {
-      id: 'templates',
-      label: 'Templates de Adicionais',
-      icon: Puzzle,
     },
     {
       id: 'financeiro',

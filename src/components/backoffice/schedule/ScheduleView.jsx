@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import {
   Clock,
   Zap,
+  Globe,
   Calendar,
   CalendarDays,
   CheckCircle2,
@@ -255,7 +256,7 @@ export function ScheduleView() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F1F3F5]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center shrink-0">
-              <Zap className="w-4 h-4 fill-[#FF5E1E]" />
+              <Globe className="w-4 h-4 text-[#FF5E1E]" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-[#1A1D20]">

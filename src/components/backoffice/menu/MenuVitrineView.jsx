@@ -10,6 +10,8 @@ import {
   Plus,
   Sparkles,
   UtensilsCrossed,
+  Search,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -46,6 +48,10 @@ export function MenuVitrineView() {
   // Modal de Confirmação de Exclusão de Produto
   const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] = useState(false)
   const [productToDelete, setProductToDelete] = useState(null)
+
+  // Filtros de Categoria e Busca
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const sortedCategories = [...categories].sort((a, b) => a.order - b.order)
 
@@ -165,6 +171,74 @@ export function MenuVitrineView() {
         </div>
       </div>
 
+      {/* Barra de Filtros por Categoria e Busca de Produtos */}
+      {sortedCategories.length > 0 && (
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-[#E9ECEF] shadow-xs">
+          {/* Pills de Categorias */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+            <button
+              type="button"
+              onClick={() => setSelectedCategoryFilter('all')}
+              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                selectedCategoryFilter === 'all'
+                  ? 'bg-[#FF5E1E] text-white shadow-xs shadow-[#FF5E1E]/20'
+                  : 'bg-slate-50 hover:bg-slate-100 text-[#6C757D] hover:text-[#1A1D20] border border-[#E9ECEF]'
+              }`}
+            >
+              Todas as Categorias ({products.length})
+            </button>
+
+            {sortedCategories.map((cat) => {
+              const count = products.filter((p) => p.categoryId === cat.id).length
+              const isSelected = selectedCategoryFilter === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategoryFilter(cat.id)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-[#FF5E1E] text-white shadow-xs shadow-[#FF5E1E]/20'
+                      : 'bg-slate-50 hover:bg-slate-100 text-[#6C757D] hover:text-[#1A1D20] border border-[#E9ECEF]'
+                  }`}
+                >
+                  {cat.icon && <span>{cat.icon}</span>}
+                  <span>{cat.name}</span>
+                  <span
+                    className={`text-[11px] ${
+                      isSelected ? 'text-white/80' : 'text-[#6C757D]'
+                    }`}
+                  >
+                    ({count})
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Campo de Busca de Produtos */}
+          <div className="relative min-w-[220px] max-w-xs shrink-0">
+            <Search className="w-4 h-4 text-[#6C757D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar produto..."
+              className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E9ECEF] rounded-xl focus:outline-none focus:border-[#FF5E1E] focus:bg-white text-[#1A1D20] placeholder:text-[#ADB5BD] transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Conteúdo Principal: Estado Vazio ou Lista de Categorias com seus Produtos */}
       {sortedCategories.length === 0 ? (
         /* Estado Inicial: Nenhuma Categoria */
@@ -191,10 +265,32 @@ export function MenuVitrineView() {
       ) : (
         /* Lista de Categorias com Produtos Agrupados */
         <div className="space-y-6">
-          {sortedCategories.map((cat) => {
-            const catProducts = products
-              .filter((p) => p.categoryId === cat.id)
-              .sort((a, b) => a.order - b.order)
+          {sortedCategories
+            .filter((cat) => selectedCategoryFilter === 'all' || cat.id === selectedCategoryFilter)
+            .filter((cat) => {
+              if (!searchQuery.trim()) return true
+              const q = searchQuery.toLowerCase().trim()
+              const matchesCat = cat.name.toLowerCase().includes(q)
+              const matchesProd = products.some(
+                (p) =>
+                  p.categoryId === cat.id &&
+                  (p.name.toLowerCase().includes(q) ||
+                    (p.description && p.description.toLowerCase().includes(q)))
+              )
+              return matchesCat || matchesProd
+            })
+            .map((cat) => {
+              const catProducts = products
+                .filter((p) => p.categoryId === cat.id)
+                .filter((p) => {
+                  if (!searchQuery.trim()) return true
+                  const q = searchQuery.toLowerCase().trim()
+                  return (
+                    p.name.toLowerCase().includes(q) ||
+                    (p.description && p.description.toLowerCase().includes(q))
+                  )
+                })
+                .sort((a, b) => a.order - b.order)
 
             return (
               <div
