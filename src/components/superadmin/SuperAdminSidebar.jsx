@@ -26,26 +26,18 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
     exitSupportMode,
     isMobileSidebarOpen,
     setMobileSidebarOpen,
-    companies,
   } = useSuperAdminStore()
-
-  const pendingCount = companies.filter(
-    (c) => !c.isPaid || c.daysLeft <= 3 || c.daysLeft < 0
-  ).length
 
   const adminNavItems = [
     {
       id: 'empresas',
       label: 'Empresas Vinculadas',
       icon: Building2,
-      badge: companies.length,
     },
     {
       id: 'assinaturas',
       label: 'Controle de Assinatura',
       icon: CreditCard,
-      badge: pendingCount > 0 ? `${pendingCount} pendente${pendingCount > 1 ? 's' : ''}` : null,
-      badgeClass: 'bg-amber-100 text-amber-900',
     },
     {
       id: 'perfil',
@@ -149,28 +141,14 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
                         setActiveTab(item.id)
                         setMobileSidebarOpen(false)
                       }}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-[#FF5E1E] text-white font-bold shadow-xs'
+                          ? 'bg-[#FF5E1E] text-white shadow-sm shadow-[#FF5E1E]/25 font-semibold'
                           : 'text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20]'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#6C757D]'}`} />
-                        <span>{item.label}</span>
-                      </div>
-
-                      {item.badge !== undefined && item.badge !== null && (
-                        <span
-                          className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                            isActive
-                              ? 'bg-white/20 text-white'
-                              : item.badgeClass || 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{item.label}</span>
                     </button>
                   )
                 })}
@@ -197,14 +175,14 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
                         setSupportActiveTab(item.id)
                         setMobileSidebarOpen(false)
                       }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all cursor-pointer ${
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all cursor-pointer ${
                         isActive
-                          ? 'bg-[#FF5E1E] text-white font-bold shadow-xs'
+                          ? 'bg-[#FF5E1E] text-white shadow-sm shadow-[#FF5E1E]/25 font-semibold'
                           : 'text-[#6C757D] hover:bg-[#F8F9FA] hover:text-[#1A1D20]'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#6C757D]'}`} />
-                      <span>{item.label}</span>
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{item.label}</span>
                     </button>
                   )
                 })}
@@ -219,13 +197,13 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
                   <button
                     type="button"
                     onClick={() => onOpenPrivacyModal('kanban')}
-                    className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
                   >
-                    <div className="flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4" />
-                      <span>Gestor de Pedidos</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <ClipboardList className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Gestor de Pedidos</span>
                     </div>
-                    <span className="text-[9.5px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded font-bold">
+                    <span className="text-[9.5px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded font-bold shrink-0">
                       Bloqueado
                     </span>
                   </button>
@@ -233,13 +211,13 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
                   <button
                     type="button"
                     onClick={() => onOpenPrivacyModal('financeiro')}
-                    className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all cursor-pointer"
                   >
-                    <div className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" />
-                      <span>Financeiro da Loja</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <CircleDollarSign className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Financeiro da Loja</span>
                     </div>
-                    <span className="text-[9.5px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded font-bold">
+                    <span className="text-[9.5px] bg-slate-100 text-slate-500 px-1.5 py-0.2 rounded font-bold shrink-0">
                       Bloqueado
                     </span>
                   </button>
