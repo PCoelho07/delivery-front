@@ -1,36 +1,28 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { ViewSwitcherBar } from './components/layout/ViewSwitcherBar'
-import { HomePage } from './pages/HomePage'
-import { BusinessPage } from './pages/BusinessPage'
-import { BackofficePage } from './pages/BackofficePage'
-import { SuperAdminPage } from './pages/SuperAdminPage'
+import { CardapioPage } from './pages/cardapio/CardapioPage'
+import { LojistaPage } from './pages/lojista/LojistaPage'
+import { AdminPage } from './pages/admin/AdminPage'
 
 function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-center" richColors />
       <div className="h-dvh w-full flex flex-col overflow-hidden bg-[#F8F9FA]">
-        {/* Barra Superior de Alternância Rápida entre as Visualizações */}
-        <ViewSwitcherBar />
-
         <Routes>
-          {/* Vitrine / Cardápio do Cliente (Figma) */}
-          <Route path="/" element={<BusinessPage />} />
-          <Route path="/:businessName" element={<BusinessPage />} />
+          {/* 1. Cardápio Digital (Cliente final) */}
+          <Route path="/" element={<CardapioPage />} />
+          <Route path="/:businessName" element={<CardapioPage />} />
 
-          {/* Backoffice do Estabelecimento (Lojista) */}
-          <Route path="/admin" element={<BackofficePage />} />
-          <Route path="/backoffice" element={<BackofficePage />} />
+          {/* 2. Backoffice do Estabelecimento (Lojista) */}
+          <Route path="/admin" element={<LojistaPage />} />
+          <Route path="/lojista" element={<LojistaPage />} />
+          <Route path="/backoffice" element={<LojistaPage />} />
 
-          {/* Cadastro & Gestão de Empresas (Integrado com API Go) */}
-          <Route path="/empresas" element={<HomePage />} />
-          <Route path="/cadastro-empresas" element={<HomePage />} />
-          <Route path="/admin/api-health" element={<HomePage />} />
-
-          {/* Backoffice do Super Admin (Gestão da Plataforma SaaS) */}
-          <Route path="/superadmin" element={<SuperAdminPage />} />
-          <Route path="/admin-saas" element={<SuperAdminPage />} />
+          {/* 3. Backoffice do Super Admin (Gestão da Plataforma SaaS + Cadastro de Empresas API) */}
+          <Route path="/superadmin" element={<AdminPage />} />
+          <Route path="/admin-saas" element={<AdminPage />} />
+          <Route path="/empresas" element={<AdminPage />} />
         </Routes>
       </div>
     </BrowserRouter>

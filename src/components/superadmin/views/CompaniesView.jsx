@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   Building2,
   Plus,
@@ -7,17 +6,17 @@ import {
   Wrench,
   MessageCircle,
   Power,
-  ExternalLink,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSuperAdminStore } from '../../../store/useSuperAdminStore'
+import { CompanyRegisterModal } from '../CompanyRegisterModal'
 
 export function CompaniesView() {
-  const navigate = useNavigate()
   const { companies, toggleCompanyStatus, startSupportMode } = useSuperAdminStore()
 
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
 
   const totalCount = companies.length
   const activeCount = companies.filter((c) => c.status === 'active').length
@@ -78,16 +77,15 @@ export function CompaniesView() {
           </p>
         </div>
 
-        {/* Botão Cadastrar Empresa -> Redireciona para Cadastro de Empresas (API) */}
+        {/* Botão Cadastrar Empresa -> Abre Modal Integrado de Cadastro (API) */}
         <button
           type="button"
-          onClick={() => navigate('/empresas')}
+          onClick={() => setIsRegisterModalOpen(true)}
           className="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-2 cursor-pointer self-start md:self-auto shrink-0"
-          title="Abre a tela de cadastro e gestão de empresas conectada à API Go"
+          title="Abre o modal de cadastro de empresa conectado à API Go"
         >
           <Plus className="w-4 h-4" />
           <span>Cadastrar Empresa (API)</span>
-          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </button>
       </div>
 
@@ -296,6 +294,12 @@ export function CompaniesView() {
           })}
         </div>
       )}
+
+      {/* Modal de Cadastro Integrado via API Go */}
+      <CompanyRegisterModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+      />
     </div>
   )
 }

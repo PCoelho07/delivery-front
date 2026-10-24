@@ -145,6 +145,11 @@ export const useSuperAdminStore = create(
           activeTab: 'empresas',
         }),
 
+      addCompany: (newCompany) =>
+        set((state) => ({
+          companies: [newCompany, ...state.companies],
+        })),
+
       toggleCompanyStatus: (id) =>
         set((state) => ({
           companies: state.companies.map((c) => {
