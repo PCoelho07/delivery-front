@@ -1,6 +1,21 @@
-import { Menu, Bell, BellOff, PauseCircle, PlayCircle, Zap, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Menu,
+  Bell,
+  BellOff,
+  PauseCircle,
+  PlayCircle,
+  Zap,
+  RefreshCw,
+  Copy,
+  Check,
+  ExternalLink,
+  LogOut,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin, calculateStoreLiveStatus } from '../../store/useStoreAdmin'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export function BackofficeTopbar() {
   const {
@@ -14,11 +29,43 @@ export function BackofficeTopbar() {
     soundEnabled,
     toggleSound,
     setMobileSidebarOpen,
+    storeInfo,
   } = useStoreAdmin()
+
+  const navigate = useNavigate()
+  const logout = useAuthStore((state) => state.logout)
+  const [copiedLink, setCopiedLink] = useState(false)
+
+  const handleLogout = () => {
+    logout()
+    toast.info('Sessão encerrada.')
+    navigate('/login')
+  }
+
+  const storeSlug = storeInfo?.slug || 'brasa-burger'
+  const menuPath = `/${storeSlug}`
+  const fullMenuUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}${menuPath}`
+      : menuPath
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(fullMenuUrl)
+      setCopiedLink(true)
+      toast.success('Link do cardápio copiado!', {
+        description: fullMenuUrl,
+      })
+      setTimeout(() => setCopiedLink(false), 2000)
+    } catch {
+      toast.error('Não foi possível copiar o link automaticamente.')
+    }
+  }
 
   const tabTitles = {
     cardapio: 'Cardápio & Vitrine de Produtos',
     templates: 'Templates de Complementos & Adicionais',
+    cupons: 'Cupons de Desconto',
     pedidos: 'Gestor de Pedidos em Tempo Real',
     horarios: 'Horários da Semana',
     entregas: 'Bairros & Taxas de Entrega',
@@ -76,8 +123,37 @@ export function BackofficeTopbar() {
         </div>
       </div>
 
-      {/* Lado Direito: Gatilho de Operação Aberto/Fechado + Som */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* Lado Direito: Ações rápidas (Copiar Link + Ver Cardápio) + Som + Gatilho Aberto/Fechado */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        {/* Botão Copiar Link do Cardápio */}
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          className="p-2 sm:px-3 sm:py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          title={`Copiar link do cardápio (${fullMenuUrl})`}
+        >
+          {copiedLink ? (
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <Copy className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+          )}
+          <span className="hidden md:inline">
+            {copiedLink ? 'Copiado!' : 'Copiar Link'}
+          </span>
+        </button>
+
+        {/* Botão Ver Cardápio Público */}
+        <a
+          href={menuPath}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 sm:px-3 sm:py-2 rounded-xl bg-orange-50 hover:bg-orange-100/80 border border-orange-200/60 text-[#FF5E1E] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+          title="Abrir cardápio do cliente em uma nova aba"
+        >
+          <ExternalLink className="w-4 h-4 shrink-0" />
+          <span className="hidden md:inline">Ver Cardápio</span>
+        </a>
+
         {/* Alternador de Som */}
         <button
           onClick={handleToggleSound}
@@ -173,6 +249,16 @@ export function BackofficeTopbar() {
             </div>
           )}
         </div>
+
+        {/* Botão Sair / Logout */}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="p-2 rounded-xl border border-[#E9ECEF] hover:border-rose-300 hover:bg-rose-50 text-[#6C757D] hover:text-rose-600 transition-all cursor-pointer shadow-2xs"
+          title="Sair do painel e voltar ao login"
+        >
+          <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+        </button>
       </div>
     </header>
   )

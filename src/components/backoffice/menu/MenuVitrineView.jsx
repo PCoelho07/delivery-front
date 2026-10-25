@@ -12,6 +12,7 @@ import {
   UtensilsCrossed,
   Search,
   X,
+  Dices,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -19,13 +20,118 @@ import { CategoryModal } from './CategoryModal'
 import { ProductModal } from './ProductModal'
 import { ConfirmModal } from '../common/ConfirmModal'
 
+// Predefinições para criação de lanches aleatórios de teste
+const RANDOM_BURGER_PRESETS = [
+  {
+    name: 'Smash Bacon Trufado',
+    desc: 'Dois smashs de 90g, cheddar inglês cremoso derretido, fatias de bacon crocante e maionese trufada no brioche.',
+    price: 38.9,
+    image:
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
+    badge: 'MAIS PEDIDO',
+  },
+  {
+    name: 'Monster Cheddar Melt',
+    desc: 'Blend 180g grelhado na brasa, creme de cheddar duplo, cebola caramelizada na cerveja preta e aioli no brioche.',
+    price: 42.5,
+    image:
+      'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80',
+    badge: 'ESPECIAL',
+  },
+  {
+    name: 'Brasa Gorgonzola & Crisp',
+    desc: 'Blend 180g na brasa, creme de queijo gorgonzola suave, cebola crispy dourada e rúcula fresca selecionada.',
+    price: 44.9,
+    image:
+      'https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80',
+    badge: 'CHEF',
+  },
+  {
+    name: 'Double Smash Ribs BBQ',
+    desc: 'Dois burgers de costela prensados, american cheese duplo, tiras crocantes de bacon e barbecue defumado.',
+    price: 39.9,
+    image:
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
+    badge: 'NOVO',
+  },
+  {
+    name: 'Texano Crispy Onion',
+    desc: 'Hambúrguer 180g, muito queijo prato, anéis de cebola empanada crocantes e molho especial da casa.',
+    price: 36.9,
+    image:
+      'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80',
+    badge: null,
+  },
+  {
+    name: 'Picanha Burger Premium',
+    desc: 'Blend exclusivo de picanha 200g, queijo coalho tostado na brasa, melaço de cana picante e alface americana.',
+    price: 47.9,
+    image:
+      'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=800&q=80',
+    badge: 'PREMIUM',
+  },
+  {
+    name: 'Catupiry & Farofa de Bacon',
+    desc: 'Blend 180g suculento, catupiry maçaricado original, farofa de bacon defumado e picles doce.',
+    price: 41.0,
+    image:
+      'https://images.unsplash.com/photo-1607013251379-e6eecfffe234?auto=format&fit=crop&w=800&q=80',
+    badge: null,
+  },
+]
+
+function createRandomBurgerData(categories, products, templates) {
+  const targetCat =
+    categories.find((c) =>
+      /lanche|hamb[uú]rguer|burger|artesanal|popular/i.test(c.name)
+    ) || categories[0]
+
+  const existingNames = new Set(products.map((p) => p.name.toLowerCase()))
+  let chosen = RANDOM_BURGER_PRESETS.find(
+    (b) => !existingNames.has(b.name.toLowerCase())
+  )
+
+  if (!chosen) {
+    const base =
+      RANDOM_BURGER_PRESETS[
+        Math.floor(Math.random() * RANDOM_BURGER_PRESETS.length)
+      ]
+    const countSimilar = products.filter((p) =>
+      p.name.toLowerCase().startsWith(base.name.toLowerCase())
+    ).length
+    chosen = {
+      ...base,
+      name: `${base.name} #${countSimilar + 1}`,
+    }
+  }
+
+  const burgerTmpl =
+    templates.find((t) => /burger|hamb[uú]rguer/i.test(t.name || t.id)) ||
+    templates[0]
+
+  return {
+    targetCat,
+    productData: {
+      name: chosen.name,
+      templateId: burgerTmpl ? burgerTmpl.id : 'tmpl-none',
+      price: chosen.price,
+      desc: chosen.desc,
+      image: chosen.image,
+      badge: chosen.badge,
+      available: true,
+    },
+  }
+}
+
 export function MenuVitrineView() {
   const {
     categories,
+    addCategory,
     deleteCategory,
     reorderCategory,
     toggleCategoryStatus,
     products,
+    addProduct,
     deleteProduct,
     toggleProductAvailability,
     reorderProduct,
@@ -130,6 +236,33 @@ export function MenuVitrineView() {
     }
   }
 
+  // Gerador Automático de Lanche para Testes
+  const handleGenerateRandomBurger = () => {
+    let { targetCat, productData } = createRandomBurgerData(
+      categories,
+      products,
+      templates
+    )
+
+    if (!targetCat) {
+      addCategory({
+        name: 'Lanches Artesanais',
+        order: categories.length + 1,
+        status: 'active',
+      })
+      targetCat = { id: 'cat-lanches', name: 'Lanches Artesanais' }
+    }
+
+    addProduct({
+      ...productData,
+      categoryId: targetCat.id,
+    })
+
+    toast.success(`Lanche "${productData.name}" gerado com sucesso!`, {
+      description: `Adicionado à categoria "${targetCat.name}" por ${formatCurrency(productData.price)}.`,
+    })
+  }
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -159,6 +292,17 @@ export function MenuVitrineView() {
           >
             <FolderPlus className="w-4 h-4 text-[#FF5E1E]" />
             <span>Nova Categoria</span>
+          </button>
+
+          {/* Botão Gerar Lanche Aleatório (Teste) */}
+          <button
+            type="button"
+            onClick={handleGenerateRandomBurger}
+            className="px-3.5 py-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-[#FF5E1E] border border-orange-200/90 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+            title="Criar um lanche artesanal aleatório para testes rápidos"
+          >
+            <Dices className="w-4 h-4 text-[#FF5E1E]" />
+            <span>Gerar Lanche (Teste)</span>
           </button>
 
           <button

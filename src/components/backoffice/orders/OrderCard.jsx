@@ -12,6 +12,8 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Ban,
+  Tag,
 } from 'lucide-react'
 import { formatCurrency } from '../../../lib/utils'
 
@@ -21,6 +23,7 @@ export function OrderCard({
   onAdvance,
   onRewind,
   onPrint,
+  onCancel,
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const isDelivery = order.deliveryMethod === 'delivery'
@@ -65,6 +68,12 @@ export function OrderCard({
     concluido: {
       borderClass: 'border-slate-200 hover:border-emerald-300',
       prevStatus: 'entrega',
+    },
+    cancelado: {
+      borderClass: 'border-rose-200 bg-rose-50/20',
+    },
+    recusado: {
+      borderClass: 'border-rose-200 bg-rose-50/20',
     },
   }
 
@@ -287,6 +296,34 @@ export function OrderCard({
         })}
       </div>
 
+      {/* Destaque de Cupom Aplicado (se houver) */}
+      {order.coupon && (
+        <div className="flex items-center justify-between px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[10.5px]">
+          <span className="flex items-center gap-1 font-bold">
+            <Tag className="w-3 h-3 text-emerald-600" />
+            <span>Cupom: {order.coupon.code}</span>
+          </span>
+          <span className="font-extrabold">
+            -{order.coupon.discountPercent}% ({formatCurrency(order.coupon.discountAmount || order.discountAmount || 0)})
+          </span>
+        </div>
+      )}
+
+      {/* Mensagem de Cancelamento (se houver) */}
+      {(order.status === 'cancelado' || order.status === 'recusado') && (
+        <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl text-[11px] text-rose-800 space-y-0.5">
+          <p className="font-bold flex items-center gap-1">
+            <Ban className="w-3 h-3 text-rose-600" />
+            <span>Pedido Cancelado / Recusado</span>
+          </p>
+          {order.cancellationReason && (
+            <p className="text-[10.5px] text-rose-600">
+              Motivo: {order.cancellationReason}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Rodapé do Card: Total e Botões de Ação */}
       <div className="flex items-center justify-between gap-2 pt-2 mt-2 border-t border-slate-100">
         <div className="min-w-fit shrink-0">
@@ -297,6 +334,25 @@ export function OrderCard({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          {/* Botão de Cancelar / Recusar Pedido */}
+          {onCancel &&
+            order.status !== 'concluido' &&
+            order.status !== 'cancelado' &&
+            order.status !== 'recusado' && (
+              <button
+                type="button"
+                onClick={() => onCancel(order)}
+                className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition-colors cursor-pointer shrink-0"
+                title={
+                  order.status === 'aceito' || order.status === 'novo'
+                    ? 'Recusar Pedido'
+                    : 'Cancelar Pedido'
+                }
+              >
+                <Ban className="w-3.5 h-3.5" />
+              </button>
+            )}
+
           {/* Botão de Retroceder Status (se aplicável) */}
           {currentCfg.prevStatus && (
             <button
@@ -339,6 +395,13 @@ export function OrderCard({
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shrink-0">
               <Check className="w-3.5 h-3.5" />
               <span>{isDelivery ? 'Entregue' : 'Retirado'}</span>
+            </span>
+          )}
+
+          {(order.status === 'cancelado' || order.status === 'recusado') && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200 shrink-0">
+              <Ban className="w-3.5 h-3.5" />
+              <span>Cancelado</span>
             </span>
           )}
         </div>

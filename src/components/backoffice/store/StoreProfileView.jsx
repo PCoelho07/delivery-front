@@ -11,6 +11,9 @@ import {
   Trash2,
   ExternalLink,
   MessageCircle,
+  Copy,
+  Check,
+  Globe,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -37,9 +40,12 @@ function InstagramIcon({ className = 'w-4 h-4' }) {
 export function StoreProfileView() {
   const { storeInfo, updateStoreInfo } = useStoreAdmin()
 
+  const [copiedSlug, setCopiedSlug] = useState(false)
+
   // Rascunho local de edição (só comita no clique de "Salvar Alterações")
   const [draft, setDraft] = useState(() => ({
     name: storeInfo?.name || 'Brasa Burger',
+    slug: storeInfo?.slug || 'brasa-burger',
     corporateName: storeInfo?.corporateName || 'Brasa Hamburgueria & Alimentos LTDA',
     cnpj: formatCnpjMask(storeInfo?.cnpj || '12.345.678/0001-90'),
     subtitle: storeInfo?.subtitle || 'Hambúrguer artesanal · Feito na brasa',
@@ -53,10 +59,23 @@ export function StoreProfileView() {
       'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=80',
   }))
 
+  const handleCopyPublicLink = async () => {
+    const fullUrl = `${window.location.origin}/${draft.slug || 'brasa-burger'}`
+    try {
+      await navigator.clipboard.writeText(fullUrl)
+      setCopiedSlug(true)
+      toast.success('Link do cardápio copiado!', { description: fullUrl })
+      setTimeout(() => setCopiedSlug(false), 2000)
+    } catch {
+      toast.error('Não foi possível copiar o link automaticamente.')
+    }
+  }
+
   // Verifica se há alterações pendentes no rascunho
   const isDirty = useMemo(() => {
     return (
       draft.name !== (storeInfo?.name || 'Brasa Burger') ||
+      draft.slug !== (storeInfo?.slug || 'brasa-burger') ||
       draft.corporateName !== (storeInfo?.corporateName || 'Brasa Hamburgueria & Alimentos LTDA') ||
       draft.cnpj !== formatCnpjMask(storeInfo?.cnpj || '12.345.678/0001-90') ||
       draft.subtitle !== (storeInfo?.subtitle || 'Hambúrguer artesanal · Feito na brasa') ||
@@ -195,6 +214,84 @@ export function StoreProfileView() {
             <Save className="w-4 h-4" />
             <span>Salvar Alterações</span>
           </button>
+        </div>
+      </div>
+
+      {/* Card 0: Link do Cardápio Digital (URL Pública) */}
+      <div className="bg-gradient-to-r from-orange-50/80 via-white to-amber-50/40 rounded-2xl border border-orange-200/80 p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#FF5E1E] text-white flex items-center justify-center shrink-0 shadow-sm shadow-[#FF5E1E]/20">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm text-[#1A1D20] flex items-center gap-2">
+                <span>Link do seu Cardápio Digital</span>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  Online
+                </span>
+              </h3>
+              <p className="text-xs text-[#6C757D]">
+                Este é o link público do seu restaurante para compartilhar no WhatsApp e bio do Instagram.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleCopyPublicLink}
+              className="px-3.5 py-2 rounded-xl bg-white border border-[#E9ECEF] hover:bg-slate-50 text-[#1A1D20] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+            >
+              {copiedSlug ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Copiado!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 text-[#FF5E1E]" />
+                  <span>Copiar Link</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={`/${draft.slug || 'brasa-burger'}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-1.5 cursor-pointer"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Ver Cardápio</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Input de Personalização da URL / Slug */}
+        <div className="bg-white rounded-xl border border-[#E9ECEF] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-2xs">
+          <div className="flex items-center gap-1 text-xs font-semibold text-[#6C757D] min-w-0 flex-1">
+            <span className="text-slate-400 shrink-0">
+              {typeof window !== 'undefined' ? `${window.location.host}/` : 'numinstante.com.br/'}
+            </span>
+            <input
+              type="text"
+              name="slug"
+              value={draft.slug}
+              onChange={(e) => {
+                const cleanSlug = e.target.value
+                  .toLowerCase()
+                  .replace(/[\s_]+/g, '-')
+                  .replace(/[^a-z0-9-]/g, '')
+                setDraft((prev) => ({ ...prev, slug: cleanSlug }))
+              }}
+              placeholder="seu-restaurante"
+              className="font-bold text-[#FF5E1E] bg-transparent outline-none flex-1 min-w-[120px]"
+            />
+          </div>
+          <span className="text-[11px] text-[#6C757D] shrink-0 font-medium">
+            (Você pode personalizar a URL do seu cardápio aqui)
+          </span>
         </div>
       </div>
 

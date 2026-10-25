@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { CardapioPage } from './pages/cardapio/CardapioPage'
 import { LojistaPage } from './pages/lojista/LojistaPage'
 import { AdminPage } from './pages/admin/AdminPage'
+import { LoginPage } from './pages/login/LoginPage'
 
 function App() {
   return (
@@ -10,6 +11,9 @@ function App() {
       <Toaster position="top-center" richColors />
       <div className="h-dvh w-full flex flex-col overflow-hidden bg-[#F8F9FA]">
         <Routes>
+          {/* Autenticação & Acesso ao Sistema */}
+          <Route path="/login" element={<LoginPage />} />
+
           {/* 1. Cardápio Digital (Cliente final) */}
           <Route path="/" element={<CardapioPage />} />
           <Route path="/:businessName" element={<CardapioPage />} />

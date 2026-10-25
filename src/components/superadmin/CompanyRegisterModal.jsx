@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { formatCnpjMask, formatPhoneMask } from '../../lib/utils'
 import { useBusinessStore } from '../../store/useBusinessStore'
 import { useSuperAdminStore } from '../../store/useSuperAdminStore'
+import { CustomSelect } from '../common/CustomSelect'
 
 export function CompanyRegisterModal({ isOpen, onClose }) {
   const {
@@ -74,6 +75,12 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
     { id: 'pro', label: 'Plano Pro (R$ 99/mês)', price: 99.0, name: 'Plano Pro' },
     { id: 'enterprise', label: 'Plano Ilimitado (R$ 199/mês)', price: 199.0, name: 'Plano Ilimitado' },
   ]
+
+  const planSelectOptions = planOptions.map((opt) => ({
+    value: opt.id,
+    label: opt.label,
+    icon: <CreditCard className="w-3.5 h-3.5 text-[#FF5E1E]" />,
+  }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -283,18 +290,13 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
               <CreditCard className="w-3.5 h-3.5 text-[#FF5E1E]" />
               <span>Plano da Assinatura</span>
             </label>
-            <select
-              name="plan"
+            <CustomSelect
               value={formData.plan}
-              onChange={handleChange}
-              className="w-full px-3.5 py-2.5 text-xs bg-[#F8F9FA] rounded-xl border border-[#E9ECEF] text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E] focus:bg-white transition-colors font-semibold cursor-pointer"
-            >
-              {planOptions.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setFormData((prev) => ({ ...prev, plan: val }))}
+              options={planSelectOptions}
+              placeholder="Selecione o plano..."
+              icon={<CreditCard className="w-3.5 h-3.5 text-[#FF5E1E]" />}
+            />
           </div>
 
           {/* Rodapé com Botões */}
@@ -330,4 +332,3 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
     </div>
   )
 }
-

@@ -36,6 +36,10 @@ export function CardapioPage() {
   const adminDeliveryConfig = useStoreAdmin((state) => state.deliveryConfig)
   const adminNeighborhoods = useStoreAdmin((state) => state.neighborhoods)
   const adminPaymentConfig = useStoreAdmin((state) => state.paymentConfig)
+  const adminCategories = useStoreAdmin((state) => state.categories)
+  const adminProducts = useStoreAdmin((state) => state.products)
+  const adminTemplates = useStoreAdmin((state) => state.templates)
+  const adminCoupons = useStoreAdmin((state) => state.coupons)
 
   const liveStatus = useMemo(
     () =>
@@ -130,8 +134,85 @@ export function CardapioPage() {
           corporateName: adminStoreInfo?.corporateName || '',
         }
 
+    // Categorias dinâmicas alimentadas pelo Backoffice com produtos e complementos
+    let categoriesList = base.categories || []
+    if (adminCategories?.length > 0 && adminProducts?.length > 0) {
+      const activeAdminCats = adminCategories
+        .filter((c) => c.status !== 'inactive')
+        .sort((a, b) => a.order - b.order)
+
+      const mapped = activeAdminCats.map((cat) => {
+        const catItems = adminProducts
+          .filter((p) => p.categoryId === cat.id)
+          .sort((a, b) => a.order - b.order)
+          .map((p) => {
+            const tmpl = adminTemplates?.find((t) => t.id === p.templateId)
+            const addons = []
+            const preferences = []
+
+            if (tmpl && Array.isArray(tmpl.groups)) {
+              tmpl.groups.forEach((grp) => {
+                if (grp.required) {
+                  grp.items?.forEach((it) => {
+                    preferences.push({
+                      id: it.id,
+                      name: it.name,
+                      groupName: grp.name,
+                      price: it.price || 0,
+                    })
+                  })
+                } else {
+                  grp.items?.forEach((it) => {
+                    addons.push({
+                      id: it.id,
+                      name: it.name,
+                      price: it.price || 0,
+                    })
+                  })
+                }
+              })
+            }
+
+            return {
+              id: p.id,
+              name: p.name,
+              categoryId: cat.id,
+              description: p.desc || '',
+              price: Number(p.price) || 0,
+              imageUrl: p.image,
+              badge: p.badge || null,
+              available: p.available !== false,
+              order: p.order || 0,
+              addons,
+              preferences,
+              maxAddons: 5,
+            }
+          })
+          // Padrão iFood: produtos disponíveis no topo, esgotados no fim da categoria
+          .sort((a, b) => {
+            const aAvail = a.available !== false ? 0 : 1
+            const bAvail = b.available !== false ? 0 : 1
+            if (aAvail !== bAvail) return aAvail - bAvail
+            return (a.order || 0) - (b.order || 0)
+          })
+
+        return {
+          id: cat.id,
+          tabLabel: cat.name,
+          sectionTitle: cat.name,
+          items: catItems,
+        }
+      })
+
+      if (mapped.length > 0) {
+        categoriesList = mapped
+      }
+    }
+
     return {
       ...base,
+      categories: categoriesList,
+      coupons: adminCoupons || [],
       isOpen: liveStatus.isOpen,
       statusMode: liveStatus.mode,
       statusBadge: liveStatus.badge,
@@ -169,22 +250,40 @@ export function CardapioPage() {
     adminPaymentConfig,
     adminSchedule,
     adminTimezone,
+    adminCategories,
+    adminProducts,
+    adminTemplates,
+    adminCoupons,
   ])
 
   // Filtra categorias e produtos conforme o texto digitado na busca
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
-    if (!query) return storeData.categories || []
+    const baseCats = storeData.categories || []
 
-    return (storeData.categories || [])
-      .map((cat) => ({
-        ...cat,
-        items: cat.items.filter(
-          (item) =>
+    return baseCats
+      .map((cat) => {
+        const matchingItems = (cat.items || []).filter((item) => {
+          if (!query) return true
+          return (
             item.name.toLowerCase().includes(query) ||
             item.description?.toLowerCase().includes(query)
-        ),
-      }))
+          )
+        })
+
+        // Ordenação Padrão iFood: disponíveis no topo, esgotados no fim da lista
+        const sortedItems = [...matchingItems].sort((a, b) => {
+          const aAvail = a.available !== false ? 0 : 1
+          const bAvail = b.available !== false ? 0 : 1
+          if (aAvail !== bAvail) return aAvail - bAvail
+          return (a.order || 0) - (b.order || 0)
+        })
+
+        return {
+          ...cat,
+          items: sortedItems,
+        }
+      })
       .filter((cat) => cat.items.length > 0)
   }, [storeData.categories, searchQuery])
 

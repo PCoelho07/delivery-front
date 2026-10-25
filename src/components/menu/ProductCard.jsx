@@ -1,12 +1,25 @@
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatCurrency } from '../../lib/utils'
 
 export function ProductCard({ item, onSelect, isStoreClosed = false }) {
   const isAvailable = item.available !== false
 
+  const handleClick = () => {
+    if (!isAvailable) {
+      toast.info(`"${item.name}" está esgotado no momento.`)
+      return
+    }
+    if (isStoreClosed) {
+      toast.info('O restaurante está fechado para novos pedidos no momento.')
+      return
+    }
+    onSelect?.(item)
+  }
+
   return (
     <article
-      onClick={() => onSelect?.(item)}
+      onClick={handleClick}
       className={`bg-white rounded-2xl p-3 flex items-center gap-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] transition-all ${
         isAvailable && !isStoreClosed
           ? 'hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] cursor-pointer'

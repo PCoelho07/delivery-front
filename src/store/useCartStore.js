@@ -2,6 +2,10 @@ import { create } from 'zustand'
 
 export const useCartStore = create((set, get) => ({
   items: [],
+  appliedCoupon: null,
+
+  setAppliedCoupon: (coupon) => set({ appliedCoupon: coupon }),
+  removeAppliedCoupon: () => set({ appliedCoupon: null }),
 
   addItem: ({
     product,
@@ -68,5 +72,5 @@ export const useCartStore = create((set, get) => ({
     }))
   },
 
-  clearCart: () => set({ items: [] }),
+  clearCart: () => set({ items: [], appliedCoupon: null }),
 }))

@@ -66,7 +66,9 @@ export function formatWhatsAppOrderMessage(order) {
     ``,
     `*Pedido:* ${order.orderId} (${order.createdAt})`,
     `*Tipo:* ${isDelivery ? 'Delivery' : 'Retirada'}`,
-    `*Estimativa:* ${order.estimatedTime || '30 - 50 minutos'}`,
+    isDelivery
+      ? `*Previsão de entrega:* ${order.estimatedTimeWindow ? `${order.estimatedTimeWindow} (${order.estimatedTime})` : order.estimatedTime || '40 - 50 min'}`
+      : `*Previsão para ficar pronto:* ${order.estimatedTimeWindow ? `${order.estimatedTimeWindow} (${order.estimatedTime})` : order.estimatedTime || '20 - 30 min'}`,
     `---------------------------------------`,
     `*NOME:* ${order.customer?.name || ''}`,
     `*Fone:* ${order.customer?.phone || ''}`,
@@ -76,7 +78,11 @@ export function formatWhatsAppOrderMessage(order) {
     itemsLines,
     `---------------------------------------`,
     `*Itens (${totalItemsCount}):* ${formatCurrency(order.subtotal)}`,
-    `*Desconto:* ${formatCurrency(order.discount || 0)}`,
+    ...(order.coupon
+      ? [`*Cupom (${order.coupon.code}):* -${order.coupon.discountPercent}% (${formatCurrency(order.coupon.discountAmount || order.discount || 0)})`]
+      : order.discount > 0
+      ? [`*Desconto:* ${formatCurrency(order.discount)}`]
+      : []),
     `*Entrega:* ${formatCurrency(order.deliveryFee || 0)}`,
     ``,
     `*TOTAL:* ${formatCurrency(order.total)}`,

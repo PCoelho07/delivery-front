@@ -11,12 +11,51 @@ import {
   Bike,
   Store,
   Calendar,
+  CalendarDays,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '../../../lib/utils'
+import { CustomSelect } from '../../common/CustomSelect'
 
-// Dados demonstrativos por período sincronizados com o modelo do backoffice_preview.html
+// Opções organizadas do seletor customizado de períodos
+const MONTH_SELECT_OPTIONS = [
+  { value: 'last_6_months', label: '📊 Últimos 6 Meses (Consolidado)' },
+  {
+    group: 'Filtrar Mês a Mês',
+    items: [
+      { value: 'month', label: 'Outubro / 2026 (Mês Atual)' },
+      { value: 'm-09', label: 'Setembro / 2026' },
+      { value: 'm-08', label: 'Agosto / 2026' },
+      { value: 'm-07', label: 'Julho / 2026' },
+      { value: 'm-06', label: 'Junho / 2026' },
+      { value: 'm-05', label: 'Maio / 2026' },
+      { value: 'm-04', label: 'Abril / 2026' },
+      { value: 'm-03', label: 'Março / 2026' },
+      { value: 'm-02', label: 'Fevereiro / 2026' },
+      { value: 'm-01', label: 'Janeiro / 2026' },
+    ],
+  },
+]
+
+// Rótulos amigáveis para feedback de seleção
+const PERIOD_LABELS = {
+  today: 'Hoje',
+  week: 'Últimos 7 dias',
+  month: 'Outubro / 2026 (Mês Atual)',
+  last_6_months: 'Últimos 6 Meses (Consolidado)',
+  'm-09': 'Setembro / 2026',
+  'm-08': 'Agosto / 2026',
+  'm-07': 'Julho / 2026',
+  'm-06': 'Junho / 2026',
+  'm-05': 'Maio / 2026',
+  'm-04': 'Abril / 2026',
+  'm-03': 'Março / 2026',
+  'm-02': 'Fevereiro / 2026',
+  'm-01': 'Janeiro / 2026',
+}
+
+// Dados demonstrativos por período e mês a mês
 const FINANCIAL_DATASETS = {
   today: {
     faturamento: 1940.0,
@@ -117,7 +156,7 @@ const FINANCIAL_DATASETS = {
     pedidos: 482,
     ticket: 79.7,
     tempo: '36 min',
-    periodLabel: 'neste mês',
+    periodLabel: 'neste mês (Outubro)',
     payTotalCount: '482 pedidos',
     payments: {
       pix: { count: 290, percentage: '60%', total: 23050.0 },
@@ -204,6 +243,440 @@ const FINANCIAL_DATASETS = {
       },
     ],
   },
+  last_6_months: {
+    faturamento: 214300.0,
+    pedidos: 2690,
+    ticket: 79.66,
+    tempo: '36 min',
+    periodLabel: 'nos últimos 6 meses (Maio a Outubro)',
+    payTotalCount: '2.690 pedidos',
+    payments: {
+      pix: { count: 1614, percentage: '60%', total: 128580.0 },
+      card: { count: 834, percentage: '31%', total: 66430.0 },
+      cash: { count: 242, percentage: '9%', total: 19290.0 },
+    },
+    orderTypes: {
+      delivery: { count: 2098, percentage: '78%', total: 167150.0 },
+      pickup: { count: 592, percentage: '22%', total: 47150.0 },
+    },
+    tableDaysBadge: 'Consolidado Últimos 6 Meses (Maio a Outubro / 2026)',
+    dailyRecords: [
+      {
+        date: 'Outubro / 2026 (Até hoje)',
+        orders: 482,
+        total: 38420.0,
+        ticket: 79.7,
+        avgTime: '36 min',
+        topPaymentName: 'PIX (60%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: 'Setembro / 2026',
+        orders: 468,
+        total: 37150.0,
+        ticket: 79.38,
+        avgTime: '35 min',
+        topPaymentName: 'PIX (59%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: 'Agosto / 2026',
+        orders: 455,
+        total: 36200.0,
+        ticket: 79.56,
+        avgTime: '37 min',
+        topPaymentName: 'PIX (61%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: 'Julho / 2026',
+        orders: 440,
+        total: 35100.0,
+        ticket: 79.77,
+        avgTime: '34 min',
+        topPaymentName: 'Cartão (53%)',
+        topPaymentType: 'card',
+      },
+      {
+        date: 'Junho / 2026',
+        orders: 425,
+        total: 33950.0,
+        ticket: 79.88,
+        avgTime: '36 min',
+        topPaymentName: 'PIX (58%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: 'Maio / 2026',
+        orders: 420,
+        total: 33480.0,
+        ticket: 79.71,
+        avgTime: '38 min',
+        topPaymentName: 'PIX (57%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-09': {
+    faturamento: 37150.0,
+    pedidos: 468,
+    ticket: 79.38,
+    tempo: '35 min',
+    periodLabel: 'em Setembro / 2026',
+    payTotalCount: '468 pedidos',
+    payments: {
+      pix: { count: 276, percentage: '59%', total: 21920.0 },
+      card: { count: 154, percentage: '33%', total: 12260.0 },
+      cash: { count: 38, percentage: '8%', total: 2970.0 },
+    },
+    orderTypes: {
+      delivery: { count: 365, percentage: '78%', total: 28980.0 },
+      pickup: { count: 103, percentage: '22%', total: 8170.0 },
+    },
+    tableDaysBadge: 'Mês de Setembro / 2026',
+    dailyRecords: [
+      {
+        date: '30/09/2026',
+        orders: 42,
+        total: 3330.0,
+        ticket: 79.28,
+        avgTime: '34 min',
+        topPaymentName: 'PIX (62%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '29/09/2026',
+        orders: 39,
+        total: 3100.0,
+        ticket: 79.48,
+        avgTime: '35 min',
+        topPaymentName: 'Cartão (54%)',
+        topPaymentType: 'card',
+      },
+      {
+        date: '28/09/2026',
+        orders: 45,
+        total: 3580.0,
+        ticket: 79.55,
+        avgTime: '36 min',
+        topPaymentName: 'PIX (60%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '27/09/2026',
+        orders: 48,
+        total: 3810.0,
+        ticket: 79.37,
+        avgTime: '38 min',
+        topPaymentName: 'PIX (58%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '26/09/2026',
+        orders: 50,
+        total: 3980.0,
+        ticket: 79.6,
+        avgTime: '35 min',
+        topPaymentName: 'PIX (65%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-08': {
+    faturamento: 36200.0,
+    pedidos: 455,
+    ticket: 79.56,
+    tempo: '37 min',
+    periodLabel: 'em Agosto / 2026',
+    payTotalCount: '455 pedidos',
+    payments: {
+      pix: { count: 277, percentage: '61%', total: 22080.0 },
+      card: { count: 141, percentage: '31%', total: 11220.0 },
+      cash: { count: 37, percentage: '8%', total: 2900.0 },
+    },
+    orderTypes: {
+      delivery: { count: 350, percentage: '77%', total: 27870.0 },
+      pickup: { count: 105, percentage: '23%', total: 8330.0 },
+    },
+    tableDaysBadge: 'Mês de Agosto / 2026',
+    dailyRecords: [
+      {
+        date: '31/08/2026',
+        orders: 38,
+        total: 3020.0,
+        ticket: 79.47,
+        avgTime: '36 min',
+        topPaymentName: 'PIX (63%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '30/08/2026',
+        orders: 46,
+        total: 3660.0,
+        ticket: 79.56,
+        avgTime: '38 min',
+        topPaymentName: 'PIX (59%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '29/08/2026',
+        orders: 44,
+        total: 3500.0,
+        ticket: 79.54,
+        avgTime: '37 min',
+        topPaymentName: 'Cartão (52%)',
+        topPaymentType: 'card',
+      },
+      {
+        date: '28/08/2026',
+        orders: 40,
+        total: 3180.0,
+        ticket: 79.5,
+        avgTime: '35 min',
+        topPaymentName: 'PIX (60%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-07': {
+    faturamento: 35100.0,
+    pedidos: 440,
+    ticket: 79.77,
+    tempo: '34 min',
+    periodLabel: 'em Julho / 2026',
+    payTotalCount: '440 pedidos',
+    payments: {
+      pix: { count: 260, percentage: '59%', total: 20710.0 },
+      card: { count: 145, percentage: '33%', total: 11580.0 },
+      cash: { count: 35, percentage: '8%', total: 2810.0 },
+    },
+    orderTypes: {
+      delivery: { count: 340, percentage: '77%', total: 27030.0 },
+      pickup: { count: 100, percentage: '23%', total: 8070.0 },
+    },
+    tableDaysBadge: 'Mês de Julho / 2026',
+    dailyRecords: [
+      {
+        date: '31/07/2026',
+        orders: 40,
+        total: 3190.0,
+        ticket: 79.75,
+        avgTime: '34 min',
+        topPaymentName: 'PIX (60%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '30/07/2026',
+        orders: 43,
+        total: 3430.0,
+        ticket: 79.77,
+        avgTime: '35 min',
+        topPaymentName: 'Cartão (51%)',
+        topPaymentType: 'card',
+      },
+      {
+        date: '29/07/2026',
+        orders: 42,
+        total: 3350.0,
+        ticket: 79.76,
+        avgTime: '33 min',
+        topPaymentName: 'PIX (58%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-06': {
+    faturamento: 33950.0,
+    pedidos: 425,
+    ticket: 79.88,
+    tempo: '36 min',
+    periodLabel: 'em Junho / 2026',
+    payTotalCount: '425 pedidos',
+    payments: {
+      pix: { count: 247, percentage: '58%', total: 19690.0 },
+      card: { count: 140, percentage: '33%', total: 11200.0 },
+      cash: { count: 38, percentage: '9%', total: 3060.0 },
+    },
+    orderTypes: {
+      delivery: { count: 330, percentage: '78%', total: 26480.0 },
+      pickup: { count: 95, percentage: '22%', total: 7470.0 },
+    },
+    tableDaysBadge: 'Mês de Junho / 2026',
+    dailyRecords: [
+      {
+        date: '30/06/2026',
+        orders: 41,
+        total: 3275.0,
+        ticket: 79.88,
+        avgTime: '36 min',
+        topPaymentName: 'PIX (59%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '29/06/2026',
+        orders: 39,
+        total: 3115.0,
+        ticket: 79.87,
+        avgTime: '35 min',
+        topPaymentName: 'PIX (61%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-05': {
+    faturamento: 33480.0,
+    pedidos: 420,
+    ticket: 79.71,
+    tempo: '38 min',
+    periodLabel: 'em Maio / 2026',
+    payTotalCount: '420 pedidos',
+    payments: {
+      pix: { count: 240, percentage: '57%', total: 19080.0 },
+      card: { count: 142, percentage: '34%', total: 11380.0 },
+      cash: { count: 38, percentage: '9%', total: 3020.0 },
+    },
+    orderTypes: {
+      delivery: { count: 325, percentage: '77%', total: 25780.0 },
+      pickup: { count: 95, percentage: '23%', total: 7700.0 },
+    },
+    tableDaysBadge: 'Mês de Maio / 2026',
+    dailyRecords: [
+      {
+        date: '31/05/2026',
+        orders: 40,
+        total: 3190.0,
+        ticket: 79.75,
+        avgTime: '37 min',
+        topPaymentName: 'PIX (58%)',
+        topPaymentType: 'pix',
+      },
+      {
+        date: '30/05/2026',
+        orders: 44,
+        total: 3505.0,
+        ticket: 79.66,
+        avgTime: '39 min',
+        topPaymentName: 'PIX (56%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-04': {
+    faturamento: 32100.0,
+    pedidos: 405,
+    ticket: 79.25,
+    tempo: '35 min',
+    periodLabel: 'em Abril / 2026',
+    payTotalCount: '405 pedidos',
+    payments: {
+      pix: { count: 235, percentage: '58%', total: 18620.0 },
+      card: { count: 135, percentage: '33%', total: 10590.0 },
+      cash: { count: 35, percentage: '9%', total: 2890.0 },
+    },
+    orderTypes: {
+      delivery: { count: 312, percentage: '77%', total: 24720.0 },
+      pickup: { count: 93, percentage: '23%', total: 7380.0 },
+    },
+    tableDaysBadge: 'Mês de Abril / 2026',
+    dailyRecords: [
+      {
+        date: '30/04/2026',
+        orders: 38,
+        total: 3010.0,
+        ticket: 79.21,
+        avgTime: '35 min',
+        topPaymentName: 'PIX (60%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-03': {
+    faturamento: 31400.0,
+    pedidos: 395,
+    ticket: 79.49,
+    tempo: '36 min',
+    periodLabel: 'em Março / 2026',
+    payTotalCount: '395 pedidos',
+    payments: {
+      pix: { count: 228, percentage: '58%', total: 18210.0 },
+      card: { count: 132, percentage: '33%', total: 10360.0 },
+      cash: { count: 35, percentage: '9%', total: 2830.0 },
+    },
+    orderTypes: {
+      delivery: { count: 305, percentage: '77%', total: 24180.0 },
+      pickup: { count: 90, percentage: '23%', total: 7220.0 },
+    },
+    tableDaysBadge: 'Mês de Março / 2026',
+    dailyRecords: [
+      {
+        date: '31/03/2026',
+        orders: 39,
+        total: 3100.0,
+        ticket: 79.48,
+        avgTime: '36 min',
+        topPaymentName: 'PIX (59%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-02': {
+    faturamento: 28900.0,
+    pedidos: 365,
+    ticket: 79.17,
+    tempo: '34 min',
+    periodLabel: 'em Fevereiro / 2026',
+    payTotalCount: '365 pedidos',
+    payments: {
+      pix: { count: 212, percentage: '58%', total: 16760.0 },
+      card: { count: 122, percentage: '33%', total: 9540.0 },
+      cash: { count: 31, percentage: '9%', total: 2600.0 },
+    },
+    orderTypes: {
+      delivery: { count: 285, percentage: '78%', total: 22540.0 },
+      pickup: { count: 80, percentage: '22%', total: 6360.0 },
+    },
+    tableDaysBadge: 'Mês de Fevereiro / 2026',
+    dailyRecords: [
+      {
+        date: '28/02/2026',
+        orders: 36,
+        total: 2850.0,
+        ticket: 79.16,
+        avgTime: '34 min',
+        topPaymentName: 'PIX (58%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
+  'm-01': {
+    faturamento: 30500.0,
+    pedidos: 385,
+    ticket: 79.22,
+    tempo: '37 min',
+    periodLabel: 'em Janeiro / 2026',
+    payTotalCount: '385 pedidos',
+    payments: {
+      pix: { count: 220, percentage: '57%', total: 17380.0 },
+      card: { count: 130, percentage: '34%', total: 10370.0 },
+      cash: { count: 35, percentage: '9%', total: 2750.0 },
+    },
+    orderTypes: {
+      delivery: { count: 298, percentage: '77%', total: 23480.0 },
+      pickup: { count: 87, percentage: '23%', total: 7020.0 },
+    },
+    tableDaysBadge: 'Mês de Janeiro / 2026',
+    dailyRecords: [
+      {
+        date: '31/01/2026',
+        orders: 37,
+        total: 2930.0,
+        ticket: 79.18,
+        avgTime: '37 min',
+        topPaymentName: 'PIX (57%)',
+        topPaymentType: 'pix',
+      },
+    ],
+  },
 }
 
 export function FinancialView() {
@@ -212,7 +685,7 @@ export function FinancialView() {
   const [isoDate, setIsoDate] = useState('')
   const hiddenDateRef = useRef(null)
 
-  // Alterna o período rápido
+  // Alterna o período rápido (Hoje, 7 dias)
   const handlePeriodChange = (periodKey) => {
     setSelectedPeriod(periodKey)
     setDateBr('')
@@ -224,6 +697,20 @@ export function FinancialView() {
     } else {
       toast.info('Exibindo faturamento do Mês Atual')
     }
+  }
+
+  // Alterna pelo dropdown de Últimos 6 Meses ou Mês a Mês
+  const handleDropdownChange = (valOrEvent) => {
+    const val =
+      typeof valOrEvent === 'string'
+        ? valOrEvent
+        : valOrEvent?.target?.value
+    if (!val) return
+    setSelectedPeriod(val)
+    setDateBr('')
+    setIsoDate('')
+    const label = PERIOD_LABELS[val] || val
+    toast.info(`Exibindo fechamento de ${label}`)
   }
 
   // Digitação manual com máscara brasileira (DD/MM/AAAA)
@@ -309,6 +796,9 @@ export function FinancialView() {
     return FINANCIAL_DATASETS[selectedPeriod] || FINANCIAL_DATASETS.month
   }, [selectedPeriod, dateBr])
 
+  const isMonthDropdownActive =
+    !dateBr && !['today', 'week'].includes(selectedPeriod)
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Topo com Filtros de Período */}
@@ -328,8 +818,9 @@ export function FinancialView() {
           </p>
         </div>
 
-        {/* Filtros Rápidos & Seletor de Data */}
+        {/* Filtros Rápidos, Dropdown de Meses & Seletor de Data */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Botões Rápidos (Hoje, 7 dias) */}
           <div className="bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] flex items-center gap-1">
             <button
               type="button"
@@ -353,17 +844,23 @@ export function FinancialView() {
             >
               Últimos 7 dias
             </button>
-            <button
-              type="button"
-              onClick={() => handlePeriodChange('month')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                !dateBr && selectedPeriod === 'month'
-                  ? 'bg-[#FF5E1E] text-white shadow-xs'
-                  : 'text-[#6C757D] hover:text-[#1A1D20]'
-              }`}
-            >
-              Este Mês
-            </button>
+          </div>
+
+          {/* Dropdown Customizado: Últimos 6 Meses ou Mês a Mês */}
+          <div className="w-56 sm:w-64">
+            <CustomSelect
+              value={isMonthDropdownActive ? selectedPeriod : ''}
+              onChange={handleDropdownChange}
+              options={MONTH_SELECT_OPTIONS}
+              placeholder="Filtrar por Mês / 6 Meses"
+              icon={<CalendarDays className="w-4 h-4 text-[#FF5E1E]" />}
+              variant={isMonthDropdownActive ? 'orange' : 'default'}
+              triggerClassName={
+                isMonthDropdownActive
+                  ? 'bg-orange-50/80 border-[#FF5E1E] text-[#FF5E1E]'
+                  : 'bg-[#F8F9FA]'
+              }
+            />
           </div>
 
           {/* Seletor de Data no Formato Brasileiro (DD/MM/AAAA) */}
@@ -626,10 +1123,10 @@ export function FinancialView() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="font-extrabold text-sm text-[#1A1D20]">
-              Histórico de Vendas por Dia
+              Histórico de Vendas por Período
             </h3>
             <p className="text-xs text-[#6C757D]">
-              Detalhamento diário do faturamento e métricas operacionais.
+              Detalhamento de faturamento e métricas operacionais para o filtro selecionado.
             </p>
           </div>
           <div className="text-xs font-bold text-[#FF5E1E] bg-orange-50 px-3 py-1 rounded-xl border border-orange-200 shrink-0 self-start sm:self-auto">
@@ -641,7 +1138,11 @@ export function FinancialView() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-[#E9ECEF] text-[#6C757D] font-bold">
-                <th className="pb-3 pl-2">Data</th>
+                <th className="pb-3 pl-2">
+                  {selectedPeriod === 'last_6_months' && !dateBr
+                    ? 'Mês / Período'
+                    : 'Data'}
+                </th>
                 <th className="pb-3 text-center">Pedidos</th>
                 <th className="pb-3 text-right">Faturamento</th>
                 <th className="pb-3 text-right">Ticket Médio</th>
