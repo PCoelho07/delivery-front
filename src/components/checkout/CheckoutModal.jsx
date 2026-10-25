@@ -3,13 +3,14 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
-  ChevronDown,
   CreditCard,
   MapPin,
   Minus,
   Plus,
   Trash2,
   User,
+  Tag,
+  AlertTriangle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -19,6 +20,9 @@ import {
 } from '../../lib/utils'
 import { useCartStore } from '../../store/useCartStore'
 import { useCustomerStore } from '../../store/useCustomerStore'
+import { calculateTimeEstimate } from '../../utils/timeEstimate'
+import { evaluateCoupon } from '../../utils/couponCalculator'
+import { CustomSelect } from '../common/CustomSelect'
 
 const PAYMENT_OPTIONS = [
   { id: 'money', label: 'Dinheiro', subtitle: null },
@@ -89,6 +93,19 @@ export function CheckoutModal({
     [activeNeighborhoods, neighborhoodId]
   )
 
+  const neighborhoodOptions = useMemo(() => {
+    return activeNeighborhoods.map((n) => ({
+      value: n.id,
+      label:
+        pricingMode === 'fixed'
+          ? n.name
+          : `${n.name} ${
+              n.fee > 0 ? `(+ ${formatCurrency(n.fee)})` : '(Grátis)'
+            }`,
+      icon: <MapPin className="w-3.5 h-3.5 text-[#FF5E1E]" />,
+    }))
+  }, [activeNeighborhoods, pricingMode])
+
   const totalCount = useMemo(
     () => items.reduce((acc, item) => acc + item.quantity, 0),
     [items]
@@ -105,7 +122,18 @@ export function CheckoutModal({
     return selectedNeighborhood?.fee ?? null
   }, [deliveryMethod, pricingMode, fixedDeliveryFee, selectedNeighborhood])
 
-  const finalTotal = subtotal + (deliveryFee || 0)
+  const appliedCoupon = useCartStore((state) => state.appliedCoupon)
+  const couponEvaluation = useMemo(() => {
+    if (!appliedCoupon) return null
+    return evaluateCoupon(appliedCoupon, items)
+  }, [appliedCoupon, items])
+
+  const discountAmount = couponEvaluation?.isEligible ? couponEvaluation.discountAmount : 0
+  const finalTotal = Math.max(0, subtotal - discountAmount + (deliveryFee || 0))
+
+  const minOrder = Number(store?.minOrder) || 0
+  const isBelowMin = minOrder > 0 && subtotal < minOrder
+  const amountNeeded = minOrder - subtotal
 
   const isAddressReady =
     deliveryMethod === 'pickup' ||
@@ -122,6 +150,7 @@ export function CheckoutModal({
 
   const canSubmitOrder =
     items.length > 0 &&
+    !isBelowMin &&
     isAddressReady &&
     Boolean(paymentMethod) &&
     isCustomerReady
@@ -167,6 +196,13 @@ export function CheckoutModal({
   }
 
   const handleSubmitOrder = () => {
+    if (isBelowMin) {
+      toast.error('Pedido abaixo do valor mínimo', {
+        description: `O pedido mínimo desta loja é de ${formatCurrency(minOrder)}. Adicione mais ${formatCurrency(amountNeeded)} para avançar.`,
+      })
+      return
+    }
+
     if (!canSubmitOrder) {
       if (!isCustomerReady) {
         setIsEditingProfile(true)
@@ -205,18 +241,26 @@ export function CheckoutModal({
         ? Number(String(changeFor).replace(',', '.')) || 0
         : 0
 
+    const rawEstimatedTime =
+      deliveryMethod === 'delivery'
+        ? store?.estimatedDelivery || '40 - 50 min'
+        : store?.estimatedPickup || '20 - 30 min'
+
+    const estimate = calculateTimeEstimate(rawEstimatedTime, now, deliveryMethod)
+
     const newOrder = {
       orderId,
       status: 'aceito',
       createdAt: `${formattedDate} às ${formattedTime}`,
+      createdAtTimestamp: now.getTime(),
       storeName: store?.name || 'Brasa Burger',
       storePhone: store?.phone || '(00) 00000-0000',
       whatsapp: store?.whatsapp || '5500000000000',
       instagramUrl: store?.instagramUrl || 'https://instagram.com',
-      estimatedTime:
-        deliveryMethod === 'delivery'
-          ? store?.estimatedDelivery || '40 - 50 min'
-          : store?.estimatedPickup || '20 - 30 min',
+      estimatedTime: rawEstimatedTime,
+      estimatedTimeWindow: estimate.timeWindow,
+      estimatedFullLabel: estimate.fullLabel,
+      estimatedLabel: estimate.label,
       deliveryMethod,
       customer: cleanProfile,
       address:
@@ -263,7 +307,16 @@ export function CheckoutModal({
         }
       }),
       subtotal,
-      discount: 0,
+      discount: discountAmount,
+      discountAmount,
+      coupon: appliedCoupon && couponEvaluation?.isEligible
+        ? {
+            code: appliedCoupon.code,
+            discountPercent: appliedCoupon.discountPercent,
+            discountAmount,
+            scopeLabel: couponEvaluation.scopeLabel,
+          }
+        : null,
       deliveryFee: deliveryFee || 0,
       total: finalTotal,
       paymentMethod,
@@ -569,37 +622,24 @@ export function CheckoutModal({
                     )}
                   </label>
                   {activeNeighborhoods.length > 0 ? (
-                    <div className="relative">
-                      <select
-                        value={neighborhoodId}
-                        onChange={(e) => {
-                          setNeighborhoodId(e.target.value)
-                          const found = activeNeighborhoods.find(
-                            (n) => n.id === e.target.value
-                          )
-                          if (found) setCustomNeighborhood(found.name)
-                        }}
-                        className={`w-full bg-white border rounded-xl pl-3.5 pr-9 py-2.5 text-[13.5px] appearance-none cursor-pointer focus:outline-none transition-colors ${
-                          neighborhoodId
-                            ? 'border-[#E2E5E9] text-[#1A1D20]'
-                            : 'border-[#FF5E1E] text-[#6C757D]'
-                        }`}
-                      >
-                        <option value="">Selecione o bairro</option>
-                        {activeNeighborhoods.map((n) => (
-                          <option key={n.id} value={n.id}>
-                            {pricingMode === 'fixed'
-                              ? n.name
-                              : `${n.name} ${
-                                  n.fee > 0
-                                    ? `(+ ${formatCurrency(n.fee)})`
-                                    : '(Grátis)'
-                                }`}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-[#FF5E1E] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    </div>
+                    <CustomSelect
+                      value={neighborhoodId}
+                      onChange={(val) => {
+                        setNeighborhoodId(val)
+                        const found = activeNeighborhoods.find(
+                          (n) => n.id === val
+                        )
+                        if (found) setCustomNeighborhood(found.name)
+                      }}
+                      options={neighborhoodOptions}
+                      placeholder="Selecione o bairro..."
+                      icon={<MapPin className="w-4 h-4 text-[#FF5E1E]" />}
+                      triggerClassName={
+                        neighborhoodId
+                          ? 'border-[#E2E5E9] text-[#1A1D20]'
+                          : 'border-[#FF5E1E] text-[#6C757D]'
+                      }
+                    />
                   ) : (
                     <input
                       type="text"
@@ -803,7 +843,21 @@ export function CheckoutModal({
         </div>
 
         {/* Rodapé Fixo de Envio do Pedido */}
-        <footer className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3 pb-3.5">
+        <footer className="shrink-0 bg-white border-t border-gray-100 px-4 pt-3 pb-3.5 space-y-2">
+          {isBelowMin && (
+            <div className="bg-amber-50 border border-amber-200/90 rounded-xl p-2.5 flex items-center justify-between text-xs text-amber-900 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span className="font-medium">
+                  Pedido mínimo: <strong>{formatCurrency(minOrder)}</strong>
+                </span>
+              </div>
+              <span className="font-extrabold text-amber-900 text-[11px] bg-amber-200/80 px-2 py-0.5 rounded-lg shrink-0">
+                Faltam {formatCurrency(amountNeeded)}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-baseline justify-between">
             <span className="text-[13px] text-[#6C757D]">
               Subtotal dos produtos
@@ -813,7 +867,20 @@ export function CheckoutModal({
             </span>
           </div>
 
-          <div className="flex items-center justify-between mt-1 mb-3 text-[12.5px] text-[#6C757D]">
+          {appliedCoupon && couponEvaluation?.isEligible && (
+            <div className="flex items-center justify-between text-[12.5px] text-emerald-700 font-bold">
+              <span className="flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5" />
+                <span>
+                  Desconto ({appliedCoupon.code} -{appliedCoupon.discountPercent}%
+                  {couponEvaluation?.scopeLabel ? ` ${couponEvaluation.scopeLabel}` : ''})
+                </span>
+              </span>
+              <span>- {formatCurrency(discountAmount)}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between text-[12.5px] text-[#6C757D]">
             <span>
               {deliveryMethod === 'pickup'
                 ? 'Retirada no estabelecimento'
@@ -835,6 +902,7 @@ export function CheckoutModal({
           <button
             type="button"
             onClick={handleSubmitOrder}
+            disabled={!canSubmitOrder}
             className={`w-full h-12 rounded-2xl px-5 font-semibold text-[15px] flex items-center justify-between transition-all ${
               canSubmitOrder
                 ? 'bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white cursor-pointer shadow-xs'
@@ -843,7 +911,9 @@ export function CheckoutModal({
           >
             <span className="w-5" />
             <span>
-              {canSubmitOrder
+              {isBelowMin
+                ? `Abaixo do mínimo (${formatCurrency(minOrder)})`
+                : canSubmitOrder
                 ? `Enviar pedido • ${formatCurrency(finalTotal)}`
                 : 'Enviar pedido'}
             </span>
@@ -852,7 +922,9 @@ export function CheckoutModal({
 
           {!canSubmitOrder && (
             <p className="text-center text-[11.5px] text-[#6C757D] mt-2">
-              {!isCustomerReady
+              {isBelowMin
+                ? `Pedido abaixo do mínimo de ${formatCurrency(minOrder)}. Adicione mais itens.`
+                : !isCustomerReady
                 ? 'Informe seu nome, telefone, bairro e forma de pagamento.'
                 : 'Selecione o bairro e a forma de pagamento.'}
             </p>

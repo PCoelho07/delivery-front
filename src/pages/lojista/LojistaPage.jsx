@@ -7,6 +7,7 @@ import { PaymentsView } from '../../components/backoffice/payments/PaymentsView'
 import { OrdersView } from '../../components/backoffice/orders/OrdersView'
 import { FinancialView } from '../../components/backoffice/financial/FinancialView'
 import { StoreProfileView } from '../../components/backoffice/store/StoreProfileView'
+import { CouponsView } from '../../components/backoffice/coupons/CouponsView'
 import { useStoreAdmin } from '../../store/useStoreAdmin'
 
 export function LojistaPage() {
@@ -25,6 +26,8 @@ export function LojistaPage() {
         {/* Área de Trabalho Dinâmica da Aba Selecionada */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8F9FA]">
           {(activeTab === 'cardapio' || activeTab === 'templates') && <MenuVitrineView />}
+
+          {activeTab === 'cupons' && <CouponsView />}
 
           {activeTab === 'pedidos' && <OrdersView />}
 

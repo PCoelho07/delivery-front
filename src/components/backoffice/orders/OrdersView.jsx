@@ -21,6 +21,7 @@ import {
   Trash2,
   Radio,
   RefreshCw,
+  Ban,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCustomerStore } from '../../../store/useCustomerStore'
@@ -30,6 +31,7 @@ import { useOrdersWebSocket } from '../../../hooks/useOrdersWebSocket'
 import { OrderCard } from './OrderCard'
 import { OrdersTableView } from './OrdersTableView'
 import { ThermalReceiptModal } from './ThermalReceiptModal'
+import { CancelOrderModal } from './CancelOrderModal'
 
 // Pedidos demonstrativos para alimentar o Kanban caso ainda não haja pedidos no store
 const DEFAULT_DEMO_ORDERS = [
@@ -200,6 +202,9 @@ export function OrdersView() {
   // Pedido selecionado para impressão de comanda térmica
   const [orderToPrint, setOrderToPrint] = useState(null)
 
+  // Pedido selecionado para cancelamento / recusa
+  const [orderToCancel, setOrderToCancel] = useState(null)
+
   // Conexão WebSocket Nativa com o backend em Go
   const {
     status: wsStatus,
@@ -240,9 +245,11 @@ export function OrdersView() {
   // Pedidos Filtrados por busca e modalidade
   const filteredOrders = useMemo(() => {
     return allOrders.filter((o) => {
-      // Filtro por modalidade
+      // Filtro por modalidade e status
       if (deliveryFilter === 'delivery' && o.deliveryMethod !== 'delivery') return false
       if (deliveryFilter === 'pickup' && o.deliveryMethod !== 'pickup') return false
+      if (deliveryFilter === 'canceled' && o.status !== 'cancelado' && o.status !== 'recusado') return false
+      if (deliveryFilter !== 'canceled' && (o.status === 'cancelado' || o.status === 'recusado')) return false
 
       // Filtro de busca textual
       if (!searchQuery.trim()) return true
@@ -262,6 +269,7 @@ export function OrdersView() {
   const inPrepOrders = filteredOrders.filter((o) => o.status === 'preparo')
   const inDeliveryOrders = filteredOrders.filter((o) => o.status === 'entrega')
   const completedOrders = filteredOrders.filter((o) => o.status === 'concluido')
+  const canceledOrders = allOrders.filter((o) => o.status === 'cancelado' || o.status === 'recusado')
 
   // Avançar Status
   const handleAdvance = (orderId, nextStatus) => {
@@ -284,6 +292,20 @@ export function OrdersView() {
     updateStoreOrderStatus(orderId, prevStatus)
     sendWsStatusUpdate(orderId, prevStatus)
     toast.info('Status retrocedido.')
+  }
+
+  // Cancelar / Recusar Pedido
+  const handleCancelOrder = (orderId, reason, note) => {
+    updateStoreOrderStatus(orderId, 'cancelado', {
+      cancellationReason: reason,
+      cancellationNote: note,
+      canceledAt: new Date().toISOString(),
+    })
+    sendWsStatusUpdate(orderId, 'cancelado')
+    const cleanId = String(orderId).replace(/^#/, '')
+    toast.error(`Pedido #${cleanId} recusado/cancelado.`, {
+      description: `Motivo: ${reason}`,
+    })
   }
 
   // Alternar Som de Notificação
@@ -598,6 +620,18 @@ export function OrdersView() {
               <Store className="w-3 h-3" />
               <span>Balcão</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('canceled')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                deliveryFilter === 'canceled'
+                  ? 'bg-white text-rose-600 shadow-2xs font-extrabold'
+                  : 'text-[#6C757D] hover:text-rose-600'
+              }`}
+            >
+              <Ban className="w-3 h-3 text-rose-500" />
+              <span>Cancelados ({canceledOrders.length})</span>
+            </button>
           </div>
 
           {searchQuery && (
@@ -608,8 +642,45 @@ export function OrdersView() {
         </div>
       </div>
 
-      {/* RENDERIZAÇÃO: MODO KANBAN VS MODO LISTA */}
-      {viewMode === 'list' ? (
+      {/* RENDERIZAÇÃO: MODO KANBAN VS MODO LISTA VS CANCELADOS */}
+      {deliveryFilter === 'canceled' ? (
+        <div className="bg-white rounded-2xl border border-rose-200/90 p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-rose-100 flex-wrap gap-2">
+            <div>
+              <h3 className="font-extrabold text-sm sm:text-base text-rose-950 flex items-center gap-2">
+                <Ban className="w-5 h-5 text-rose-600" />
+                <span>Histórico de Pedidos Recusados & Cancelados</span>
+              </h3>
+              <p className="text-xs text-[#6C757D] mt-0.5">
+                Pedidos cancelados pela loja ou pelo cliente com motivo registrado.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+              {canceledOrders.length} {canceledOrders.length === 1 ? 'pedido' : 'pedidos'}
+            </span>
+          </div>
+
+          {canceledOrders.length === 0 ? (
+            <div className="bg-slate-50 rounded-2xl p-12 text-center border border-dashed border-slate-200 space-y-2">
+              <Ban className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-bold text-[#1A1D20]">Nenhum pedido cancelado</p>
+              <p className="text-[11px] text-[#6C757D]">
+                Os pedidos recusados ou cancelados com motivo aparecerão nesta listagem.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {canceledOrders.map((order) => (
+                <OrderCard
+                  key={order.orderId}
+                  order={order}
+                  onPrint={setOrderToPrint}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : viewMode === 'list' ? (
         <OrdersTableView
           orders={filteredOrders}
           onAdvance={handleAdvance}
@@ -645,6 +716,7 @@ export function OrdersView() {
                     order={order}
                     onAdvance={handleAdvance}
                     onPrint={setOrderToPrint}
+                    onCancel={setOrderToCancel}
                   />
                 ))
               )}
@@ -679,6 +751,7 @@ export function OrdersView() {
                     onAdvance={handleAdvance}
                     onRewind={handleRewind}
                     onPrint={setOrderToPrint}
+                    onCancel={setOrderToCancel}
                   />
                 ))
               )}
@@ -716,6 +789,7 @@ export function OrdersView() {
                     onAdvance={handleAdvance}
                     onRewind={handleRewind}
                     onPrint={setOrderToPrint}
+                    onCancel={setOrderToCancel}
                   />
                 ))
               )}
@@ -773,6 +847,15 @@ export function OrdersView() {
         <ThermalReceiptModal
           order={orderToPrint}
           onClose={() => setOrderToPrint(null)}
+        />
+      )}
+
+      {/* Modal de Recusa / Cancelamento com Motivo */}
+      {orderToCancel && (
+        <CancelOrderModal
+          order={orderToCancel}
+          onClose={() => setOrderToCancel(null)}
+          onConfirmCancel={handleCancelOrder}
         />
       )}
     </div>

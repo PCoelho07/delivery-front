@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   ArrowLeft,
+  Bike,
   Check,
   CheckCircle2,
   ChefHat,
@@ -15,6 +16,7 @@ import {
   Truck,
   User,
   X,
+  Ban,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -22,6 +24,7 @@ import {
   formatCurrency,
   formatPhoneMask,
 } from '../../lib/utils'
+import { calculateTimeEstimate } from '../../utils/timeEstimate'
 import {
   buildWhatsAppOrderUrl,
   formatWhatsAppOrderMessage,
@@ -90,6 +93,22 @@ export function OrderConfirmationModal({
   const showDeliveredBanner = isDelivered && !dismissDeliveredBanner
 
   const currentStatusId = currentOrder?.status || 'aceito'
+  const isPickup = currentOrder?.deliveryMethod === 'pickup'
+  const rawEstimate =
+    currentOrder?.estimatedTime ||
+    (isPickup
+      ? store?.estimatedPickup || '20 - 30 min'
+      : store?.estimatedDelivery || '40 - 50 min')
+
+  const timeEstimate = useMemo(() => {
+    if (!currentOrder) return null
+    return calculateTimeEstimate(
+      rawEstimate,
+      currentOrder.createdAtTimestamp || currentOrder.createdAt,
+      currentOrder.deliveryMethod || 'delivery'
+    )
+  }, [currentOrder, rawEstimate])
+
   const instagramUrl =
     currentOrder?.instagramUrl || store?.instagramUrl || 'https://instagram.com'
 
@@ -367,6 +386,28 @@ export function OrderConfirmationModal({
                 </div>
               </div>
 
+              {/* Alerta de Pedido Cancelado (se houver) */}
+              {(currentStatusId === 'cancelado' || currentStatusId === 'recusado') && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                    <Ban className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-[15px] text-rose-950">
+                      Pedido Cancelado pelo Restaurante
+                    </h4>
+                    <p className="text-xs text-rose-800">
+                      Motivo: <span className="font-bold">{currentOrder.cancellationReason || 'Inviabilidade de atendimento no momento.'}</span>
+                    </p>
+                    {currentOrder.cancellationNote && (
+                      <p className="text-[11.5px] text-rose-700 italic">
+                        &ldquo;{currentOrder.cancellationNote}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Etapas de Status do Pedido (Indicador de Progresso - Atualizado pelo Restaurante) */}
               <div className="space-y-2">
                 <div className="grid grid-cols-3 gap-1.5 bg-[#F8F9FA] p-1.5 rounded-xl border border-gray-100 select-none">
@@ -450,16 +491,30 @@ export function OrderConfirmationModal({
                 )}
               </div>
 
-              {/* Estimativa de Tempo de Espera */}
-              <div className="bg-[#F8F9FA] rounded-xl p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[13px] text-[#6C757D]">
-                  <Clock className="w-4 h-4 text-[#FF5E1E]" />
-                  <span>Tempo estimado de espera</span>
+              {/* Previsão de Entrega ou Retirada */}
+              {timeEstimate && (
+                <div className="bg-[#F8F9FA] rounded-xl p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-[13px] text-[#6C757D]">
+                    {isPickup ? (
+                      <Store className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+                    ) : (
+                      <Bike className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+                    )}
+                    <span className="font-medium">
+                      {isPickup ? 'Previsão para ficar pronto' : 'Previsão de entrega'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[13.5px] font-bold text-[#1A1D20]">
+                      {timeEstimate.timeWindow}
+                    </span>
+                    <span className="text-[11.5px] text-[#6C757D] font-normal">
+                      ({rawEstimate})
+                    </span>
+                  </div>
                 </div>
-                <span className="text-[13.5px] font-bold text-[#1A1D20]">
-                  {currentOrder.estimatedTime || '30 - 50 minutos'}
-                </span>
-              </div>
+              )}
 
               {/* Box da Chave PIX */}
               <div className="rounded-2xl border border-[#FF5E1E]/30 bg-[#FFF3EE]/60 p-3.5 space-y-2.5">

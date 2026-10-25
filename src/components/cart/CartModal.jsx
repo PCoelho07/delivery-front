@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,20 +8,94 @@ import {
   Plus,
   TicketPercent,
   Trash2,
+  AlertTriangle,
+  X,
+  Tag,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatCurrency } from '../../lib/utils'
 import { useCartStore } from '../../store/useCartStore'
+import { useStoreAdmin } from '../../store/useStoreAdmin'
+import { evaluateCoupon } from '../../utils/couponCalculator'
 
 export function CartModal({ store, onClose, onContinueToDelivery }) {
   const items = useCartStore((state) => state.items)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const clearCart = useCartStore((state) => state.clearCart)
+  const appliedCoupon = useCartStore((state) => state.appliedCoupon)
+  const setAppliedCoupon = useCartStore((state) => state.setAppliedCoupon)
+  const removeAppliedCoupon = useCartStore((state) => state.removeAppliedCoupon)
+
+  const adminCoupons = useStoreAdmin((state) => state.coupons) || []
 
   const [showCouponInput, setShowCouponInput] = useState(false)
   const [couponCode, setCouponCode] = useState('')
 
   const totalCount = items.reduce((acc, item) => acc + item.quantity, 0)
   const totalAmount = items.reduce((acc, item) => acc + item.totalPrice, 0)
+
+  // Pedido Mínimo
+  const minOrder = Number(store?.minOrder) || 0
+  const isBelowMin = minOrder > 0 && totalAmount < minOrder
+  const amountNeeded = minOrder - totalAmount
+
+  // Desconto do Cupom com Avaliação de Escopo (Geral, Categoria ou Produto)
+  const couponEvaluation = useMemo(() => {
+    if (!appliedCoupon) return null
+    return evaluateCoupon(appliedCoupon, items)
+  }, [appliedCoupon, items])
+
+  const discountAmount = couponEvaluation?.isEligible ? couponEvaluation.discountAmount : 0
+  const finalProductTotal = Math.max(0, totalAmount - discountAmount)
+
+  const handleApplyCoupon = () => {
+    const cleanCode = couponCode.trim().toUpperCase()
+    if (!cleanCode) {
+      toast.error('Digite o código do cupom.')
+      return
+    }
+
+    const found = adminCoupons.find(
+      (c) => c.code.toUpperCase() === cleanCode && c.active !== false
+    )
+
+    if (!found) {
+      toast.error('Cupom inválido ou expirado.', {
+        description: 'Verifique o código digitado e tente novamente.',
+      })
+      return
+    }
+
+    const evaluation = evaluateCoupon(found, items)
+    if (!evaluation.isEligible) {
+      toast.error('Cupom não aplicável a estes itens', {
+        description: evaluation.reason || 'Nenhum item participante encontrado na sua sacola.',
+      })
+      return
+    }
+
+    setAppliedCoupon(found)
+    setShowCouponInput(false)
+    setCouponCode('')
+    toast.success(`Cupom "${found.code}" aplicado com sucesso!`, {
+      description: `${found.discountPercent}% de desconto ${evaluation.scopeLabel}.`,
+    })
+  }
+
+  const handleRemoveCoupon = () => {
+    removeAppliedCoupon()
+    toast.info('Cupom removido.')
+  }
+
+  const handleProceed = () => {
+    if (isBelowMin) {
+      toast.error('Pedido abaixo do valor mínimo', {
+        description: `O pedido mínimo desta loja é de ${formatCurrency(minOrder)}. Adicione mais ${formatCurrency(amountNeeded)} para avançar para a entrega.`,
+      })
+      return
+    }
+    onContinueToDelivery?.()
+  }
 
   const shortBrand =
     store?.shortBrand ||
@@ -236,51 +310,91 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
             )}
           </section>
 
-          {/* Card Adicionar Cupom */}
+          {/* Card de Cupom de Desconto */}
           {items.length > 0 && (
-            <section className="bg-white rounded-2xl p-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
-              <button
-                type="button"
-                onClick={() => setShowCouponInput((prev) => !prev)}
-                className="w-full flex items-center justify-between cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#FFF0EB] flex items-center justify-center shrink-0">
-                    <TicketPercent
-                      className="w-5 h-5 text-[#FF5E1E]"
-                      strokeWidth={2}
-                    />
+            <section className="bg-white rounded-2xl p-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] space-y-2.5">
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200/80 rounded-xl p-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                      <Tag className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-black text-emerald-950 truncate">
+                        Cupom {appliedCoupon.code} aplicado!
+                      </p>
+                      <p className="text-[11px] text-emerald-700">
+                        {appliedCoupon.discountPercent}% OFF {couponEvaluation?.scopeLabel ? `(${couponEvaluation.scopeLabel})` : ''} (-{formatCurrency(discountAmount)})
+                      </p>
+                      {couponEvaluation && !couponEvaluation.isEligible && (
+                        <p className="text-[10px] text-amber-700 font-semibold mt-0.5">
+                          Itens elegíveis ausentes na sacola.
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[14px] font-bold text-[#1A1D20] leading-tight">
-                      Adicionar cupom
-                    </p>
-                    <p className="text-[12px] text-[#6C757D] mt-0.5">
-                      {couponCode ? `Cupom: ${couponCode.toUpperCase()}` : 'Opcional'}
-                    </p>
-                  </div>
-                </div>
 
-                <ChevronRight className="w-4 h-4 text-[#6C757D]" />
-              </button>
-
-              {showCouponInput && (
-                <div className="mt-3 pt-3 border-t border-gray-100 flex gap-2">
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Digite o código do cupom"
-                    className="flex-1 bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3 py-2 text-[13px] text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]"
-                  />
                   <button
                     type="button"
-                    onClick={() => setShowCouponInput(false)}
-                    className="px-4 py-2 rounded-xl bg-[#FF5E1E] text-white text-[13px] font-semibold cursor-pointer"
+                    onClick={handleRemoveCoupon}
+                    className="p-1 rounded-lg text-emerald-700 hover:text-rose-600 hover:bg-emerald-100 transition-colors cursor-pointer shrink-0"
+                    title="Remover cupom"
                   >
-                    Aplicar
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowCouponInput((prev) => !prev)}
+                    className="w-full flex items-center justify-between cursor-pointer text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[#FFF0EB] flex items-center justify-center shrink-0">
+                        <TicketPercent
+                          className="w-5 h-5 text-[#FF5E1E]"
+                          strokeWidth={2}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-bold text-[#1A1D20] leading-tight">
+                          Possui cupom de desconto?
+                        </p>
+                        <p className="text-[12px] text-[#6C757D] mt-0.5">
+                          Insira o código promocional para obter desconto em %
+                        </p>
+                      </div>
+                    </div>
+
+                    <ChevronRight className="w-4 h-4 text-[#6C757D]" />
+                  </button>
+
+                  {showCouponInput && (
+                    <div className="pt-2 border-t border-gray-100 flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleApplyCoupon()
+                          }
+                        }}
+                        placeholder="Ex: PRIMEIRACOMPRA"
+                        className="flex-1 bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3 py-2 text-[13px] font-bold uppercase text-[#1A1D20] placeholder:text-[#ADB5BD] placeholder:font-normal focus:outline-none focus:border-[#FF5E1E]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        className="px-4 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-[13px] font-bold cursor-pointer transition-colors shadow-2xs"
+                      >
+                        Aplicar
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
           )}
@@ -301,15 +415,35 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
                 </span>
               </div>
 
+              {appliedCoupon && couponEvaluation?.isEligible && (
+                <div className="flex items-center justify-between text-[13.5px] text-emerald-700 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5" />
+                    <span>
+                      Desconto ({appliedCoupon.code} -{appliedCoupon.discountPercent}%
+                      {couponEvaluation?.scopeLabel ? ` ${couponEvaluation.scopeLabel}` : ''})
+                    </span>
+                  </span>
+                  <span>- {formatCurrency(discountAmount)}</span>
+                </div>
+              )}
+
               <div className="border-t border-gray-100" />
 
               <div className="flex items-baseline justify-between">
                 <span className="text-[15px] font-bold text-[#1A1D20]">
                   Total dos produtos
                 </span>
-                <span className="text-[20px] font-extrabold text-[#1A1D20]">
-                  {formatCurrency(totalAmount)}
-                </span>
+                <div className="text-right">
+                  {appliedCoupon && (
+                    <span className="text-xs line-through text-[#6C757D] block">
+                      {formatCurrency(totalAmount)}
+                    </span>
+                  )}
+                  <span className="text-[20px] font-extrabold text-[#1A1D20]">
+                    {formatCurrency(finalProductTotal)}
+                  </span>
+                </div>
               </div>
 
               <p className="text-[11.5px] text-[#6C757D]">
@@ -319,16 +453,38 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
           )}
         </div>
 
-        {/* Rodapé Fixo com Botão Continuar para Entrega */}
+        {/* Rodapé Fixo com Alerta de Pedido Mínimo e Botão Continuar para Entrega */}
         {items.length > 0 && (
-          <footer className="shrink-0 bg-white border-t border-gray-100 px-4 py-3.5">
+          <footer className="shrink-0 bg-white border-t border-gray-100 px-4 py-3.5 space-y-2.5">
+            {isBelowMin && (
+              <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 flex items-center justify-between text-xs text-amber-900 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span className="font-medium">
+                    Pedido mínimo: <strong className="font-bold">{formatCurrency(minOrder)}</strong>
+                  </span>
+                </div>
+                <span className="font-extrabold text-amber-900 text-[11px] bg-amber-200/80 px-2.5 py-0.5 rounded-lg shrink-0">
+                  Faltam {formatCurrency(amountNeeded)}
+                </span>
+              </div>
+            )}
+
             <button
               type="button"
-              onClick={onContinueToDelivery}
-              className="w-full h-12 bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white font-semibold text-[15px] rounded-2xl px-5 flex items-center justify-between transition-all cursor-pointer shadow-xs"
+              onClick={handleProceed}
+              className={`w-full h-12 font-semibold text-[15px] rounded-2xl px-5 flex items-center justify-between transition-all ${
+                isBelowMin
+                  ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-xs'
+                  : 'bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white cursor-pointer shadow-xs'
+              }`}
             >
               <span className="w-5" />
-              <span>Continuar para entrega</span>
+              <span>
+                {isBelowMin
+                  ? `Mínimo não atingido (Faltam ${formatCurrency(amountNeeded)})`
+                  : 'Continuar para entrega'}
+              </span>
               <ArrowRight className="w-5 h-5 stroke-[2.2]" />
             </button>
           </footer>

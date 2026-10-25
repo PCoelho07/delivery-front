@@ -3,7 +3,11 @@ import { formatTitleCase } from '../utils/textUtils'
 
 const STORAGE_KEY = 'delivery_admin_store_v3'
 
-const DEFAULT_CATEGORIES = []
+const DEFAULT_CATEGORIES = [
+  { id: 'cat-populares', name: 'Populares', order: 1, status: 'active', icon: '🔥' },
+  { id: 'cat-lanches', name: 'Lanches Artesanais', order: 2, status: 'active', icon: '🍔' },
+  { id: 'cat-bebidas', name: 'Bebidas & Sucos', order: 3, status: 'active', icon: '🥤' },
+]
 
 const DEFAULT_TEMPLATES = [
   {
@@ -85,7 +89,159 @@ const DEFAULT_TEMPLATES = [
   },
 ]
 
-const DEFAULT_PRODUCTS = []
+const DEFAULT_PRODUCTS = [
+  {
+    id: 'item-1',
+    name: 'Brasa da Casa',
+    categoryId: 'cat-populares',
+    templateId: 'tmpl-burger',
+    price: 34.9,
+    oldPrice: null,
+    desc: 'Blend 180 g, cheddar, cebola caramelizada e maionese da casa.',
+    image:
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 1,
+    badge: 'MAIS PEDIDO',
+  },
+  {
+    id: 'item-2',
+    name: 'Duplo Smash',
+    categoryId: 'cat-populares',
+    templateId: 'tmpl-burger',
+    price: 39.9,
+    oldPrice: null,
+    desc: 'Dois smashs, cheddar duplo, picles e nosso molho especial.',
+    image:
+      'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 2,
+    badge: null,
+  },
+  {
+    id: 'item-3',
+    name: 'Batata Rústica Especial',
+    categoryId: 'cat-populares',
+    templateId: 'tmpl-none',
+    price: 19.9,
+    oldPrice: null,
+    desc: 'Douradinha, com alecrim, flor de sal e aioli de alho assado.',
+    image:
+      'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 3,
+    badge: null,
+  },
+  {
+    id: 'item-4',
+    name: 'Double Cheddar Smash',
+    categoryId: 'cat-lanches',
+    templateId: 'tmpl-burger',
+    price: 38.9,
+    oldPrice: null,
+    desc: 'Dois smash burgers, cheddar derretido, picles e maionese no brioche.',
+    image:
+      'https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 1,
+    badge: null,
+  },
+  {
+    id: 'item-5',
+    name: 'Clássico Salada Brasa',
+    categoryId: 'cat-lanches',
+    templateId: 'tmpl-burger',
+    price: 32.9,
+    oldPrice: null,
+    desc: 'Hambúrguer 180 g na brasa, queijo prato, alface americana, tomate e molho especial.',
+    image:
+      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 2,
+    badge: null,
+  },
+  {
+    id: 'item-6',
+    name: 'Bacon BBQ Defumado',
+    categoryId: 'cat-lanches',
+    templateId: 'tmpl-burger',
+    price: 41.9,
+    oldPrice: null,
+    desc: 'Blend 180 g, fatias de bacon crocante, queijo cheddar, onion rings e barbecue da casa.',
+    image:
+      'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 3,
+    badge: null,
+  },
+  {
+    id: 'item-7',
+    name: 'Coca-Cola Lata 350ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 6.9,
+    oldPrice: null,
+    desc: 'Lata 350ml trincando de gelada.',
+    image:
+      'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 1,
+    badge: null,
+  },
+  {
+    id: 'item-8',
+    name: 'Suco Natural de Laranja 500ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 12.9,
+    oldPrice: null,
+    desc: 'Feito na hora com laranjas selecionadas, sem adição de conservantes.',
+    image:
+      'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80',
+    available: true,
+    order: 2,
+    badge: null,
+  },
+]
+
+export const DEFAULT_COUPONS = [
+  {
+    id: 'cupom-1',
+    code: 'PRIMEIRACOMPRA',
+    discountPercent: 10,
+    active: true,
+    targetType: 'all',
+    targetCategoryId: null,
+    targetCategoryName: '',
+    targetProductIds: [],
+    targetProductNames: [],
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'cupom-2',
+    code: 'DIADOBURGER',
+    discountPercent: 15,
+    active: true,
+    targetType: 'category',
+    targetCategoryId: 'cat-lanches',
+    targetCategoryName: 'Lanches Artesanais',
+    targetProductIds: [],
+    targetProductNames: [],
+    createdAt: '2026-01-01',
+  },
+  {
+    id: 'cupom-3',
+    code: 'PROMOBRASA',
+    discountPercent: 20,
+    active: true,
+    targetType: 'product',
+    targetCategoryId: null,
+    targetCategoryName: '',
+    targetProductIds: ['item-1'],
+    targetProductNames: ['Brasa da Casa'],
+    createdAt: '2026-01-01',
+  },
+]
 
 const DEFAULT_SCHEDULE = [
   { id: 'seg', name: 'Segunda-feira', shortName: 'Seg', open: true, start: '18:00', end: '23:30' },
@@ -282,6 +438,15 @@ const loadInitialState = () => {
       if (!Array.isArray(parsed.neighborhoods) || parsed.neighborhoods.length === 0) {
         parsed.neighborhoods = DEFAULT_NEIGHBORHOODS
       }
+      if (!Array.isArray(parsed.categories) || parsed.categories.length === 0) {
+        parsed.categories = DEFAULT_CATEGORIES
+      }
+      if (!Array.isArray(parsed.products) || parsed.products.length === 0) {
+        parsed.products = DEFAULT_PRODUCTS
+      }
+      if (!Array.isArray(parsed.coupons) || parsed.coupons.length === 0) {
+        parsed.coupons = DEFAULT_COUPONS
+      }
       if (!parsed.deliveryConfig) {
         parsed.deliveryConfig = DEFAULT_DELIVERY_CONFIG
       } else {
@@ -329,6 +494,7 @@ const loadInitialState = () => {
     deliveryConfig: DEFAULT_DELIVERY_CONFIG,
     neighborhoods: DEFAULT_NEIGHBORHOODS,
     paymentConfig: DEFAULT_PAYMENT_CONFIG,
+    coupons: DEFAULT_COUPONS,
   }
 }
 
@@ -349,6 +515,7 @@ export const useStoreAdmin = create((set, get) => ({
   deliveryConfig: initial.deliveryConfig || DEFAULT_DELIVERY_CONFIG,
   neighborhoods: initial.neighborhoods || DEFAULT_NEIGHBORHOODS,
   paymentConfig: initial.paymentConfig || DEFAULT_PAYMENT_CONFIG,
+  coupons: initial.coupons || DEFAULT_COUPONS,
 
   // Fuso Horário
   setTimezone: (timezone) => {
@@ -866,6 +1033,87 @@ export const useStoreAdmin = create((set, get) => ({
     get().persist()
   },
 
+  // Gestão de Cupons de Desconto
+  addCoupon: ({
+    code,
+    discountPercent,
+    active = true,
+    targetType = 'all',
+    targetCategoryId = null,
+    targetCategoryName = '',
+    targetProductIds = [],
+    targetProductNames = [],
+  }) => {
+    const trimmedCode = (code || '').trim().toUpperCase()
+    if (!trimmedCode) return { error: 'O código do cupom é obrigatório.' }
+
+    const existing = get().coupons || []
+    if (existing.some((c) => c.code === trimmedCode)) {
+      return { error: 'Já existe um cupom cadastrado com este código.' }
+    }
+
+    const newCoupon = {
+      id: `cupom-${Date.now()}`,
+      code: trimmedCode,
+      discountPercent: Math.min(100, Math.max(1, Number(discountPercent) || 10)),
+      active: active !== false,
+      targetType: targetType || 'all',
+      targetCategoryId: targetType === 'category' ? targetCategoryId : null,
+      targetCategoryName: targetType === 'category' ? targetCategoryName || '' : '',
+      targetProductIds:
+        targetType === 'product'
+          ? Array.isArray(targetProductIds)
+            ? targetProductIds
+            : []
+          : [],
+      targetProductNames:
+        targetType === 'product'
+          ? Array.isArray(targetProductNames)
+            ? targetProductNames
+            : []
+          : [],
+      createdAt: new Date().toISOString(),
+    }
+
+    set({ coupons: [newCoupon, ...existing] })
+    get().persist()
+    return { success: true, coupon: newCoupon }
+  },
+
+  updateCoupon: (id, partial) => {
+    set((state) => ({
+      coupons: (state.coupons || []).map((c) => {
+        if (c.id !== id) return c
+        return {
+          ...c,
+          ...partial,
+          code: partial.code ? partial.code.trim().toUpperCase() : c.code,
+          discountPercent:
+            partial.discountPercent !== undefined
+              ? Math.min(100, Math.max(1, Number(partial.discountPercent) || 10))
+              : c.discountPercent,
+        }
+      }),
+    }))
+    get().persist()
+  },
+
+  toggleCouponActive: (id) => {
+    set((state) => ({
+      coupons: (state.coupons || []).map((c) =>
+        c.id === id ? { ...c, active: !c.active } : c
+      ),
+    }))
+    get().persist()
+  },
+
+  deleteCoupon: (id) => {
+    set((state) => ({
+      coupons: (state.coupons || []).filter((c) => c.id !== id),
+    }))
+    get().persist()
+  },
+
   persist: () => {
     try {
       const state = get()
@@ -882,6 +1130,7 @@ export const useStoreAdmin = create((set, get) => ({
         deliveryConfig: state.deliveryConfig,
         neighborhoods: state.neighborhoods,
         paymentConfig: state.paymentConfig,
+        coupons: state.coupons,
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     } catch (e) {

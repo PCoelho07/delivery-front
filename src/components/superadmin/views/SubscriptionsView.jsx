@@ -8,6 +8,14 @@ import {
 import { toast } from 'sonner'
 import { useSuperAdminStore } from '../../../store/useSuperAdminStore'
 import { formatCurrency } from '../../../lib/utils'
+import { CustomSelect } from '../../common/CustomSelect'
+
+const PLAN_FILTER_OPTIONS = [
+  { value: 'all', label: 'Todos os Planos' },
+  { value: 'pago', label: 'Apenas Planos Pagos' },
+  { value: 'trial', label: 'Apenas Planos Grátis / Trial' },
+  { value: 'overdue', label: 'Apenas Atrasadas' },
+]
 
 export function SubscriptionsView() {
   const { companies, markSubscriptionPaid, toggleCompanyStatus, adminProfile } =
@@ -122,17 +130,14 @@ export function SubscriptionsView() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
+          <div className="w-52">
+            <CustomSelect
               value={planFilter}
-              onChange={(e) => setPlanFilter(e.target.value)}
-              className="bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3 py-1.5 text-xs text-[#1A1D20] font-semibold outline-none focus:border-[#FF5E1E] transition-all cursor-pointer"
-            >
-              <option value="all">Todos os Planos</option>
-              <option value="pago">Apenas Planos Pagos</option>
-              <option value="trial">Apenas Planos Grátis / Trial</option>
-              <option value="overdue">Apenas Atrasadas</option>
-            </select>
+              onChange={(val) => setPlanFilter(val)}
+              options={PLAN_FILTER_OPTIONS}
+              placeholder="Filtrar planos..."
+              triggerClassName="py-1.5 bg-[#F8F9FA]"
+            />
           </div>
         </div>
 

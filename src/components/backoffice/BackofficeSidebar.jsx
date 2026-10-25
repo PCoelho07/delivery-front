@@ -6,11 +6,9 @@ import {
   MapPin,
   CreditCard,
   Store,
-  Building2,
-  ExternalLink,
   X,
+  TicketPercent,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { useStoreAdmin } from '../../store/useStoreAdmin'
 
 export function BackofficeSidebar() {
@@ -33,6 +31,11 @@ export function BackofficeSidebar() {
       id: 'cardapio',
       label: 'Cardápio & Vitrine',
       icon: UtensilsCrossed,
+    },
+    {
+      id: 'cupons',
+      label: 'Cupons de Desconto',
+      icon: TicketPercent,
     },
     {
       id: 'financeiro',
@@ -143,32 +146,6 @@ export function BackofficeSidebar() {
               )
             })}
           </nav>
-        </div>
-
-        {/* Rodapé da Sidebar: Acesso direto ao cardápio público e à gestão de empresas */}
-        <div className="p-3 border-t border-[#E9ECEF] bg-[#F8F9FA]/60 space-y-1.5">
-          <Link
-            to="/superadmin"
-            className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-semibold text-[#1A1D20] hover:text-[#FF5E1E] transition-all group shadow-2xs"
-          >
-            <span className="flex items-center gap-2">
-              <Building2 className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#FF5E1E]" />
-              <span>Painel Super Admin</span>
-            </span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#FF5E1E] transition-colors" />
-          </Link>
-
-          <Link
-            to={`/${storeInfo?.slug || 'brasa-burger'}`}
-            target="_blank"
-            className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-semibold text-[#1A1D20] hover:text-[#FF5E1E] transition-all group shadow-2xs"
-          >
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>Ver Cardápio Público</span>
-            </span>
-            <ExternalLink className="w-4 h-4 text-[#6C757D] group-hover:text-[#FF5E1E] transition-colors" />
-          </Link>
         </div>
       </aside>
     </>

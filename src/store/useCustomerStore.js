@@ -72,10 +72,10 @@ export const useCustomerStore = create(
           orders: [order, ...state.orders],
         })),
 
-      updateOrderStatus: (orderId, status) =>
+      updateOrderStatus: (orderId, status, extraData = {}) =>
         set((state) => ({
           orders: state.orders.map((o) =>
-            o.orderId === orderId ? { ...o, status } : o
+            o.orderId === orderId ? { ...o, status, ...extraData } : o
           ),
         })),
 
