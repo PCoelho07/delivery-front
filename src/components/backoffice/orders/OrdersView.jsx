@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCustomerStore } from '../../../store/useCustomerStore'
+import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { formatCurrency } from '../../../lib/utils'
 import { playOrderChime } from '../../../utils/audio'
 import { useOrdersWebSocket } from '../../../hooks/useOrdersWebSocket'
@@ -197,7 +198,7 @@ export function OrdersView() {
   const [completedCompact, setCompletedCompact] = useState(true)
 
   // Controle de som de novo pedido
-  const [soundEnabled, setSoundEnabled] = useState(true)
+  const { soundEnabled, toggleSound } = useStoreAdmin()
 
   // Pedido selecionado para impressão de comanda térmica
   const [orderToPrint, setOrderToPrint] = useState(null)
@@ -213,17 +214,7 @@ export function OrdersView() {
     reconnect: reconnectWs,
     updateOrderStatus: sendWsStatusUpdate,
     simulateIncomingMessage,
-  } = useOrdersWebSocket({
-    onNewOrder: (order) => {
-      if (soundEnabled) {
-        playOrderChime()
-      }
-      const orderNum = String(order.orderId || '').replace(/^#/, '')
-      toast.success(`Novo pedido #${orderNum} recebido!`, {
-        description: `${order.customer?.name || 'Cliente'} enviou um pedido no valor de ${formatCurrency(order.total || 0)}.`,
-      })
-    },
-  })
+  } = useOrdersWebSocket()
 
   // Todos os pedidos registrados
   const allOrders = storeOrders
@@ -310,9 +301,9 @@ export function OrdersView() {
 
   // Alternar Som de Notificação
   const handleToggleSound = () => {
-    const next = !soundEnabled
-    setSoundEnabled(next)
-    if (next) {
+    toggleSound()
+    if (!soundEnabled) {
+
       playOrderChime()
       toast.info('Alerta sonoro ativado (som de teste reproduzido).')
     } else {

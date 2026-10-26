@@ -9,9 +9,13 @@ import { FinancialView } from '../../components/backoffice/financial/FinancialVi
 import { StoreProfileView } from '../../components/backoffice/store/StoreProfileView'
 import { CouponsView } from '../../components/backoffice/coupons/CouponsView'
 import { useStoreAdmin } from '../../store/useStoreAdmin'
+import { useGlobalOrderNotifications } from '../../hooks/useGlobalOrderNotifications'
 
 export function LojistaPage() {
   const { activeTab } = useStoreAdmin()
+
+  // Conexão WebSocket e orquestração de alertas sonoros/desktop em qualquer aba
+  useGlobalOrderNotifications()
 
   return (
     <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-[#F8F9FA]">

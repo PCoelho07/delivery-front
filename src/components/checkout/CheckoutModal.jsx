@@ -23,6 +23,7 @@ import { useCustomerStore } from '../../store/useCustomerStore'
 import { calculateTimeEstimate } from '../../utils/timeEstimate'
 import { evaluateCoupon } from '../../utils/couponCalculator'
 import { CustomSelect } from '../common/CustomSelect'
+import { ordersWebSocket } from '../../services/ordersWebSocket'
 
 const PAYMENT_OPTIONS = [
   { id: 'money', label: 'Dinheiro', subtitle: null },
@@ -330,6 +331,8 @@ export function CheckoutModal({
     }
 
     addOrder(newOrder)
+    // Transmite o novo pedido via WebSocket para o backend Go e para o Kanban do lojista
+    ordersWebSocket.createOrder(newOrder)
     clearCart()
     onOrderConfirmed?.(newOrder)
   }

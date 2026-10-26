@@ -16,17 +16,28 @@ import { useBusinessStore } from '../../store/useBusinessStore'
 import { useCartStore } from '../../store/useCartStore'
 import { useCustomerStore } from '../../store/useCustomerStore'
 import { useStoreAdmin, calculateStoreLiveStatus } from '../../store/useStoreAdmin'
+import { useCustomerOrdersRealtime } from '../../hooks/useCustomerOrdersRealtime'
 
 export function CardapioPage() {
   const { businessName } = useParams()
-  const { businesses, currentBusiness, fetchBusinesses, selectBusinessByName } =
+  const { businesses, currentBusiness, products: apiProducts, fetchBusinesses, selectBusinessByName } =
     useBusinessStore()
+
+  // Conexão WebSocket nativa para receber atualizações do pedido e status da loja em tempo real
+  useCustomerOrdersRealtime()
 
   const cartItems = useCartStore((state) => state.items)
   const addItemToCart = useCartStore((state) => state.addItem)
   const replaceCartWithOrderItems = useCartStore(
     (state) => state.replaceCartWithOrderItems
   )
+  const setStoreSlug = useCartStore((state) => state.setStoreSlug)
+
+  // Sincroniza a sacola com a loja atual (Multi-carrinho independente por restaurante)
+  useEffect(() => {
+    const slug = businessName || 'brasa-burger'
+    setStoreSlug(slug)
+  }, [businessName, setStoreSlug])
   const orders = useCustomerStore((state) => state.orders)
 
   const adminSchedule = useStoreAdmin((state) => state.schedule)
@@ -211,7 +222,33 @@ export function CardapioPage() {
 
     return {
       ...base,
-      categories: categoriesList,
+      categories:
+        currentBusiness && apiProducts && apiProducts.length > 0
+          ? [
+              {
+                id: 'cat-api-principal',
+                tabLabel: 'Cardápio',
+                sectionTitle: 'Produtos Cadastrados na Loja',
+                items: apiProducts.map((p, index) => ({
+                  id: `api-${p.id}`,
+                  name: p.name,
+                  categoryId: 'cat-api-principal',
+                  description: p.description || '',
+                  price: Number(p.price) || 0,
+                  imageUrl:
+                    p.imageUrl ||
+                    p.image_url ||
+                    'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
+                  badge: null,
+                  available: true,
+                  order: index + 1,
+                  addons: [],
+                  preferences: [],
+                  maxAddons: 5,
+                })),
+              },
+            ]
+          : categoriesList,
       coupons: adminCoupons || [],
       isOpen: liveStatus.isOpen,
       statusMode: liveStatus.mode,
@@ -254,6 +291,7 @@ export function CardapioPage() {
     adminProducts,
     adminTemplates,
     adminCoupons,
+    apiProducts,
   ])
 
   // Filtra categorias e produtos conforme o texto digitado na busca

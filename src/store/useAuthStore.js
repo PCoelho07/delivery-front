@@ -5,40 +5,63 @@ const STORAGE_KEY = 'delivery_auth_session_v1'
 function loadInitialAuth() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && parsed.isAuthenticated && parsed.token && parsed.user) {
+        return parsed
+      }
+    }
   } catch {
     // fallback
   }
+
+  // Por padrão deslogado, exigindo login via ProtectedRoute
   return {
-    isAuthenticated: true, // Ativo por padrão para desenvolvimento e testes
-    user: {
-      id: 'usr-lojista-1',
-      name: 'Gerente Brasa Burger',
-      email: 'lojista@brasaburger.com.br',
-      role: 'merchant',
-      storeName: 'Brasa Burger',
-    },
-    token: 'jwt-mock-delivery-front-bearer-token',
+    isAuthenticated: false,
+    user: null,
+    token: null,
   }
 }
 
 export const useAuthStore = create((set) => ({
   ...loadInitialAuth(),
 
+  /**
+   * Define uma sessão autenticada diretamente (usado na integração com o backend Go)
+   */
+  setSession: ({ user, token }) => {
+    const newState = {
+      isAuthenticated: true,
+      user,
+      token,
+    }
+    set(newState)
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newState))
+    } catch {
+      // ignore
+    }
+  },
+
+  /**
+   * Login simulado / integração de credenciais
+   */
   login: async ({ email, role = 'merchant' } = {}) => {
-    // Simula a recepção do token JWT e dos dados do usuário da API do backend
+    const isSuperAdmin = role === 'superadmin' || email === 'admin@plataforma.com'
+    const actualRole = isSuperAdmin ? 'superadmin' : 'merchant'
+
     const user = {
-      id: role === 'superadmin' ? 'usr-superadmin' : 'usr-lojista-1',
-      name: role === 'superadmin' ? 'Super Administrador' : 'Gerente Brasa Burger',
+      id: isSuperAdmin ? 'usr-superadmin' : 'usr-lojista-1',
+      name: isSuperAdmin ? 'Super Administrador' : 'Gerente Brasa Burger',
       email:
         email ||
-        (role === 'superadmin'
+        (isSuperAdmin
           ? 'admin@plataforma.com'
           : 'lojista@brasaburger.com.br'),
-      role,
+      role: actualRole,
       storeName: 'Brasa Burger',
     }
-    const token = `mock-bearer-jwt-${Date.now()}`
+    const token = `mock-bearer-jwt-${actualRole}-${Date.now()}`
 
     const newState = {
       isAuthenticated: true,
@@ -55,6 +78,9 @@ export const useAuthStore = create((set) => ({
     return { success: true, user, token }
   },
 
+  /**
+   * Encerra a sessão e limpa o armazenamento local
+   */
   logout: () => {
     const emptyState = {
       isAuthenticated: false,
@@ -69,4 +95,3 @@ export const useAuthStore = create((set) => ({
     }
   },
 }))
-

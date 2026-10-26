@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SuperAdminSidebar } from '../../components/superadmin/SuperAdminSidebar'
 import { SuperAdminTopbar } from '../../components/superadmin/SuperAdminTopbar'
 import { SupportModeBanner } from '../../components/superadmin/SupportModeBanner'
 import { PrivacyRestrictionModal } from '../../components/superadmin/PrivacyRestrictionModal'
 import { CompaniesView } from '../../components/superadmin/views/CompaniesView'
 import { SubscriptionsView } from '../../components/superadmin/views/SubscriptionsView'
+import { PlansManagementView } from '../../components/superadmin/views/PlansManagementView'
 import { AdminProfileView } from '../../components/superadmin/views/AdminProfileView'
 
 // Telas de configuração acessadas via modo de suporte
@@ -17,7 +18,12 @@ import { StoreProfileView } from '../../components/backoffice/store/StoreProfile
 import { useSuperAdminStore } from '../../store/useSuperAdminStore'
 
 export function AdminPage() {
-  const { activeTab, supportMode, supportActiveTab } = useSuperAdminStore()
+  const { activeTab, setActiveTab, supportMode, supportActiveTab } = useSuperAdminStore()
+
+  // Sempre que acessar o painel do Super Admin, inicia na aba 'Empresas Vinculadas'
+  useEffect(() => {
+    setActiveTab('empresas')
+  }, [setActiveTab])
 
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
   const [restrictedArea, setRestrictedArea] = useState('kanban')
@@ -48,6 +54,7 @@ export function AdminPage() {
               <>
                 {activeTab === 'empresas' && <CompaniesView />}
                 {activeTab === 'assinaturas' && <SubscriptionsView />}
+                {activeTab === 'planos' && <PlansManagementView />}
                 {activeTab === 'perfil' && <AdminProfileView />}
               </>
             ) : (

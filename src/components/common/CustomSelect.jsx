@@ -11,11 +11,25 @@ export function CustomSelect({
   menuClassName = '',
   disabled = false,
   variant = 'default', // 'default' | 'amber' | 'orange' | 'purple'
+  direction = 'auto', // 'auto' | 'top' | 'bottom'
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [autoOpenUpward, setAutoOpenUpward] = useState(false)
   const containerRef = useRef(null)
 
-  // Fecha ao clicar fora
+  // Disparado ao abrir o dropdown: calcula se cabe melhor acima ou abaixo
+  const handleToggle = () => {
+    if (disabled) return
+    if (!isOpen && direction === 'auto' && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      const spaceAbove = rect.top
+      setAutoOpenUpward(spaceBelow < 250 && spaceAbove > spaceBelow)
+    }
+    setIsOpen((prev) => !prev)
+  }
+
+  // Fecha ao clicar fora ou ao pressionar Escape
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -59,13 +73,19 @@ export function CustomSelect({
       'bg-white border-purple-200/90 hover:border-purple-400 text-purple-950 focus:border-[#FF5E1E]',
   }
 
+  const isUpward = direction === 'top' || (direction === 'auto' && autoOpenUpward)
+
+  const positionClasses = isUpward
+    ? 'bottom-full mb-1.5'
+    : 'top-full mt-1.5'
+
   return (
     <div ref={containerRef} className="relative w-full">
       {/* Botão Gatilho do Dropdown */}
       <button
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggle}
         className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-bold flex items-center justify-between gap-2 transition-all cursor-pointer shadow-2xs select-none text-left ${
           variantStyles[variant] || variantStyles.default
         } ${isOpen ? 'ring-2 ring-[#FF5E1E]/20 border-[#FF5E1E]' : ''} ${
@@ -89,7 +109,7 @@ export function CustomSelect({
       {/* Menu Flutuante Customizado */}
       {isOpen && (
         <div
-          className={`absolute left-0 right-0 mt-1.5 bg-white border border-[#E9ECEF] rounded-2xl shadow-xl shadow-slate-900/10 z-50 overflow-hidden py-1.5 animate-fade-in max-h-64 overflow-y-auto ${menuClassName}`}
+          className={`absolute left-0 right-0 ${positionClasses} bg-white border border-[#E9ECEF] rounded-2xl shadow-xl shadow-slate-900/10 z-50 py-1.5 animate-fade-in max-h-56 overflow-y-auto overflow-x-hidden [scrollbar-width:thin] [scrollbar-color:#CBD5E1_transparent] ${menuClassName}`}
         >
           {options.map((opt, idx) => {
             if (opt.group) {
@@ -154,4 +174,3 @@ export function CustomSelect({
     </div>
   )
 }
-

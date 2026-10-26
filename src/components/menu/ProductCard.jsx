@@ -35,6 +35,10 @@ export function ProductCard({ item, onSelect, isStoreClosed = false }) {
             src={item.imageUrl}
             alt={item.name}
             loading="lazy"
+            onError={(e) => {
+              e.currentTarget.onerror = null
+              e.currentTarget.style.display = 'none'
+            }}
             className={`w-full h-full object-cover ${
               !isAvailable ? 'grayscale opacity-75' : ''
             }`}

@@ -819,9 +819,9 @@ export function FinancialView() {
         </div>
 
         {/* Filtros Rápidos, Dropdown de Meses & Seletor de Data */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5">
           {/* Botões Rápidos (Hoje, 7 dias) */}
-          <div className="bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] flex items-center gap-1">
+          <div className="grid grid-cols-2 sm:flex bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] gap-1">
             <button
               type="button"
               onClick={() => handlePeriodChange('today')}
@@ -847,7 +847,7 @@ export function FinancialView() {
           </div>
 
           {/* Dropdown Customizado: Últimos 6 Meses ou Mês a Mês */}
-          <div className="w-56 sm:w-64">
+          <div className="w-full sm:w-64">
             <CustomSelect
               value={isMonthDropdownActive ? selectedPeriod : ''}
               onChange={handleDropdownChange}
@@ -864,8 +864,8 @@ export function FinancialView() {
           </div>
 
           {/* Seletor de Data no Formato Brasileiro (DD/MM/AAAA) */}
-          <div className="relative flex items-center">
-            <div className="flex items-center bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-2.5 py-1.5 focus-within:border-[#FF5E1E] focus-within:bg-white transition-all shadow-2xs">
+          <div className="relative flex items-center w-full sm:w-auto">
+            <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-2.5 py-1.5 focus-within:border-[#FF5E1E] focus-within:bg-white transition-all shadow-2xs">
               <button
                 type="button"
                 onClick={handleOpenPicker}

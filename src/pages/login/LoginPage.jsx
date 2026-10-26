@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Lock,
   Mail,
@@ -18,7 +18,9 @@ import { useStoreAdmin } from '../../store/useStoreAdmin'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const login = useAuthStore((state) => state.login)
+  const fromPath = location.state?.from?.pathname
   const storeInfo = useStoreAdmin((state) => state.storeInfo)
 
   const [email, setEmail] = useState('lojista@brasaburger.com.br')
@@ -49,12 +51,12 @@ export function LoginPage() {
 
       if (selectedRole === 'superadmin') {
         toast.success('Bem-vindo ao Painel Super Admin!')
-        navigate('/superadmin')
+        navigate(fromPath || '/superadmin')
       } else {
         toast.success(`Bem-vindo ao painel ${storeInfo?.name || 'do Restaurante'}!`, {
           description: 'Acesso autenticado com sucesso.',
         })
-        navigate('/admin')
+        navigate(fromPath || '/admin')
       }
     } catch {
       toast.error('Erro ao conectar ao servidor de autenticação.')

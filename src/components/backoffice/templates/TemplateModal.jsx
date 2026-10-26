@@ -194,25 +194,26 @@ function TemplateModalContent({ onClose, templateToEdit }) {
   return (
     <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#E9ECEF] my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150">
       {/* Header do Modal */}
-      <div className="p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0 bg-white">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-orange-100 text-[#FF5E1E] flex items-center justify-center font-bold text-lg shrink-0">
+      <div className="p-4 sm:p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0 bg-white gap-2">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-orange-100 text-[#FF5E1E] flex items-center justify-center font-bold text-lg shrink-0">
             <Puzzle className="w-5 h-5 text-[#FF5E1E]" />
           </div>
-          <div>
-            <h3 className="font-extrabold text-base text-[#1A1D20]">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-extrabold text-sm sm:text-base text-[#1A1D20] leading-tight">
               {templateToEdit
                 ? 'Editar Template de Complementos'
                 : 'Novo Template de Complementos'}
             </h3>
-            <p className="text-xs text-[#6C757D]">
+            <p className="text-[11px] sm:text-xs text-[#6C757D] leading-snug mt-0.5 line-clamp-2">
               Modelo reutilizável para vincular aos produtos (ex: Ponto da carne, adicionais pagos)
             </p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors cursor-pointer"
+          className="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-1"
+          aria-label="Fechar modal"
         >
           <X className="w-4 h-4" />
         </button>

@@ -28,6 +28,17 @@ export const businessService = {
   },
 
   /**
+   * Busca um estabelecimento por ID
+   * Endpoint: GET /business/{id}
+   * Retorno esperado: { id: number, name: string, phone: string, email: string, cnpj: string }
+   */
+  async getById(id) {
+    if (!id) return null
+    const response = await api.get(`/business/${id}`)
+    return response.data
+  },
+
+  /**
    * Cadastra um novo estabelecimento
    * Endpoint: POST /business
    * Payload: { name: string, phone: string, email: string, cnpj: string }

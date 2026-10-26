@@ -231,16 +231,16 @@ export function ProductConfigModal({
     <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-[#E9ECEF] animate-modal my-auto overflow-hidden">
         {/* Header */}
-        <div className="p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-bold">
+        <div className="p-4 sm:p-5 border-b border-[#E9ECEF] flex items-center justify-between shrink-0 bg-white gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-bold shrink-0">
               <Sliders className="w-5 h-5 text-[#FF5E1E]" />
             </div>
-            <div>
-              <h3 className="font-extrabold text-base text-[#1A1D20]">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-extrabold text-sm sm:text-base text-[#1A1D20] leading-tight">
                 {isEditing ? 'Editar Configuração de Opcionais' : 'Adicionar Configuração de Opcionais'}
               </h3>
-              <p className="text-xs text-[#6C757D]">
+              <p className="text-[11px] sm:text-xs text-[#6C757D] leading-snug mt-0.5 line-clamp-2">
                 Configure opcionais, obrigatórios e adicionais salvos para toda a loja
               </p>
             </div>
@@ -248,7 +248,8 @@ export function ProductConfigModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#F8F9FA] hover:bg-slate-200 text-[#6C757D] flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-1"
+            aria-label="Fechar modal"
           >
             <X className="w-4 h-4" />
           </button>
@@ -362,7 +363,7 @@ export function ProductConfigModal({
                   </div>
 
                   {/* Limites de Escolha (Mínimo / Máximo) */}
-                  <div className="flex items-center gap-3 bg-[#F8F9FA] p-2.5 rounded-xl text-xs text-[#6C757D]">
+                  <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2 sm:gap-3 bg-[#F8F9FA] p-2.5 rounded-xl text-xs text-[#6C757D]">
                     <span className="font-semibold text-[11px]">
                       Quantidade de escolhas do cliente:
                     </span>
@@ -405,7 +406,7 @@ export function ProductConfigModal({
                     </label>
 
                     {(group.items || []).map((item, iIdx) => (
-                      <div key={item.id || iIdx} className="flex items-center gap-2">
+                      <div key={item.id || iIdx} className="flex items-center gap-1.5 sm:gap-2">
                         <input
                           type="text"
                           value={item.name}
@@ -413,11 +414,11 @@ export function ProductConfigModal({
                             handleUpdateItem(gIdx, iIdx, 'name', e.target.value)
                           }
                           placeholder="Ex: Ao Ponto, Bacon Crocante, Catupiry Original"
-                          className="flex-1 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3 py-1.5 text-xs text-[#1A1D20] font-medium placeholder:font-normal placeholder:text-slate-400 outline-none"
+                          className="flex-1 min-w-0 bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-2.5 sm:px-3 py-1.5 text-xs text-[#1A1D20] font-medium placeholder:font-normal placeholder:text-slate-400 outline-none"
                         />
 
-                        <div className="relative w-28 shrink-0">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] font-medium text-slate-400">
+                        <div className="relative w-20 sm:w-28 shrink-0">
+                          <span className="absolute left-2 sm:left-2.5 top-1/2 -translate-y-1/2 text-[10px] sm:text-[11px] font-medium text-slate-400">
                             +R$
                           </span>
                           <input
@@ -427,7 +428,7 @@ export function ProductConfigModal({
                               handleUpdateItem(gIdx, iIdx, 'price', e.target.value)
                             }
                             placeholder="0,00"
-                            className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl pl-9 pr-2 py-1.5 text-xs text-[#1A1D20] font-bold placeholder:font-normal placeholder:text-slate-300 outline-none text-right"
+                            className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl pl-7 sm:pl-9 pr-2 py-1.5 text-xs text-[#1A1D20] font-bold placeholder:font-normal placeholder:text-slate-300 outline-none text-right"
                           />
                         </div>
 
@@ -435,7 +436,7 @@ export function ProductConfigModal({
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(gIdx, iIdx)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+                            className="p-1 sm:p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
                             title="Remover opção"
                           >
                             <X className="w-3.5 h-3.5" />

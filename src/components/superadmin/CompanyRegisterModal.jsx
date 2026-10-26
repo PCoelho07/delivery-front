@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import {
   Activity,
   Building2,
@@ -24,7 +24,22 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
     createBusiness,
   } = useBusinessStore()
 
-  const { addCompany } = useSuperAdminStore()
+  const { addCompany, plans } = useSuperAdminStore()
+
+  const activePlans = useMemo(() => {
+    return (plans && plans.length > 0 ? plans : []).filter((p) => p.status === 'active')
+  }, [plans])
+
+  const planSelectOptions = useMemo(() => {
+    return activePlans.map((opt) => ({
+      value: opt.id,
+      label:
+        opt.price > 0
+          ? `${opt.name} (R$ ${Number(opt.price).toFixed(2).replace('.', ',')}/${opt.billingPeriod || 'mês'})`
+          : `${opt.name} (${opt.trialDays || 7} dias)`,
+      icon: <CreditCard className="w-3.5 h-3.5 text-[#FF5E1E]" />,
+    }))
+  }, [activePlans])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -32,10 +47,14 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
     email: '',
     cnpj: '',
     owner: '',
-    plan: 'pro',
+    plan: activePlans[0]?.id || 'pro',
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const effectivePlan = activePlans.some((p) => p.id === formData.plan)
+    ? formData.plan
+    : activePlans[0]?.id || 'pro'
 
   useEffect(() => {
     if (isOpen) {
@@ -69,19 +88,6 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
 
-  const planOptions = [
-    { id: 'trial', label: 'Trial Grátis (7 dias)', price: 0.0, name: 'Trial Grátis' },
-    { id: 'basico', label: 'Plano Básico (R$ 49/mês)', price: 49.0, name: 'Plano Básico' },
-    { id: 'pro', label: 'Plano Pro (R$ 99/mês)', price: 99.0, name: 'Plano Pro' },
-    { id: 'enterprise', label: 'Plano Ilimitado (R$ 199/mês)', price: 199.0, name: 'Plano Ilimitado' },
-  ]
-
-  const planSelectOptions = planOptions.map((opt) => ({
-    value: opt.id,
-    label: opt.label,
-    icon: <CreditCard className="w-3.5 h-3.5 text-[#FF5E1E]" />,
-  }))
-
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -101,8 +107,13 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
         cnpj: formData.cnpj.trim(),
       })
 
-      // 2. Adicionar na base do Super Admin
-      const selectedPlan = planOptions.find((p) => p.id === formData.plan) || planOptions[2]
+      // 2. Adicionar na base do Super Admin com dados do plano selecionado
+      const selectedPlan =
+        activePlans.find((p) => p.id === (formData.plan || effectivePlan)) ||
+        activePlans[0] ||
+        { id: 'pro', name: 'Plano Pro', price: 99.0, trialDays: 0 }
+      const isTrial = selectedPlan.id === 'trial' || Number(selectedPlan.price) === 0
+
       const newCompany = {
         id: Date.now(),
         name: formData.name.trim(),
@@ -110,13 +121,13 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
         cnpj: formData.cnpj.trim(),
         phone: formData.phone.trim(),
         owner: formData.owner.trim() || 'Proprietário',
-        status: formData.plan === 'trial' ? 'trial' : 'active',
+        status: isTrial ? 'trial' : 'active',
         plan: selectedPlan.id,
         planName: selectedPlan.name,
-        price: selectedPlan.price,
-        nextBilling: '24/11/2026',
-        isPaid: selectedPlan.id !== 'trial',
-        daysLeft: selectedPlan.id === 'trial' ? 7 : 30,
+        price: Number(selectedPlan.price) || 0,
+        nextBilling: isTrial ? '01/11/2026' : '24/11/2026',
+        isPaid: !isTrial,
+        daysLeft: isTrial ? (selectedPlan.trialDays || 7) : 30,
         productsCount: 0,
         createdAt: new Date().toLocaleDateString('pt-BR'),
       }
@@ -130,7 +141,7 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
         email: '',
         cnpj: '',
         owner: '',
-        plan: 'pro',
+        plan: activePlans[0]?.id || 'pro',
       })
       onClose()
     } catch {
@@ -144,9 +155,9 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl border border-[#E9ECEF] shadow-2xl max-w-lg w-full overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-2xl border border-[#E9ECEF] shadow-2xl max-w-lg w-full my-8 animate-in fade-in zoom-in-95 duration-200">
         {/* Cabeçalho do Modal */}
-        <div className="p-5 border-b border-[#E9ECEF] flex items-center justify-between">
+        <div className="p-5 border-b border-[#E9ECEF] flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center shrink-0">
               <Building2 className="w-5 h-5 text-[#FF5E1E]" />
@@ -291,11 +302,12 @@ export function CompanyRegisterModal({ isOpen, onClose }) {
               <span>Plano da Assinatura</span>
             </label>
             <CustomSelect
-              value={formData.plan}
+              value={effectivePlan}
               onChange={(val) => setFormData((prev) => ({ ...prev, plan: val }))}
               options={planSelectOptions}
               placeholder="Selecione o plano..."
               icon={<CreditCard className="w-3.5 h-3.5 text-[#FF5E1E]" />}
+              direction="top"
             />
           </div>
 

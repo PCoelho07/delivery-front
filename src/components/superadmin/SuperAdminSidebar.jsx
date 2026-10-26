@@ -1,6 +1,7 @@
 import {
   Building2,
   CreditCard,
+  Layers,
   UserCog,
   UtensilsCrossed,
   Clock,
@@ -38,6 +39,11 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
       id: 'assinaturas',
       label: 'Controle de Assinatura',
       icon: CreditCard,
+    },
+    {
+      id: 'planos',
+      label: 'Planos & Preços',
+      icon: Layers,
     },
     {
       id: 'perfil',
