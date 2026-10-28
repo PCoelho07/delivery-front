@@ -5,6 +5,7 @@ import {
   Star,
   Clock,
   Info,
+  ChevronRight,
 } from 'lucide-react'
 import { formatCurrency } from '../../lib/utils'
 
@@ -43,6 +44,7 @@ export function StoreHeader({
   ordersCount = 0,
   onOpenCustomerHub,
   onOpenStoreInfo,
+  onOpenReviews,
 }) {
   const shortBrand =
     store.shortBrand ||
@@ -150,15 +152,29 @@ export function StoreHeader({
         )}
 
         {store.rating && (
-          <div className="flex items-center justify-center gap-1.5 text-[13px] mt-1.5 mx-auto select-none">
-            <Star className="w-3.5 h-3.5 text-[#FF5E1E] fill-[#FF5E1E]" strokeWidth={2} />
-            <span className="font-bold text-[#1A1D20]">{store.rating}</span>
+          <button
+            type="button"
+            onClick={onOpenReviews}
+            title="Clique para ver as avaliações do estabelecimento"
+            className="inline-flex items-center justify-center gap-1.5 text-[13px] mt-2 mx-auto px-3 py-1 rounded-full bg-white border border-gray-200/90 shadow-2xs hover:border-[#FF5E1E]/40 hover:bg-orange-50/70 active:scale-95 transition-all cursor-pointer group select-none"
+          >
+            <Star
+              className="w-3.5 h-3.5 text-[#FF5E1E] fill-[#FF5E1E] shrink-0"
+              strokeWidth={2}
+            />
+            <span className="font-bold text-[#1A1D20] group-hover:text-[#FF5E1E] transition-colors">
+              {store.rating}
+            </span>
             {store.reviewsCount && (
-              <span className="text-[#6C757D]">
+              <span className="text-[#6C757D] underline decoration-[#6C757D]/60 underline-offset-2 group-hover:text-[#FF5E1E] group-hover:decoration-[#FF5E1E] transition-colors">
                 ({store.reviewsCount} avaliações)
               </span>
             )}
-          </div>
+            <ChevronRight
+              className="w-3.5 h-3.5 text-[#FF5E1E] shrink-0 group-hover:translate-x-0.5 transition-transform"
+              strokeWidth={2.4}
+            />
+          </button>
         )}
       </div>
 

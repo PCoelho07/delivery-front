@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
+  formatBirthdayMask,
   formatCpfMask,
   formatCurrency,
   formatPhoneMask,
@@ -30,6 +31,7 @@ import {
   formatWhatsAppOrderMessage,
 } from '../../lib/whatsapp'
 import { useCustomerStore } from '../../store/useCustomerStore'
+import { OrderReviewModal } from './OrderReviewModal'
 
 const PAYMENT_NAMES = {
   money: 'Dinheiro',
@@ -65,7 +67,10 @@ export function OrderConfirmationModal({
     formatPhoneMask(profile?.phone || '')
   )
   const [editCpf, setEditCpf] = useState(formatCpfMask(profile?.cpf || ''))
-  const [ratingOrderId, setRatingOrderId] = useState(null)
+  const [editBirthday, setEditBirthday] = useState(
+    formatBirthdayMask(profile?.birthday || '')
+  )
+  const [reviewModalOrder, setReviewModalOrder] = useState(null)
 
   // Localiza pedido em andamento no histórico caso não tenha sido passado activeOrder
   const activeExistingOrder = orders.find(
@@ -155,6 +160,7 @@ export function OrderConfirmationModal({
       name: editName.trim(),
       phone: formatPhoneMask(editPhone),
       cpf: formatCpfMask(editCpf),
+      birthday: formatBirthdayMask(editBirthday),
     })
     setIsEditingProfile(false)
     toast.success('Perfil atualizado!')
@@ -165,12 +171,21 @@ export function OrderConfirmationModal({
     setEditName('')
     setEditPhone('')
     setEditCpf('')
+    setEditBirthday('')
     toast.info('Dados do perfil removidos deste aparelho.')
+  }
+
+  const handleSubmitOrderReview = (reviewData) => {
+    rateOrder(reviewData.orderId, reviewData)
+    setReviewModalOrder(null)
+    toast.success(
+      'Obrigado pela sua avaliação!'
+    )
   }
 
   const handleSelectStar = (orderId, stars) => {
     rateOrder(orderId, stars)
-    setRatingOrderId(null)
+    setReviewModalOrder(null)
     toast.success(`Obrigado pela sua avaliação de ${stars} estrelas!`)
   }
 
@@ -205,7 +220,7 @@ export function OrderConfirmationModal({
                   {ord.rating && (
                     <span className="inline-flex items-center gap-1 text-[12px] font-bold text-[#FF5E1E] bg-[#FFF3EE] px-2 py-0.5 rounded-full">
                       <Star className="w-3 h-3 fill-[#FF5E1E]" />
-                      {ord.rating},0
+                      {Number(ord.rating).toFixed(1).replace('.', ',')}
                     </span>
                   )}
                 </div>
@@ -230,7 +245,13 @@ export function OrderConfirmationModal({
                 </div>
               </div>
 
-              {ratingOrderId === ord.orderId && (
+              {ord.review?.comment && (
+                <p className="text-[12px] italic text-[#6C757D] bg-white rounded-xl px-3 py-2 border border-gray-100">
+                  &ldquo;{ord.review.comment}&rdquo;
+                </p>
+              )}
+
+              {ord.orderId === '__legacy_inline_rating__' && (
                 <div className="bg-white rounded-xl p-2.5 border border-[#E2E5E9] flex items-center justify-between">
                   <span className="text-[12px] font-semibold text-[#1A1D20]">
                     Sua nota:
@@ -272,8 +293,8 @@ export function OrderConfirmationModal({
                 <button
                   type="button"
                   onClick={() =>
-                    setRatingOrderId((prev) =>
-                      prev === ord.orderId ? null : ord.orderId
+                    (setReviewModalOrder(ord)
+
                     )
                   }
                   className="py-2 px-2.5 rounded-xl bg-[#FFF3EE] hover:bg-[#FFE6DC] text-[#FF5E1E] text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
@@ -691,11 +712,11 @@ export function OrderConfirmationModal({
               </div>
 
               {/* Botões Secundários: Avaliar Produto & Instagram */}
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1">
                 <button
                   type="button"
                   onClick={() => setShowProductRating((prev) => !prev)}
-                  className={`py-2.5 px-3 rounded-xl text-[12.5px] font-semibold inline-flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+                  className={`hidden py-2.5 px-3 rounded-xl text-[12.5px] font-semibold items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
                     showProductRating
                       ? 'bg-[#FFF3EE] border-[#FF5E1E] text-[#FF5E1E]'
                       : 'bg-[#F8F9FA] border-[#E2E5E9] text-[#1A1D20] hover:bg-gray-100'
@@ -793,6 +814,12 @@ export function OrderConfirmationModal({
                       : 'Opcional (não informado)'}
                   </p>
                   <p className="text-[#1A1D20]">
+                    <span className="font-semibold">Aniversário:</span>{' '}
+                    {profile?.birthday
+                      ? formatBirthdayMask(profile.birthday)
+                      : 'Opcional (não informado)'}
+                  </p>
+                  <p className="text-[#1A1D20]">
                     <span className="font-semibold">Celular:</span>{' '}
                     {profile?.phone
                       ? formatPhoneMask(profile.phone)
@@ -807,6 +834,9 @@ export function OrderConfirmationModal({
                       setEditName(profile?.name || '')
                       setEditPhone(formatPhoneMask(profile?.phone || ''))
                       setEditCpf(formatCpfMask(profile?.cpf || ''))
+                      setEditBirthday(
+                        formatBirthdayMask(profile?.birthday || '')
+                      )
                       setIsEditingProfile(true)
                     }}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E2E5E9] bg-white hover:bg-[#F8F9FA] text-[13px] font-semibold text-[#1A1D20] transition-colors cursor-pointer"
@@ -871,6 +901,22 @@ export function OrderConfirmationModal({
                     className="w-full bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3.5 py-2 text-[13.5px] text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]"
                   />
                 </div>
+                <div>
+                  <label className="block text-[12px] text-[#6C757D] mb-1">
+                    Dia e mês de aniversário · opcional
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={editBirthday}
+                    onChange={(e) =>
+                      setEditBirthday(formatBirthdayMask(e.target.value))
+                    }
+                    placeholder="DD/MM (Ex: 15/08)"
+                    maxLength={5}
+                    className="w-full bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3.5 py-2 text-[13.5px] text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -893,6 +939,15 @@ export function OrderConfirmationModal({
 
           {/* 3. Card: Últimos Pedidos (quando pedido ativo, exibido após o perfil) */}
           {isOrderActive && renderRecentOrders()}
+
+          <OrderReviewModal
+            key={reviewModalOrder?.orderId || 'closed'}
+            isOpen={Boolean(reviewModalOrder)}
+            onClose={() => setReviewModalOrder(null)}
+            order={reviewModalOrder}
+            defaultUserName={profile?.name || ''}
+            onSubmit={handleSubmitOrderReview}
+          />
         </div>
       </div>
     </div>

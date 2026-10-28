@@ -8,6 +8,7 @@ export const useCustomerStore = create(
         name: '',
         phone: '',
         cpf: '',
+        birthday: '',
       },
       address: {
         street: '',
@@ -17,6 +18,7 @@ export const useCustomerStore = create(
       },
       savedAddresses: [],
       orders: [],
+      reviews: [],
 
       saveProfile: (profileData) =>
         set((state) => ({
@@ -28,7 +30,7 @@ export const useCustomerStore = create(
 
       clearProfile: () =>
         set({
-          profile: { name: '', phone: '', cpf: '' },
+          profile: { name: '', phone: '', cpf: '', birthday: '' },
         }),
 
       clearOrders: () =>
@@ -79,12 +81,70 @@ export const useCustomerStore = create(
           ),
         })),
 
-      rateOrder: (orderId, rating) =>
-        set((state) => ({
-          orders: state.orders.map((o) =>
-            o.orderId === orderId ? { ...o, rating } : o
-          ),
-        })),
+      rateOrder: (orderId, ratingOrReview) =>
+        set((state) => {
+          const isDetailed =
+            typeof ratingOrReview === 'object' && ratingOrReview !== null
+
+          const numericRating = isDetailed
+            ? Number(ratingOrReview.overallRating)
+            : Number(ratingOrReview)
+
+          const nowFormatted = new Date().toLocaleDateString('pt-BR')
+
+          const reviewEntry = isDetailed
+            ? {
+                id: `rev-ord-${orderId}`,
+                orderId,
+                userName:
+                  ratingOrReview.userName ||
+                  state.profile?.name ||
+                  'Cliente Verificado',
+                date: ratingOrReview.date || nowFormatted,
+                deliveryRating: Number(ratingOrReview.deliveryRating ?? 5),
+                qualityRating: Number(ratingOrReview.qualityRating ?? 5),
+                serviceRating: Number(ratingOrReview.serviceRating ?? 5),
+                overallRating: Number(
+                  (
+                    (Number(ratingOrReview.deliveryRating ?? 5) +
+                      Number(ratingOrReview.qualityRating ?? 5) +
+                      Number(ratingOrReview.serviceRating ?? 5)) /
+                    3
+                  ).toFixed(1)
+                ),
+                comment: (ratingOrReview.comment || '').trim(),
+              }
+            : null
+
+          const updatedOrders = state.orders.map((o) =>
+            o.orderId === orderId
+              ? {
+                  ...o,
+                  rating: reviewEntry ? reviewEntry.overallRating : numericRating,
+                  review: reviewEntry || o.review || null,
+                }
+              : o
+          )
+
+          let updatedReviews = state.reviews || []
+          if (reviewEntry) {
+            const existsIdx = updatedReviews.findIndex(
+              (r) => r.orderId === orderId || r.id === reviewEntry.id
+            )
+            if (existsIdx >= 0) {
+              updatedReviews = updatedReviews.map((r, i) =>
+                i === existsIdx ? reviewEntry : r
+              )
+            } else {
+              updatedReviews = [reviewEntry, ...updatedReviews]
+            }
+          }
+
+          return {
+            orders: updatedOrders,
+            reviews: updatedReviews,
+          }
+        }),
 
       rateOrderItem: (orderId, cartItemId, itemRating) =>
         set((state) => ({

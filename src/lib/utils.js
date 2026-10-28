@@ -59,3 +59,26 @@ export function formatCnpjMask(value = '') {
   }
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`
 }
+
+/**
+ * Máscara de Dia e Mês de Aniversário: DD/MM
+ */
+export function formatBirthdayMask(value = '') {
+  const digits = String(value).replace(/\D/g, '').slice(0, 4)
+  if (!digits) return ''
+  if (digits.length <= 2) return digits
+  const day = Number(digits.slice(0, 2))
+  const month = Number(digits.slice(2, 4))
+  const dayStr =
+    day > 31 ? '31' : digits.slice(0, 2) === '00' ? '01' : digits.slice(0, 2)
+  const monthRaw = digits.slice(2, 4)
+  const monthStr =
+    monthRaw.length === 2
+      ? month > 12
+        ? '12'
+        : monthRaw === '00'
+        ? '01'
+        : monthRaw
+      : monthRaw
+  return `${dayStr}/${monthStr}`
+}

@@ -11,6 +11,7 @@ import { ProductCard } from '../../components/menu/ProductCard'
 import { ProductDetailsModal } from '../../components/menu/ProductDetailsModal'
 import { StoreHeader } from '../../components/menu/StoreHeader'
 import { StoreInfoModal } from '../../components/menu/StoreInfoModal'
+import { StoreReviewsModal } from '../../components/menu/StoreReviewsModal'
 import { DEFAULT_STORE_PREVIEW } from '../../data/storeTemplateData'
 import { useBusinessStore } from '../../store/useBusinessStore'
 import { useCartStore } from '../../store/useCartStore'
@@ -39,6 +40,7 @@ export function CardapioPage() {
     setStoreSlug(slug)
   }, [businessName, setStoreSlug])
   const orders = useCustomerStore((state) => state.orders)
+  const customerReviews = useCustomerStore((state) => state.reviews)
 
   const adminSchedule = useStoreAdmin((state) => state.schedule)
   const adminTimezone = useStoreAdmin((state) => state.timezone)
@@ -72,6 +74,7 @@ export function CardapioPage() {
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [isCustomerHubOpen, setIsCustomerHubOpen] = useState(false)
   const [isStoreInfoOpen, setIsStoreInfoOpen] = useState(false)
+  const [isStoreReviewsOpen, setIsStoreReviewsOpen] = useState(false)
 
   const scrollContainerRef = useRef(null)
   const stickyNavRef = useRef(null)
@@ -276,6 +279,8 @@ export function CardapioPage() {
         base.address ||
         'Praça Antônio Basílio de Melo, 32, Nova Cruz / RN',
       schedule: adminSchedule,
+      reviews: [...(customerReviews || []), ...(base.reviews || [])],
+      reviewsCount: (base.reviewsCount || 248) + (customerReviews?.length || 0),
       timezone: adminTimezone,
     }
   }, [
@@ -292,6 +297,7 @@ export function CardapioPage() {
     adminTemplates,
     adminCoupons,
     apiProducts,
+    customerReviews,
   ])
 
   // Filtra categorias e produtos conforme o texto digitado na busca
@@ -460,6 +466,7 @@ export function CardapioPage() {
               setIsCustomerHubOpen(true)
             }}
             onOpenStoreInfo={() => setIsStoreInfoOpen(true)}
+            onOpenReviews={() => setIsStoreReviewsOpen(true)}
           />
 
           {/* Bloco Sticky: Barra de Pesquisa + Botões de Categorias sempre visíveis ao rolar */}
@@ -593,6 +600,15 @@ export function CardapioPage() {
         )}
 
         {/* Modal de Informações da Loja */}
+        {isStoreReviewsOpen && (
+          <StoreReviewsModal
+            isOpen={isStoreReviewsOpen}
+            onClose={() => setIsStoreReviewsOpen(false)}
+            store={storeData}
+            reviews={storeData.reviews}
+          />
+        )}
+
         {isStoreInfoOpen && (
           <StoreInfoModal
             isOpen={isStoreInfoOpen}

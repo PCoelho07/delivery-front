@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
+  formatBirthdayMask,
   formatCpfMask,
   formatCurrency,
   formatPhoneMask,
@@ -59,6 +60,9 @@ export function CheckoutModal({
     formatPhoneMask(cachedProfile?.phone || '')
   )
   const [cpf, setCpf] = useState(formatCpfMask(cachedProfile?.cpf || ''))
+  const [birthday, setBirthday] = useState(
+    formatBirthdayMask(cachedProfile?.birthday || '')
+  )
 
   const [deliveryMethod, setDeliveryMethod] = useState('delivery')
   const [street, setStreet] = useState(cachedAddress?.street || '')
@@ -191,6 +195,7 @@ export function CheckoutModal({
       name: name.trim(),
       phone: formatPhoneMask(phone),
       cpf: formatCpfMask(cpf),
+      birthday: formatBirthdayMask(birthday),
     })
     setIsEditingProfile(false)
     toast.success('Seus dados foram salvos para os próximos pedidos!')
@@ -218,6 +223,7 @@ export function CheckoutModal({
       name: name.trim(),
       phone: formatPhoneMask(phone),
       cpf: formatCpfMask(cpf),
+      birthday: formatBirthdayMask(birthday),
     }
     saveProfile(cleanProfile)
 
@@ -701,6 +707,12 @@ export function CheckoutModal({
                   <span className="text-[#6C757D]">Celular:</span>{' '}
                   <strong>{formatPhoneMask(phone)}</strong>
                 </p>
+                {birthday && (
+                  <p className="text-[#1A1D20]">
+                    <span className="text-[#6C757D]">Aniversário:</span>{' '}
+                    <strong>{formatBirthdayMask(birthday)}</strong>
+                  </p>
+                )}
                 {cpf && (
                   <p className="text-[#1A1D20]">
                     <span className="text-[#6C757D]">CPF:</span>{' '}
@@ -755,6 +767,23 @@ export function CheckoutModal({
                       className="w-full bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3.5 py-2.5 text-[13.5px] text-[#1A1D20] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#FF5E1E]"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[12px] text-[#6C757D] mb-1">
+                    Dia e mês de aniversário · opcional
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={birthday}
+                    onChange={(e) =>
+                      setBirthday(formatBirthdayMask(e.target.value))
+                    }
+                    placeholder="DD/MM (Ex: 15/08)"
+                    maxLength={5}
+                    className="w-full bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3.5 py-2.5 text-[13.5px] text-[#1A1D20] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#FF5E1E]"
+                  />
                 </div>
 
                 {hasSavedProfile && (
