@@ -10,6 +10,12 @@
 }
 
 @layer base {
+  html,
+  body {
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     background-color: #F8F9FA;
     color: #1A1D20;
@@ -21,6 +27,46 @@
   [role="button"] {
     cursor: pointer;
   }
+
+  /* Previne zoom automático indesejado no iOS Safari ao tocar em campos de texto */
+  @media screen and (max-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+}
+
+/* Scrollbar ultra-fino, discreto e quase imperceptível */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* Firefox e navegadores com suporte a CSS Scrollbars standard */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
 }
 
 /* Utilitário para esconder barra de rolagem horizontal das categorias mantendo o scroll */

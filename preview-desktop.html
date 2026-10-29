@@ -1,0 +1,812 @@
+Created At: 2026-10-28T19:17:24-03:00
+Completed At: 2026-10-28T19:17:24-03:00
+Showing lines 1-200 of 824
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brasa Burger · Protótipo Completo Desktop & Mobile (Todas as Telas)</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#FF5E1E',
+              dark: '#E64E12',
+              light: '#FFF3EE',
+              surface: '#FFF8F5'
+            },
+            dark: '#1A1D20',
+            muted: '#6C757D',
+            surface: '#F8F9FA'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Estilização suave de scroll */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent !important;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.12);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.25);
+    }
+    ::-webkit-scrollbar-button {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    .hero-mask {
+      background: linear-gradient(180deg, rgba(26,29,32,0.15) 0%, rgba(26,29,32,0.85) 100%);
+    }
+  </style>
+</head>
+<body class="bg-[#F4F6F8] text-[#1A1D20] font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ========================================================================= -->
+  <!-- BARRA DO COMITÊ BIG TECH: SELETOR DE TELAS PARA TESTE RÁPIDO            -->
+  <!-- ========================================================================= -->
+  <aside class="bg-[#1A1D20] text-white text-xs px-4 py-2.5 border-b border-gray-800 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-50 shadow-md">
+    <div class="flex items-center gap-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="font-extrabold tracking-wide uppercase text-[11px] text-[#FF5E1E]">Simulador Big Tech Delivery</span>
+      <span class="text-gray-400 hidden md:inline">| Alterne entre as 4 telas no desktop ou redimensione p/ mobile:</span>
+    </div>
+
+    <!-- Navegação Direta entre Telas -->
+    <div class="flex items-center gap-1.5 bg-gray-900/90 p-1 rounded-xl border border-gray-800">
+      <button onclick="navigateTo('screen-menu')" id="btn-screen-menu" class="screen-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-[#FF5E1E] text-white">
+        🍔 1. Cardápio
+      </button>
+      <button onclick="navigateTo('screen-cart')" id="btn-screen-cart" class="screen-tab px-3 py-1.5 rounded-lg text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-all">
+        🛒 2. Carrinho
+      </button>
+      <button onclick="navigateTo('screen-checkout')" id="btn-screen-checkout" class="screen-tab px-3 py-1.5 rounded-lg text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-all">
+        📍 3. Endereço & Checkout
+      </button>
+      <button onclick="navigateTo('screen-tracking')" id="btn-screen-tracking" class="screen-tab px-3 py-1.5 rounded-lg text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition-all">
+        ⏳ 4. Acompanhando Pedido
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- NAVBAR SUPERIOR DESKTOP (Fixa em todas as telas)                         -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-gray-200/80 sticky top-[49px] z-40 backdrop-blur-md bg-white/95">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Logo da Loja e Nome -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('screen-menu')">
+        <div class="w-10 h-10 rounded-full bg-[#1A1D20] border-2 border-white shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+          <i data-lucide="flame" class="w-5 h-5 text-[#FF5E1E]"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold text-[#1A1D20] tracking-tight leading-tight">Brasa Burger</h1>
+            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aberto agora
+            </span>
+          </div>
+          <p class="text-xs text-muted truncate max-w-[200px] sm:max-w-xs">Hambúrguer artesanal · Feito na brasa</p>
+        </div>
+      </div>
+
+      <!-- Barra de Busca Rápida (Desktop) -->
+      <div class="hidden md:flex flex-1 max-w-md mx-6 relative">
+        <i data-lucide="search" class="w-4 h-4 text-[#FF5E1E] absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input 
+          type="text" 
+          placeholder="Buscar no cardápio de Brasa Burger..." 
+          class="w-full bg-[#F8F9FA] hover:bg-white border border-gray-200 focus:border-[#FF5E1E] rounded-xl pl-10 pr-4 py-2 text-xs text-[#1A1D20] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF5E1E]/20 transition-all"
+        />
+      </div>
+
+      <!-- Ações do Topo -->
+      <div class="flex items-center gap-2.5">
+        <a href="https://wa.me/5500000000000" target="_blank" class="w-9 h-9 rounded-full bg-white border border-gray-200 hover:border-emerald-300 text-emerald-600 flex items-center justify-center hover:scale-105 transition-all shadow-2xs" title="Falar no WhatsApp">
+          <i data-lucide="message-circle" class="w-4 h-4"></i>
+        </a>
+        <button onclick="navigateTo('screen-tracking')" class="h-9 px-3.5 rounded-full bg-gray-100 hover:bg-gray-200 text-[#1A1D20] text-xs font-semibold inline-flex items-center gap-1.5 transition-colors">
+          <i data-lucide="clipboard-list" class="w-4 h-4 text-[#FF5E1E]"></i>
+          <span class="hidden sm:inline">Meus Pedidos</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 1: CARDÁPIO (MENU COM GRID RESPONSIVA + SACOLA LATERAL FIXA)         -->
+  <!-- ========================================================================= -->
+  <div id="screen-menu" class="screen-view">
+    
+    <!-- Banner Panorâmico + Identidade -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mt-6">
+      <div class="relative rounded-3xl overflow-hidden shadow-sm border border-gray-200/80 bg-[#1A1D20]">
+        <div class="relative h-44 sm:h-56 md:h-64 w-full">
+          <img 
+            src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80" 
+            alt="Capa Brasa Burger" 
+            class="w-full h-full object-cover opacity-80"
+          />
+          <div class="absolute inset-0 hero-mask"></div>
+        </div>
+
+        <div class="relative p-5 sm:p-6 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-start sm:items-center gap-4">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#1A1D20] border-4 border-white shadow-md flex items-center justify-center shrink-0 -mt-12 sm:-mt-14 relative z-10 overflow-hidden">
+              <i data-lucide="flame" class="w-8 h-8 text-[#FF5E1E]"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-[#1A1D20] tracking-tight">Brasa Burger</h2>
+                
+                <!-- Selo de Avaliações Clicável com Affordance -->
+                <button 
+                  onclick="toggleReviewsModal(true)" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-gray-200 shadow-2xs hover:border-[#FF5E1E] hover:bg-orange-50 active:scale-95 transition-all text-xs cursor-pointer group"
+                  title="Clique para ver todas as avaliações com notas detalhadas"
+                >
+                  <i data-lucide="star" class="w-3.5 h-3.5 text-[#FF5E1E] fill-[#FF5E1E]"></i>
+                  <span class="font-bold text-[#1A1D20] group-hover:text-[#FF5E1E]">4,9</span>
+                  <span class="text-muted underline decoration-gray-300 underline-offset-2 group-hover:text-[#FF5E1E] group-hover:decoration-[#FF5E1E]">(248 avaliações)</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-[#FF5E1E] group-hover:translate-x-0.5 transition-transform"></i>
+                </button>
+              </div>
+              <p class="text-xs sm:text-sm text-muted mt-1">Hambúrguer artesanal · Feito na brasa · Entrega média: 35-50 min</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs border-t md:border-t-0 pt-3 md:pt-0 border-gray-100">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-[#1A1D20]">
+              <i data-lucide="shopping-bag" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Ped. mín. <strong>R$ 10,00</strong></span>
+            </div>
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-[#1A1D20]">
+              <i data-lucide="clock" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Hoje: <strong>18:00 às 23:30</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Categorias -->
+    <nav class="sticky top-[113px] z-30 bg-[#F4F6F8]/95 backdrop-blur-md py-3 border-b border-gray-200/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <a href="#cat-populares" class="px-4 py-2 rounded-full text-xs font-bold bg-[#FF5E1E] text-white shadow-xs whitespace-nowrap">
+            🔥 Os Mais Pedidos
+          </a>
+          <a href="#cat-burgers" class="px-4 py-2 rounded-full text-xs font-semibold bg-white text-[#1A1D20] border border-gray-200 hover:border-gray-300 whitespace-nowrap">
+            🍔 Artesanais na Brasa
+          </a>
+          <a href="#cat-bebidas" class="px-4 py-2 rounded-full text-xs font-semibold bg-white text-[#1A1D20] border border-gray-200 hover:border-gray-300 whitespace-nowrap">Created At: 2026-10-28T19:18:00-03:00
+Completed At: 2026-10-28T19:18:00-03:00
+Showing lines 201-450 of 824
+            🥤 Bebidas Geladas
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Vitrine + Sacola Lateral Fixa -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+      <div class="flex items-start gap-8">
+        
+        <!-- Lista de Produtos (Grid em 2 Colunas no Desktop) -->
+        <section class="flex-1 min-w-0 space-y-8">
+          
+          <div id="cat-populares" class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-1.5 h-6 bg-[#FF5E1E] rounded-full"></span>
+                <h3 class="text-lg sm:text-xl font-bold text-[#1A1D20]">Mais Pedidos da Casa</h3>
+              </div>
+              <span class="text-xs text-muted font-medium">2 itens</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Produto 1 -->
+              <article class="bg-white rounded-2xl p-4 border border-gray-200/80 hover:border-[#FF5E1E]/50 hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer" onclick="navigateTo('screen-cart')">
+                <div class="flex gap-4">
+                  <div class="flex-1 min-w-0">
+                    <span class="inline-block px-2 py-0.5 rounded-md bg-[#FFF3EE] text-[#FF5E1E] text-[10px] font-extrabold uppercase tracking-wide mb-1.5">Mais Pedido</span>
+                    <h4 class="text-sm sm:text-base font-bold text-[#1A1D20] group-hover:text-[#FF5E1E] transition-colors leading-snug">Brasa da Casa</h4>
+                    <p class="text-xs text-muted line-clamp-2 mt-1">Blend artesanal 180g feito na brasa, queijo cheddar derretido, cebola caramelizada e maionese defumada.</p>
+                  </div>
+                  <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80" alt="Brasa da Casa" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                  <span class="text-base font-extrabold text-[#1A1D20]">R$ 34,90</span>
+                  <button type="button" class="px-3.5 py-1.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Adicionar</span>
+                  </button>
+                </div>
+              </article>
+
+              <!-- Produto 2 -->
+              <article class="bg-white rounded-2xl p-4 border border-gray-200/80 hover:border-[#FF5E1E]/50 hover:shadow-md transition-all flex flex-col justify-between group cursor-pointer" onclick="navigateTo('screen-cart')">
+                <div class="flex gap-4">
+                  <div class="flex-1 min-w-0">
+                    <span class="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-extrabold uppercase tracking-wide mb-1.5">Favorito</span>
+                    <h4 class="text-sm sm:text-base font-bold text-[#1A1D20] group-hover:text-[#FF5E1E] transition-colors leading-snug">Duplo Smash Bacon</h4>
+                    <p class="text-xs text-muted line-clamp-2 mt-1">Dois blends smash crocantes de 100g, tiras de bacon crocante artesanal e muito queijo prato.</p>
+                  </div>
+                  <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80" alt="Duplo Smash" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                  <span class="text-base font-extrabold text-[#1A1D20]">R$ 38,90</span>
+                  <button type="button" class="px-3.5 py-1.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Adicionar</span>
+                  </button>
+                </div>
+              </article>
+
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Sacola Lateral Fixa (Desktop) -->
+        <aside class="hidden lg:block w-96 shrink-0 sticky top-[180px]">
+          <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-md space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-[#FFF3EE] text-[#FF5E1E] flex items-center justify-center">
+                  <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-sm font-bold text-[#1A1D20]">Sua Sacola</h4>
+                  <p class="text-[11px] text-muted">Brasa Burger</p>
+                </div>
+              </div>
+              <span class="text-xs font-bold text-[#FF5E1E] bg-[#FFF3EE] px-2 py-0.5 rounded-full">1 item</span>
+            </div>
+
+            <!-- Item da sacola -->
+            <div class="flex items-center justify-between gap-3 text-xs p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+              <div class="min-w-0 flex-1">
+                <p class="font-bold text-[#1A1D20] truncate">1x Brasa da Casa</p>
+                <p class="text-[11px] text-muted truncate">+ Cheddar extra (+ R$ 4,00)</p>
+                <p class="font-extrabold text-[#FF5E1E] mt-0.5">R$ 38,90</p>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button class="w-6 h-6 rounded-md bg-white border border-gray-200 flex items-center justify-center text-xs">-</button>
+                <span class="font-bold text-xs">1</span>
+                <button class="w-6 h-6 rounded-md bg-[#FF5E1E] text-white flex items-center justify-center text-xs font-bold">+</button>
+              </div>
+            </div>
+
+            <!-- Totais -->
+            <div class="border-t border-gray-100 pt-3 space-y-1.5 text-xs text-muted">
+              <div class="flex justify-between"><span>Subtotal:</span><span class="font-semibold text-[#1A1D20]">R$ 38,90</span></div>
+              <div class="flex justify-between"><span>Entrega estimada:</span><span class="font-semibold text-emerald-600">R$ 4,00</span></div>
+              <div class="flex justify-between text-sm font-extrabold text-[#1A1D20] pt-1 border-t border-gray-100">
+                <span>Total:</span>
+                <span class="text-base text-[#FF5E1E]">R$ 42,90</span>
+              </div>
+            </div>
+
+            <!-- CTA ir para Checkout -->
+            <button onclick="navigateTo('screen-checkout')" class="w-full py-3.5 rounded-2xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer">
+              <span>Continuar para Entrega</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </aside>
+
+      </div>
+    </main>
+
+    <!-- Barra Inferior Mobile -->
+    <div class="lg:hidden sticky bottom-0 z-40 bg-white border-t border-gray-200 p-3 shadow-lg">
+      <button onclick="navigateTo('screen-cart')" class="w-full py-3 px-4 rounded-2xl bg-[#FF5E1E] text-white font-bold text-sm flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-white text-[#FF5E1E] text-xs flex items-center justify-center font-extrabold">1</span>
+          <span>Ver sacola completa</span>
+        </div>
+        <span>R$ 42,90</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 2: CARRINHO / SACOLA COMPLETA COM CUPOM E OBSERVAÇÕES                -->
+  <!-- ========================================================================= -->
+  <div id="screen-cart" class="screen-view hidden py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      
+      <!-- Cabeçalho da Sacola -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <button onclick="navigateTo('screen-menu')" class="w-10 h-10 rounded-full bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center cursor-pointer shadow-2xs">
+            <i data-lucide="arrow-left" class="w-5 h-5 text-[#1A1D20]"></i>
+          </button>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-[#1A1D20]">Sua Sacola de Pedidos</h2>
+            <p class="text-xs text-muted">Brasa Burger · 2 itens selecionados</p>
+          </div>
+        </div>
+
+        <button onclick="navigateTo('screen-menu')" class="text-xs font-semibold text-[#FF5E1E] hover:underline cursor-pointer">
+          + Adicionar mais itens
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Coluna da Esquerda: Itens da Sacola -->
+        <div class="lg:col-span-2 space-y-4">
+          
+          <!-- Card Item 1 -->
+          <div class="bg-white rounded-2xl p-4 border border-gray-200/80 shadow-2xs flex items-center justify-between gap-4">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+              <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80" alt="Burger" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-[#1A1D20] text-sm sm:text-base">1x Brasa da Casa</h4>
+              <p class="text-xs text-muted">+ Cheddar cremoso extra (+ R$ 4,00)</p>
+              <p class="text-xs font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md inline-block mt-1">Obs: Ponto da carne bem passado</p>
+              <p class="font-extrabold text-[#FF5E1E] text-sm mt-1">R$ 38,90</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-xs">-</button>
+              <span class="font-bold text-sm w-4 text-center">1</span>
+              <button class="w-7 h-7 rounded-lg bg-[#FF5E1E] hover:bg-[#E64E12] text-white flex items-center justify-center font-bold text-xs">+</button>
+            </div>
+          </div>
+
+          <!-- Card Item 2 -->
+          <div class="bg-white rounded-2xl p-4 border border-gray-200/80 shadow-2xs flex items-center justify-between gap-4">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+              <img src="https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=400&q=80" alt="Coca" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-bold text-[#1A1D20] text-sm sm:text-base">1x Coca-Cola Lata 350ml</h4>
+              <p class="text-xs text-muted">Bem gelada</p>
+              <p class="font-extrabold text-[#FF5E1E] text-sm mt-1">R$ 6,50</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center font-bold text-xs">-</button>
+              <span class="font-bold text-sm w-4 text-center">1</span>
+              <button class="w-7 h-7 rounded-lg bg-[#FF5E1E] hover:bg-[#E64E12] text-white flex items-center justify-center font-bold text-xs">+</button>
+            </div>
+          </div>
+
+          <!-- Campo de Cupom de Desconto -->
+          <div class="bg-white rounded-2xl p-4 border border-gray-200/80 flex items-center gap-2">
+            <i data-lucide="tag" class="w-4 h-4 text-[#FF5E1E] shrink-0"></i>
+            <input type="text" placeholder="Tem cupom de desconto? (Ex: BEMVINDO)" class="flex-1 text-xs bg-transparent focus:outline-none uppercase font-semibold text-[#1A1D20]">
+            <button class="px-3 py-1.5 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-black transition-colors">Aplicar</button>
+          </div>
+
+        </div>
+
+        <!-- Coluna da Direita: Resumo Financeiro da Sacola -->
+        <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-sm h-fit space-y-4">
+          <h4 class="font-bold text-base text-[#1A1D20] border-b border-gray-100 pb-3">Resumo dos Valores</h4>
+
+          <div class="space-y-2 text-xs text-muted">
+            <div class="flex justify-between"><span>Itens (2 unidades):</span><span class="font-semibold text-[#1A1D20]">R$ 45,40</span></div>
+            <div class="flex justify-between"><span>Taxa de entrega prevista:</span><span class="font-semibold text-emerald-600">R$ 4,00</span></div>
+            <div class="flex justify-between"><span>Desconto de Cupom:</span><span class="font-semibold text-[#FF5E1E]">- R$ 0,00</span></div>
+            <div class="flex justify-between text-base font-extrabold text-[#1A1D20] pt-2 border-t border-gray-100">
+              <span>Total da Sacola:</span>
+              <span class="text-lg text-[#FF5E1E]">R$ 49,40</span>
+            </div>
+          </div>
+
+          <button onclick="navigateTo('screen-checkout')" class="w-full py-3.5 rounded-2xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer">
+            <span>Avançar para Endereço & Dados</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 3: CHECKOUT (ENDEREÇO, ANIVERSÁRIO DD/MM, CONTATO E PAGAMENTO)       -->
+  <!-- ========================================================================= -->
+  <div id="screen-checkout" class="screen-view hidden py-6">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+      
+      <!-- Cabeçalho -->
+      <div class="flex items-center gap-3 mb-6">
+        <button onclick="navigateTo('screen-cart')" class="w-10 h-10 rounded-full bg-white border border-gray-200 hover:bg-gray-50 flex items-center justify-center cursor-pointer shadow-2xs">
+          <i data-lucide="arrow-left" class="w-5 h-5 text-[#1A1D20]"></i>
+        </button>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-[#1A1D20]">Finalizar Pedido</h2>
+          <p class="text-xs text-muted">Preencha seus dados de entrega e forma de pagamento</p>
+        </div>
+      </div>
+
+      <!-- Layout Responsivo em 2 Colunas no Desktop -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        Created At: 2026-10-28T19:18:23-03:00
+Completed At: 2026-10-28T19:18:24-03:00
+Showing lines 451-800 of 824
+        <!-- Formulário de Endereço & Dados (7 Colunas no Desktop) -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <!-- Bloco 1: Forma de Entrega (Delivery vs Retirada) -->
+          <section class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-2xs space-y-3">
+            <h3 class="text-sm font-bold text-[#1A1D20] flex items-center gap-2">
+              <i data-lucide="truck" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Como você quer receber seu pedido?</span>
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="p-3 rounded-2xl border-2 border-[#FF5E1E] bg-[#FFF3EE]/50 flex items-center gap-2.5 cursor-pointer">
+                <input type="radio" name="deliveryMethod" checked class="text-[#FF5E1E] focus:ring-[#FF5E1E]">
+                <div>
+                  <p class="text-xs font-bold text-[#1A1D20]">Entrega em casa</p>
+                  <p class="text-[11px] text-muted">35 a 50 minutos</p>
+                </div>
+              </label>
+              <label class="p-3 rounded-2xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center gap-2.5 cursor-pointer">
+                <input type="radio" name="deliveryMethod" class="text-[#FF5E1E] focus:ring-[#FF5E1E]">
+                <div>
+                  <p class="text-xs font-bold text-[#1A1D20]">Retirar no balcão</p>
+                  <p class="text-[11px] text-muted">15 a 25 minutos</p>
+                </div>
+              </label>
+            </div>
+          </section>
+
+          <!-- Bloco 2: Seus Dados (Com o Campo de Aniversário DD/MM) -->
+          <section class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+            <h3 class="text-sm font-bold text-[#1A1D20] flex items-center gap-2">
+              <i data-lucide="user" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Seus Dados de Contato</span>
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">Seu Nome Completo *</label>
+                <input type="text" value="Lucas Mendes" class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">WhatsApp / Celular *</label>
+                <input type="tel" value="(84) 99876-5432" class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+              </div>
+
+              <!-- CAMPO DE ANIVERSÁRIO DIA E MÊS (DD/MM) -->
+              <div>
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">
+                  Dia e mês de aniversário <span class="text-muted font-normal">(opcional)</span>
+                </label>
+                <input type="text" placeholder="DD/MM (Ex: 15/08)" maxlength="5" value="15/08" class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+              </div>
+            </div>
+          </section>
+
+          <!-- Bloco 3: Endereço de Entrega -->
+          <section class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+            <h3 class="text-sm font-bold text-[#1A1D20] flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Endereço de Entrega</span>
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">Rua / Avenida *</label>
+                <input type="text" value="Rua das Acácias" class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">Número *</label>
+                <input type="text" value="142" class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">Bairro *</label>
+                <select class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+                  <option selected>Centro (+ R$ 3,00)</option>
+                  <option>Jardim América (+ R$ 4,00)</option>
+                  <option>Bela Vista (+ R$ 5,00)</option>
+                </select>
+              </div>
+
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-[#1A1D20] mb-1">Complemento / Ponto de Referência</label>
+                <input type="text" placeholder="Apto 204 / Próximo à pracinha" class="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E]">
+              </div>
+            </div>
+          </section>
+
+          <!-- Bloco 4: Forma de Pagamento -->
+          <section class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-2xs space-y-3">
+            <h3 class="text-sm font-bold text-[#1A1D20] flex items-center gap-2">
+              <i data-lucide="credit-card" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Forma de Pagamento *</span>
+            </h3>
+
+            <div class="space-y-2">
+              <label class="flex items-center gap-3 p-3 rounded-2xl border-2 border-[#FF5E1E] bg-[#FFF3EE]/40 cursor-pointer">
+                <input type="radio" name="paymentMethod" checked class="text-[#FF5E1E]">
+                <div>
+                  <p class="text-xs font-bold text-[#1A1D20]">PIX (Chave exibida logo após o envio)</p>
+                  <p class="text-[11px] text-muted">Aprovação rápida e sem taxas</p>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 hover:bg-gray-50 cursor-pointer">
+                <input type="radio" name="paymentMethod" class="text-[#FF5E1E]">
+                <div>
+                  <p class="text-xs font-bold text-[#1A1D20]">Cartão de Crédito ou Débito na Maquininha</p>
+                  <p class="text-[11px] text-muted">O entregador leva a maquininha</p>
+                </div>
+              </label>
+
+              <label class="flex items-center gap-3 p-3 rounded-2xl border border-gray-200 hover:bg-gray-50 cursor-pointer">
+                <input type="radio" name="paymentMethod" class="text-[#FF5E1E]">
+                <div>
+                  <p class="text-xs font-bold text-[#1A1D20]">Dinheiro</p>
+                  <p class="text-[11px] text-muted">Informe se precisa de troco</p>
+                </div>
+              </label>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Coluna da Direita: Resumo Fixo de Envio (5 Colunas no Desktop) -->
+        <aside class="lg:col-span-5 sticky top-[180px] space-y-4">
+          <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-md space-y-4">
+            <h3 class="font-bold text-base text-[#1A1D20] border-b border-gray-100 pb-3 flex items-center justify-between">
+              <span>Seu Pedido</span>
+              <span class="text-xs text-muted font-normal">2 itens</span>
+            </h3>
+
+            <!-- Itens Resumidos -->
+            <div class="space-y-2.5 text-xs max-h-48 overflow-y-auto">
+              <div class="flex justify-between">
+                <span>1x Brasa da Casa (com cheddar)</span>
+                <strong>R$ 38,90</strong>
+              </div>
+              <div class="flex justify-between">
+                <span>1x Coca-Cola Lata 350ml</span>
+                <strong>R$ 6,50</strong>
+              </div>
+            </div>
+
+            <!-- Preços -->
+            <div class="border-t border-gray-100 pt-3 space-y-1.5 text-xs text-muted">
+              <div class="flex justify-between"><span>Subtotal:</span><span class="font-semibold text-[#1A1D20]">R$ 45,40</span></div>
+              <div class="flex justify-between"><span>Entrega (Centro):</span><span class="font-semibold text-emerald-600">R$ 3,00</span></div>
+              <div class="flex justify-between text-base font-extrabold text-[#1A1D20] pt-2 border-t border-gray-100">
+                <span>Total a Pagar:</span>
+                <span class="text-lg text-[#FF5E1E]">R$ 48,40</span>
+              </div>
+            </div>
+
+            <!-- Botão de Confirmar Pedido -->
+            <button onclick="navigateTo('screen-tracking')" class="w-full py-4 rounded-2xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer">
+              <span>Confirmar e Enviar Pedido</span>
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TELA 4: ACOMPANHANDO O PEDIDO (STATUS AO VIVO + PIX + WHATSAPP)            -->
+  <!-- ========================================================================= -->
+  <div id="screen-tracking" class="screen-view hidden py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+      
+      <!-- Cabeçalho -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <i data-lucide="check-circle-2" class="w-6 h-6 stroke-[2.5]"></i>
+          </div>
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-[#1A1D20]">Pedido Recebido com Sucesso!</h2>
+            <p class="text-xs text-muted">Pedido #89421 · Brasa Burger · 28/10/2026 às 16:15</p>
+          </div>
+        </div>
+
+        <button onclick="navigateTo('screen-menu')" class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-xs font-semibold text-[#1A1D20] hover:bg-gray-50 transition-colors">
+          Voltar ao Cardápio
+        </button>
+      </div>
+
+      <!-- Grid Responsiva no Desktop -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Coluna da Esquerda: Status ao Vivo + Pagamento PIX (7 Colunas) -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <!-- Box de Status de Progresso -->
+          <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-muted">Status do seu Pedido</h3>
+            
+            <!-- Etapas -->
+            <div class="grid grid-cols-3 gap-2 select-none">
+              <div class="py-2.5 px-2 rounded-xl bg-[#FF5E1E] text-white text-center text-xs font-bold shadow-xs">
+                ✓ Aceito
+              </div>
+              <div class="py-2.5 px-2 rounded-xl bg-orange-50 border border-orange-200 text-[#FF5E1E] text-center text-xs font-bold">
+                👨‍🍳 Em preparo
+              </div>
+              <div class="py-2.5 px-2 rounded-xl bg-gray-100 text-gray-400 text-center text-xs font-semibold">
+                🛵 Saiu p/ entrega
+              </div>
+            </div>
+
+            <!-- Previsão de Entrega -->
+            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2 text-muted">
+                <i data-lucide="clock" class="w-4 h-4 text-[#FF5E1E]"></i>
+                <span>Previsão estimada:</span>
+              </div>
+              <span class="font-extrabold text-sm text-[#1A1D20]">16:45 - 17:05 (35-50 min)</span>
+            </div>
+          </div>
+
+          <!-- Box do PIX Copia e Cola -->
+          <div class="bg-[#FFF3EE]/70 rounded-3xl p-5 border border-orange-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-[#FF5E1E]">Pagamento via PIX (CNPJ)</span>
+              <span class="text-xs font-bold text-[#1A1D20]">Valor: R$ 48,40</span>
+            </div>
+
+            <div class="bg-white p-3 rounded-2xl border border-gray-200 flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="font-mono text-xs font-bold text-[#1A1D20] truncate">00.000.000/0001-00</p>
+                <p class="text-[10px] text-muted">Favorecido: Brasa Burger LTDA</p>
+              </div>
+              <button onclick="alert('Chave PIX copiada!')" class="px-3.5 py-2 rounded-xl bg-[#FF5E1E] text-white text-xs font-semibold shrink-0 hover:bg-[#E64E12] transition-colors flex items-center gap-1.5">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>Copiar PIX</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Botões de Ação: WhatsApp & Instagram (Sem o botão de avaliar produto inoportuno!) -->
+          <div class="space-y-3">
+            <a href="https://wa.me/5500000000000" target="_blank" class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+              <span>Acompanhar ou tirar dúvidas no WhatsApp</span>
+            </a>
+
+            <a href="https://instagram.com" target="_blank" class="w-full py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 text-[#1A1D20] font-semibold text-xs flex items-center justify-center gap-2 transition-colors">
+              <i data-lucide="instagram" class="w-4 h-4 text-[#FF5E1E]"></i>
+              <span>Siga o Brasa Burger no Instagram</span>
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Coluna da Direita: Resumo do Pedido & Endereço (5 Colunas) -->
+        <aside class="lg:col-span-5 bg-white rounded-3xl p-5 border border-gray-200/80 shadow-2xs space-y-4">
+          <h3 class="font-bold text-sm text-[#1A1D20] border-b border-gray-100 pb-3">Detalhes da Entrega</h3>
+
+          <div class="text-xs space-y-2 text-muted">
+            <p><strong class="text-[#1A1D20]">Cliente:</strong> Lucas Mendes</p>
+            <p><strong class="text-[#1A1D20]">WhatsApp:</strong> (84) 99876-5432</p>
+            <p><strong class="text-[#1A1D20]">Endereço:</strong> Rua das Acácias, 142 — Centro</p>
+          </div>
+
+          <div class="border-t border-gray-100 pt-3 space-y-1.5 text-xs">
+            <p class="font-bold text-[#1A1D20]">Itens:</p>
+            <p class="text-muted">1x Brasa da Casa · R$ 38,90</p>
+            <p class="text-muted">1x Coca-Cola Lata · R$ 6,50</p>
+            <p class="text-muted">Entrega · R$ 3,00</p>
+            <p class="text-sm font-extrabold text-[#FF5E1E] pt-2 border-t border-gray-100 flex justify-between">
+              <span>Total Pago:</span>
+              <span>R$ 48,40</span>
+            </p>
+          </div>
+
+          <!-- Card de Avaliação: Lembrança Educativa de UX -->
+          <div class="p-3.5 rounded-2xl bg-orange-50/70 border border-orange-200/70 text-xs space-y-1.5">
+            <p class="font-bold text-[#1A1D20] flex items-center gap-1.5">
+              <i data-lucide="star" class="w-3.5 h-3.5 text-[#FF5E1E] fill-[#FF5E1E]"></i>
+              <span>Avaliação do Pedido</span>
+            </p>
+            <p class="text-[11px] text-[#6C757D] leading-relaxed">
+              O botão de avaliar com os 3 critérios (entrega, qualidade e atendimento) fica disponível nos <strong>Últimos Pedidos</strong> após a entrega do seu lanche!
+            </p>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DE AVALIAÇÕES (Reutilizável)                                        -->
+  <!-- ========================================================================= -->
+  <div id="reviewsModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full max-h-[85vh] flex flex-col shadow-2xl border border-orange-100 overflow-hidden">
+      <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-[#FFF3EE] text-[#FF5E1E] flex items-center justify-center">
+            <i data-lucide="star" class="w-5 h-5 fill-[#FF5E1E]"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-[#1A1D20] text-base leading-tight">Avaliações dos Clientes</h3>
+            <p class="text-xs text-muted">Brasa Burger · 248 avaliações</p>
+          </div>
+        </div>
+        <button onclick="toggleReviewsModal(false)" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div class="bg-[#FFF3EE]/70 border border-orange-200/60 rounded-2xl p-3.5 flex items-center gap-4">
+          <div class="text-center pr-3 border-r border-orange-200 shrink-0">
+            <div class="text-3xl font-extrabold text-[#1A1D20]">4,9</div>
+            <div class="text-[#FF5E1E] text-xs mt-0.5">★★★★★</div>
+            <span class="text-[10px] text-muted">Nota geral</span>
+          </div>
+          <div class="flex-1 space-y-1">
+            <div class="flex justify-between"><span>Tempo de entrega:</span><strong>4,9</strong></div>
+            <div class="flex justify-between"><span>Qualidade do lanche:</span><strong>5,0</strong></div>
+            <div class="flex justify-between"><span>Atendimento:</span><strong>4,9</strong></div>
+          </div>
+        </div>
+        <p class="italic text-muted">"Chegou super rápido e quentinho! O Brasa da Casa é simplesmente perfeito."</p>
+      </div>
+
+      <div class="p-4 border-t border-gray-100 bg-gray-50">
+        <button onclick="toggleReviewsModal(false)" class="w-full py-2.5 rounded-xl bg-[#1A1D20] text-white text-xs font-bold">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lucide Script & Controle de Navegação -->
+  <script>
+    lucide.createIcons();
+
+    function navigateTo(screenId) {
+      // Esconde todas as telas
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+      
+      // Exibe a tela alvo
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
