@@ -346,7 +346,6 @@ export function MenuVitrineView() {
                       : 'bg-slate-50 hover:bg-slate-100 text-[#6C757D] hover:text-[#1A1D20] border border-[#E9ECEF]'
                   }`}
                 >
-                  {cat.icon && <span>{cat.icon}</span>}
                   <span>{cat.name}</span>
                   <span
                     className={`text-[11px] ${

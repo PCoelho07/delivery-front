@@ -22,7 +22,11 @@ function getStatusBadge(statusRaw = '') {
       className: 'bg-blue-50 text-blue-700 border-blue-200',
     }
   }
-  if (status === 'preparando' || status === 'em preparo') {
+  if (
+    status === 'preparando' ||
+    status === 'em preparo' ||
+    status === 'preparo'
+  ) {
     return {
       label: 'Em Preparo',
       className: 'bg-amber-50 text-amber-700 border-amber-200',

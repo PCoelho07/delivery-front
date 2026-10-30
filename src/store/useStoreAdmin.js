@@ -4,9 +4,9 @@ import { formatTitleCase } from '../utils/textUtils'
 const STORAGE_KEY = 'delivery_admin_store_v3'
 
 const DEFAULT_CATEGORIES = [
-  { id: 'cat-populares', name: 'Populares', order: 1, status: 'active', icon: '🔥' },
-  { id: 'cat-lanches', name: 'Lanches Artesanais', order: 2, status: 'active', icon: '🍔' },
-  { id: 'cat-bebidas', name: 'Bebidas & Sucos', order: 3, status: 'active', icon: '🥤' },
+  { id: 'cat-populares', name: 'Populares', order: 1, status: 'active' },
+  { id: 'cat-lanches', name: 'Lanches Artesanais', order: 2, status: 'active' },
+  { id: 'cat-bebidas', name: 'Bebidas & Sucos', order: 3, status: 'active' },
 ]
 
 const DEFAULT_TEMPLATES = [

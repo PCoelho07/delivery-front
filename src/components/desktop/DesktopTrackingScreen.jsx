@@ -2,15 +2,26 @@ import { useState } from 'react'
 import {
   ArrowLeft,
   CheckCircle2,
+  ChefHat,
   Clock,
   Copy,
   Check,
   MessageCircle,
   Star,
   ShoppingBag,
+  Store,
+  Truck,
+  Ban,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatPhoneMask } from '../../lib/utils'
+import { useCustomerStore } from '../../store/useCustomerStore'
+
+const ORDER_STATUS_STEPS = [
+  { id: 'aceito', label: 'Aceito', icon: CheckCircle2 },
+  { id: 'preparo', label: 'Em preparo', icon: ChefHat },
+  { id: 'entrega', label: 'Saiu p/ entrega', icon: Truck },
+]
 
 function InstagramIcon({ className = 'w-4 h-4' }) {
   return (
@@ -31,13 +42,20 @@ function InstagramIcon({ className = 'w-4 h-4' }) {
 }
 
 export function DesktopTrackingScreen({
-  order,
+  order: orderProp,
   store,
   onBackToMenu,
   onOpenCustomerHub,
   onOpenReview,
 }) {
   const [copiedPix, setCopiedPix] = useState(false)
+  const orders = useCustomerStore((state) => state.orders)
+
+  // Busca o pedido atualizado diretamente do store reativo para refletir mudanças do Kanban em tempo real
+  const liveOrder = orderProp?.orderId
+    ? orders.find((o) => String(o.orderId) === String(orderProp.orderId))
+    : null
+  const order = liveOrder || orderProp || orders[0] || null
 
   if (!order) {
     return (
@@ -95,20 +113,17 @@ export function DesktopTrackingScreen({
     setTimeout(() => setCopiedPix(false), 2500)
   }
 
-  const status = (order.status || 'aceito').toLowerCase()
-  const isAccepted = true // Sempre aceito de largada
-  const isPreparing =
-    status === 'preparando' ||
-    status === 'em preparo' ||
-    status === 'entrega' ||
-    status === 'saiu para entrega' ||
-    status === 'concluido' ||
-    status === 'entregue'
-  const isDelivering =
-    status === 'entrega' ||
-    status === 'saiu para entrega' ||
-    status === 'concluido' ||
-    status === 'entregue'
+  const rawStatus = (order.status || 'aceito').toLowerCase()
+  const currentStatusId =
+    rawStatus === 'novo'
+      ? 'aceito'
+      : rawStatus === 'preparando' || rawStatus === 'em preparo'
+      ? 'preparo'
+      : rawStatus === 'saiu para entrega'
+      ? 'entrega'
+      : rawStatus === 'entregue'
+      ? 'concluido'
+      : rawStatus
 
   return (
     <div className="w-full min-h-screen bg-[#F4F6F8] py-8 antialiased">
@@ -155,37 +170,121 @@ export function DesktopTrackingScreen({
                 </span>
               </div>
 
-              {/* Etapas Visuais */}
-              <div className="grid grid-cols-3 gap-2 select-none">
-                <div
-                  className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-colors ${
-                    isAccepted
-                      ? 'bg-[#FF5E1E] text-white shadow-xs'
-                      : 'bg-gray-100 text-gray-400 font-semibold'
-                  }`}
-                >
-                  ✓ Aceito
+              {/* Alerta de Pedido Cancelado (se houver) */}
+              {(currentStatusId === 'cancelado' || currentStatusId === 'recusado') && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                    <Ban className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-[15px] text-rose-950">
+                      Pedido Cancelado pelo Restaurante
+                    </h4>
+                    <p className="text-xs text-rose-800">
+                      Motivo:{' '}
+                      <span className="font-bold">
+                        {order.cancellationReason ||
+                          'Inviabilidade de atendimento no momento.'}
+                      </span>
+                    </p>
+                    {order.cancellationNote && (
+                      <p className="text-[11.5px] text-rose-700 italic">
+                        &ldquo;{order.cancellationNote}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Etapas Visuais (Mesmos Ícones e Cores da Versão Mobile) */}
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-3 gap-2 bg-[#F8F9FA] p-1.5 rounded-xl border border-gray-100 select-none">
+                  {ORDER_STATUS_STEPS.map((step, idx) => {
+                    const currentIdx = ORDER_STATUS_STEPS.findIndex(
+                      (s) => s.id === currentStatusId
+                    )
+                    const isFinished = currentStatusId === 'concluido'
+                    const isCurrent = currentStatusId === step.id
+                    const isPast =
+                      isFinished || (currentIdx !== -1 && idx < currentIdx)
+
+                    const isPix = order?.paymentMethod === 'pix'
+                    const isPickup = order?.deliveryMethod === 'pickup'
+
+                    let stepLabel = step.label
+                    let StepIcon = step.icon
+
+                    if (step.id === 'aceito') {
+                      if (isPix) stepLabel = 'Aguardando pagamento'
+                    } else if (step.id === 'entrega') {
+                      if (isPickup) {
+                        stepLabel = 'Pronto p/ retirada'
+                        StepIcon = Store
+                      }
+                    }
+
+                    if (isPast && !isCurrent) {
+                      StepIcon = CheckCircle2
+                    } else if (step.id === 'aceito' && isPix && isCurrent) {
+                      StepIcon = Clock
+                    }
+
+                    return (
+                      <div
+                        key={step.id}
+                        className={`py-2.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                          isCurrent
+                            ? 'bg-[#FF5E1E] text-white shadow-xs'
+                            : isPast
+                            ? 'bg-orange-50 text-[#FF5E1E] border border-orange-200/60'
+                            : 'text-[#9CA3AF] bg-transparent'
+                        }`}
+                      >
+                        <StepIcon className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{stepLabel}</span>
+                      </div>
+                    )
+                  })}
                 </div>
 
-                <div
-                  className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-colors ${
-                    isPreparing
-                      ? 'bg-orange-50 border border-orange-200 text-[#FF5E1E]'
-                      : 'bg-gray-100 text-gray-400 font-semibold'
-                  }`}
-                >
-                  👨‍🍳 Em preparo
-                </div>
+                {/* Aviso contextual quando o status for "entrega" (Pronto no balcão vs Saiu para entrega) */}
+                {currentStatusId === 'entrega' && (
+                  <div
+                    className={`border rounded-xl px-3.5 py-2.5 text-center text-xs font-bold flex items-center justify-center gap-2 ${
+                      order.deliveryMethod === 'pickup'
+                        ? 'bg-blue-50 text-blue-900 border-blue-200'
+                        : 'bg-purple-50 text-purple-900 border-purple-200'
+                    }`}
+                  >
+                    {order.deliveryMethod === 'pickup' ? (
+                      <>
+                        <Store className="w-4 h-4 text-blue-600 shrink-0" />
+                        <span>
+                          Seu pedido está pronto! Já pode vir retirar no balcão.
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Truck className="w-4 h-4 text-purple-600 shrink-0" />
+                        <span>
+                          Seu pedido saiu para entrega! Fique atento ao entregador.
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
 
-                <div
-                  className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-colors ${
-                    isDelivering
-                      ? 'bg-emerald-500 text-white shadow-xs'
-                      : 'bg-gray-100 text-gray-400 font-semibold'
-                  }`}
-                >
-                  🛵 Saiu p/ entrega
-                </div>
+                {/* Aviso quando o pedido é concluído */}
+                {currentStatusId === 'concluido' && (
+                  <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl px-3.5 py-2.5 text-center text-xs font-bold flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      {order.deliveryMethod === 'pickup'
+                        ? 'Pedido retirado no balcão e concluído com sucesso!'
+                        : 'Pedido entregue e concluído com sucesso!'}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Previsão de Entrega */}

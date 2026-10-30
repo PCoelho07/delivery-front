@@ -34,6 +34,15 @@ export function OrderCard({
     if (raw.includes('às')) {
       return raw.split('às')[1].trim()
     }
+    if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
+      const parsed = new Date(raw)
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      }
+    }
     return raw
   }, [order.createdAt, order.elapsedTime])
 
@@ -325,7 +334,7 @@ export function OrderCard({
       )}
 
       {/* Rodapé do Card: Total e Botões de Ação */}
-      <div className="flex items-center justify-between gap-2 pt-2 mt-2 border-t border-slate-100">
+      <div className="pt-2 mt-2 border-t border-slate-100 flex items-center justify-between gap-2 min-[1020px]:max-[1370px]:flex-wrap">
         <div className="min-w-fit shrink-0">
           <span className="text-[10px] text-[#6C757D] block leading-none font-medium">Total</span>
           <span className="text-xs font-black text-[#1A1D20]">
@@ -333,54 +342,56 @@ export function OrderCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-          {/* Botão de Cancelar / Recusar Pedido */}
-          {onCancel &&
-            order.status !== 'concluido' &&
-            order.status !== 'cancelado' &&
-            order.status !== 'recusado' && (
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto min-[1020px]:max-[1370px]:contents">
+          <div className="flex items-center gap-1.5 shrink-0 min-[1020px]:max-[1370px]:ml-auto">
+            {/* Botão de Cancelar / Recusar Pedido */}
+            {onCancel &&
+              order.status !== 'concluido' &&
+              order.status !== 'cancelado' &&
+              order.status !== 'recusado' && (
+                <button
+                  type="button"
+                  onClick={() => onCancel(order)}
+                  className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition-colors cursor-pointer shrink-0"
+                  title={
+                    order.status === 'aceito' || order.status === 'novo'
+                      ? 'Recusar Pedido'
+                      : 'Cancelar Pedido'
+                  }
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+            {/* Botão de Retroceder Status (se aplicável) */}
+            {currentCfg.prevStatus && (
               <button
                 type="button"
-                onClick={() => onCancel(order)}
-                className="p-1.5 rounded-lg border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition-colors cursor-pointer shrink-0"
-                title={
-                  order.status === 'aceito' || order.status === 'novo'
-                    ? 'Recusar Pedido'
-                    : 'Cancelar Pedido'
-                }
+                onClick={() => onRewind?.(order.orderId, currentCfg.prevStatus)}
+                className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
+                title="Voltar status anterior"
               >
-                <Ban className="w-3.5 h-3.5" />
+                <ArrowLeft className="w-3.5 h-3.5" />
               </button>
             )}
 
-          {/* Botão de Retroceder Status (se aplicável) */}
-          {currentCfg.prevStatus && (
+            {/* Botão de Imprimir Comanda Térmica */}
             <button
               type="button"
-              onClick={() => onRewind?.(order.orderId, currentCfg.prevStatus)}
-              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
-              title="Voltar status anterior"
+              onClick={() => onPrint?.(order)}
+              className="p-1.5 rounded-lg border border-slate-200 hover:border-orange-300 bg-slate-50/70 hover:bg-orange-50 text-slate-500 hover:text-[#FF5E1E] transition-all cursor-pointer shrink-0"
+              title="Imprimir Comanda 80mm"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5" />
             </button>
-          )}
-
-          {/* Botão de Imprimir Comanda Térmica */}
-          <button
-            type="button"
-            onClick={() => onPrint?.(order)}
-            className="p-1.5 rounded-lg border border-slate-200 hover:border-orange-300 bg-slate-50/70 hover:bg-orange-50 text-slate-500 hover:text-[#FF5E1E] transition-all cursor-pointer shrink-0"
-            title="Imprimir Comanda 80mm"
-          >
-            <Printer className="w-3.5 h-3.5" />
-          </button>
+          </div>
 
           {/* Botão de Avançar Status */}
           {currentCfg.nextStatus && (
             <button
               type="button"
               onClick={() => onAdvance?.(order.orderId, currentCfg.nextStatus)}
-              className={`px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1 shadow-xs cursor-pointer shrink-0 whitespace-nowrap ${currentCfg.nextClass}`}
+              className={`px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1 shadow-xs cursor-pointer shrink-0 whitespace-nowrap min-[1020px]:max-[1370px]:w-full min-[1020px]:max-[1370px]:py-2 ${currentCfg.nextClass}`}
             >
               <span>{actionLabel}</span>
               {currentCfg.nextStatus === 'concluido' ? (
@@ -392,14 +403,14 @@ export function OrderCard({
           )}
 
           {order.status === 'concluido' && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shrink-0">
+            <span className="inline-flex items-center justify-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shrink-0 min-[1020px]:max-[1370px]:w-full">
               <Check className="w-3.5 h-3.5" />
               <span>{isDelivery ? 'Entregue' : 'Retirado'}</span>
             </span>
           )}
 
           {(order.status === 'cancelado' || order.status === 'recusado') && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200 shrink-0">
+            <span className="inline-flex items-center justify-center gap-1 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-1 rounded-lg border border-rose-200 shrink-0 min-[1020px]:max-[1370px]:w-full">
               <Ban className="w-3.5 h-3.5" />
               <span>Cancelado</span>
             </span>
