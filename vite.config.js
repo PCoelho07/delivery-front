@@ -50,6 +50,11 @@ export default defineConfig({
     tailwindcss(),
     storeSyncPlugin(),
   ],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
+  },
   server: {
     proxy: {
       '/api': {
@@ -64,3 +69,4 @@ export default defineConfig({
     },
   },
 })
+
