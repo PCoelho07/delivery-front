@@ -2,143 +2,40 @@ import { useState } from 'react'
 import {
   FolderPlus,
   PackagePlus,
-  ChevronUp,
-  ChevronDown,
   Pencil,
   Trash2,
-  FolderOpen,
-  Plus,
+  ChevronUp,
+  ChevronDown,
   Sparkles,
+  Plus,
   UtensilsCrossed,
+  FolderOpen,
   Search,
   X,
-  Dices,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { CategoryModal } from './CategoryModal'
 import { ProductModal } from './ProductModal'
+import { DeleteCategoryModal } from './DeleteCategoryModal'
 import { ConfirmModal } from '../common/ConfirmModal'
-
-// Predefinições para criação de lanches aleatórios de teste
-const RANDOM_BURGER_PRESETS = [
-  {
-    name: 'Smash Bacon Trufado',
-    desc: 'Dois smashs de 90g, cheddar inglês cremoso derretido, fatias de bacon crocante e maionese trufada no brioche.',
-    price: 38.9,
-    image:
-      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
-    badge: 'MAIS PEDIDO',
-  },
-  {
-    name: 'Monster Cheddar Melt',
-    desc: 'Blend 180g grelhado na brasa, creme de cheddar duplo, cebola caramelizada na cerveja preta e aioli no brioche.',
-    price: 42.5,
-    image:
-      'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80',
-    badge: 'ESPECIAL',
-  },
-  {
-    name: 'Brasa Gorgonzola & Crisp',
-    desc: 'Blend 180g na brasa, creme de queijo gorgonzola suave, cebola crispy dourada e rúcula fresca selecionada.',
-    price: 44.9,
-    image:
-      'https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80',
-    badge: 'CHEF',
-  },
-  {
-    name: 'Double Smash Ribs BBQ',
-    desc: 'Dois burgers de costela prensados, american cheese duplo, tiras crocantes de bacon e barbecue defumado.',
-    price: 39.9,
-    image:
-      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
-    badge: 'NOVO',
-  },
-  {
-    name: 'Texano Crispy Onion',
-    desc: 'Hambúrguer 180g, muito queijo prato, anéis de cebola empanada crocantes e molho especial da casa.',
-    price: 36.9,
-    image:
-      'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80',
-    badge: null,
-  },
-  {
-    name: 'Picanha Burger Premium',
-    desc: 'Blend exclusivo de picanha 200g, queijo coalho tostado na brasa, melaço de cana picante e alface americana.',
-    price: 47.9,
-    image:
-      'https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?auto=format&fit=crop&w=800&q=80',
-    badge: 'PREMIUM',
-  },
-  {
-    name: 'Catupiry & Farofa de Bacon',
-    desc: 'Blend 180g suculento, catupiry maçaricado original, farofa de bacon defumado e picles doce.',
-    price: 41.0,
-    image:
-      'https://images.unsplash.com/photo-1607013251379-e6eecfffe234?auto=format&fit=crop&w=800&q=80',
-    badge: null,
-  },
-]
-
-function createRandomBurgerData(categories, products, templates) {
-  const targetCat =
-    categories.find((c) =>
-      /lanche|hamb[uú]rguer|burger|artesanal|popular/i.test(c.name)
-    ) || categories[0]
-
-  const existingNames = new Set(products.map((p) => p.name.toLowerCase()))
-  let chosen = RANDOM_BURGER_PRESETS.find(
-    (b) => !existingNames.has(b.name.toLowerCase())
-  )
-
-  if (!chosen) {
-    const base =
-      RANDOM_BURGER_PRESETS[
-        Math.floor(Math.random() * RANDOM_BURGER_PRESETS.length)
-      ]
-    const countSimilar = products.filter((p) =>
-      p.name.toLowerCase().startsWith(base.name.toLowerCase())
-    ).length
-    chosen = {
-      ...base,
-      name: `${base.name} #${countSimilar + 1}`,
-    }
-  }
-
-  const burgerTmpl =
-    templates.find((t) => /burger|hamb[uú]rguer/i.test(t.name || t.id)) ||
-    templates[0]
-
-  return {
-    targetCat,
-    productData: {
-      name: chosen.name,
-      templateId: burgerTmpl ? burgerTmpl.id : 'tmpl-none',
-      price: chosen.price,
-      desc: chosen.desc,
-      image: chosen.image,
-      badge: chosen.badge,
-      available: true,
-    },
-  }
-}
 
 export function MenuVitrineView() {
   const {
     categories,
-    addCategory,
-    deleteCategory,
-    reorderCategory,
-    toggleCategoryStatus,
     products,
-    addProduct,
+    templates,
+    deleteCategory,
+    moveProductsAndDeleteCategory,
+    deleteCategoryAndProducts,
+    toggleCategoryStatus,
+    reorderCategory,
     deleteProduct,
     toggleProductAvailability,
     reorderProduct,
-    templates,
   } = useStoreAdmin()
 
-  // Modal de Criação / Edição de Categoria
+  // Modal de Categoria
   const [isCatModalOpen, setIsCatModalOpen] = useState(false)
   const [categoryToEdit, setCategoryToEdit] = useState(null)
 
@@ -146,7 +43,7 @@ export function MenuVitrineView() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [categoryToDelete, setCategoryToDelete] = useState(null)
 
-  // Modal de Criação / Edição de Produto
+  // Modal de Produto
   const [isProdModalOpen, setIsProdModalOpen] = useState(false)
   const [productToEdit, setProductToEdit] = useState(null)
   const [initialCategoryId, setInitialCategoryId] = useState('')
@@ -187,12 +84,31 @@ export function MenuVitrineView() {
     setIsDeleteModalOpen(true)
   }
 
-  const handleConfirmDelete = () => {
-    if (categoryToDelete) {
-      deleteCategory(categoryToDelete.id)
-      toast.success(`Categoria "${categoryToDelete.name}" excluída.`)
-      setCategoryToDelete(null)
-    }
+  const handleDeleteCategoryOnly = (catId) => {
+    deleteCategory(catId)
+    toast.success(`Categoria excluída com sucesso.`)
+    setCategoryToDelete(null)
+  }
+
+  const handleMoveProductsAndDelete = (catId, targetCatId) => {
+    const targetCat = categories.find((c) => String(c.id) === String(targetCatId))
+    moveProductsAndDeleteCategory(catId, targetCatId)
+    toast.success(
+      `Produtos movidos para "${targetCat?.name || 'outra categoria'}" e categoria excluída com sucesso!`
+    )
+    setCategoryToDelete(null)
+  }
+
+  const handleDeactivateCategoryFromModal = (catId) => {
+    toggleCategoryStatus(catId)
+    toast.info(`Categoria desativada e ocultada da vitrine. Seus produtos foram preservados.`)
+    setCategoryToDelete(null)
+  }
+
+  const handleDeleteCategoryAndProducts = (catId) => {
+    deleteCategoryAndProducts(catId)
+    toast.success(`Categoria e todos os seus produtos foram excluídos.`)
+    setCategoryToDelete(null)
   }
 
   // Handlers de Produto
@@ -236,33 +152,6 @@ export function MenuVitrineView() {
     }
   }
 
-  // Gerador Automático de Lanche para Testes
-  const handleGenerateRandomBurger = () => {
-    let { targetCat, productData } = createRandomBurgerData(
-      categories,
-      products,
-      templates
-    )
-
-    if (!targetCat) {
-      addCategory({
-        name: 'Lanches Artesanais',
-        order: categories.length + 1,
-        status: 'active',
-      })
-      targetCat = { id: 'cat-lanches', name: 'Lanches Artesanais' }
-    }
-
-    addProduct({
-      ...productData,
-      categoryId: targetCat.id,
-    })
-
-    toast.success(`Lanche "${productData.name}" gerado com sucesso!`, {
-      description: `Adicionado à categoria "${targetCat.name}" por ${formatCurrency(productData.price)}.`,
-    })
-  }
-
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -292,17 +181,6 @@ export function MenuVitrineView() {
           >
             <FolderPlus className="w-4 h-4 text-[#FF5E1E]" />
             <span>Nova Categoria</span>
-          </button>
-
-          {/* Botão Gerar Lanche Aleatório (Teste) */}
-          <button
-            type="button"
-            onClick={handleGenerateRandomBurger}
-            className="px-3.5 py-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-[#FF5E1E] border border-orange-200/90 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-            title="Criar um lanche artesanal aleatório para testes rápidos"
-          >
-            <Dices className="w-4 h-4 text-[#FF5E1E]" />
-            <span>Gerar Lanche (Teste)</span>
           </button>
 
           <button
@@ -436,313 +314,313 @@ export function MenuVitrineView() {
                 })
                 .sort((a, b) => a.order - b.order)
 
-            return (
-              <div
-                key={cat.id}
-                className="bg-white rounded-2xl border border-[#E9ECEF] overflow-hidden shadow-xs"
-              >
-                {/* Cabeçalho da Categoria de Vitrine */}
-                <div className="p-4 bg-[#F8F9FA]/80 border-b border-[#E9ECEF] flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {/* Botões de Ordem da Categoria */}
-                    <div className="flex flex-col items-center justify-center gap-0.5 bg-white border border-[#E9ECEF] rounded-xl px-2 py-1 shrink-0">
-                      <button
-                        onClick={() => reorderCategory(cat.id, -1)}
-                        title="Subir posição da categoria"
-                        className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
-                      >
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-xs font-black text-[#FF5E1E]">
-                        #{cat.order}
-                      </span>
-                      <button
-                        onClick={() => reorderCategory(cat.id, 1)}
-                        title="Descer posição da categoria"
-                        className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
-                      >
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              return (
+                <div
+                  key={cat.id}
+                  className="bg-white rounded-2xl border border-[#E9ECEF] overflow-hidden shadow-xs"
+                >
+                  {/* Cabeçalho da Categoria de Vitrine */}
+                  <div className="p-4 bg-[#F8F9FA]/80 border-b border-[#E9ECEF] flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {/* Botões de Ordem da Categoria */}
+                      <div className="flex flex-col items-center justify-center gap-0.5 bg-white border border-[#E9ECEF] rounded-xl px-2 py-1 shrink-0">
+                        <button
+                          onClick={() => reorderCategory(cat.id, -1)}
+                          title="Subir posição da categoria"
+                          className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-xs font-black text-[#FF5E1E]">
+                          #{cat.order}
+                        </span>
+                        <button
+                          onClick={() => reorderCategory(cat.id, 1)}
+                          title="Descer posição da categoria"
+                          className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
 
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-extrabold text-sm sm:text-base text-[#1A1D20]">
-                          {cat.name}
-                        </h3>
-                        <span className="text-[11px] font-semibold text-[#6C757D] bg-white border border-[#E9ECEF] px-2 py-0.5 rounded-full">
-                          {catProducts.length}{' '}
-                          {catProducts.length === 1 ? 'produto' : 'produtos'}
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-extrabold text-sm sm:text-base text-[#1A1D20]">
+                            {cat.name}
+                          </h3>
+                          <span className="text-[11px] font-semibold text-[#6C757D] bg-white border border-[#E9ECEF] px-2 py-0.5 rounded-full">
+                            {catProducts.length}{' '}
+                            {catProducts.length === 1 ? 'produto' : 'produtos'}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-[#6C757D]">
+                          {cat.status === 'active'
+                            ? 'Visível aos clientes no cardápio'
+                            : 'Oculta no cardápio'}
                         </span>
                       </div>
-                      <span className="text-[11px] text-[#6C757D]">
-                        {cat.status === 'active'
-                          ? 'Visível aos clientes no cardápio'
-                          : 'Oculta no cardápio'}
-                      </span>
                     </div>
-                  </div>
 
-                  {/* Ações da Categoria */}
-                  <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                    {/* Switch Ativa / Desativada da Categoria */}
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={cat.status === 'active'}
-                      onClick={() => handleToggleCategoryStatus(cat)}
-                      title={
-                        cat.status === 'active'
-                          ? 'Clique para desativar esta categoria'
-                          : 'Clique para ativar esta categoria'
-                      }
-                      className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-[#E9ECEF] bg-white hover:bg-slate-50 transition-all cursor-pointer"
-                    >
-                      <div
-                        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                          cat.status === 'active'
-                            ? 'bg-emerald-500'
-                            : 'bg-slate-300'
-                        }`}
-                      >
-                        <span
-                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
-                            cat.status === 'active'
-                              ? 'translate-x-4'
-                              : 'translate-x-0'
-                          }`}
-                        />
-                      </div>
-                      <span
-                        className={`text-[11px] font-extrabold select-none ${
-                          cat.status === 'active'
-                            ? 'text-emerald-700'
-                            : 'text-[#6C757D]'
-                        }`}
-                      >
-                        {cat.status === 'active' ? 'Ativa' : 'Desativada'}
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => handleEditCategory(cat)}
-                      className="px-3 py-1.5 rounded-xl border border-[#E9ECEF] bg-white hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E] transition-all flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Editar</span>
-                    </button>
-
-                    <button
-                      onClick={() => handlePromptDeleteCategory(cat)}
-                      className="p-1.5 text-[#6C757D] hover:text-rose-600 transition-colors cursor-pointer"
-                      title="Excluir categoria"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      onClick={() => handleOpenNewProduct(cat.id)}
-                      className="px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 hover:bg-orange-100 text-[#FF5E1E] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ml-auto sm:ml-0"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Adicionar Produto</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Lista de Produtos desta Categoria */}
-                <div className="divide-y divide-[#E9ECEF]">
-                  {catProducts.length === 0 ? (
-                    <div className="p-8 text-center space-y-2">
-                      <p className="text-xs text-[#6C757D]">
-                        Nenhum produto cadastrado nesta categoria de vitrine ainda.
-                      </p>
+                    {/* Ações da Categoria */}
+                    <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                      {/* Switch Ativa / Desativada da Categoria */}
                       <button
-                        onClick={() => handleOpenNewProduct(cat.id)}
-                        className="text-xs font-bold text-[#FF5E1E] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        type="button"
+                        role="switch"
+                        aria-checked={cat.status === 'active'}
+                        onClick={() => handleToggleCategoryStatus(cat)}
+                        title={
+                          cat.status === 'active'
+                            ? 'Clique para desativar esta categoria'
+                            : 'Clique para ativar esta categoria'
+                        }
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-[#E9ECEF] bg-white hover:bg-slate-50 transition-all cursor-pointer"
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Cadastrar primeiro produto aqui</span>
-                      </button>
-                    </div>
-                  ) : (
-                    catProducts.map((prod) => {
-                      const tmpl = templates.find((t) => t.id === prod.templateId)
-
-                      return (
                         <div
-                          key={prod.id}
-                          className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                            !prod.available
-                              ? 'bg-rose-50/20 opacity-80'
-                              : 'hover:bg-[#F8F9FA]/40'
+                          className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                            cat.status === 'active'
+                              ? 'bg-emerald-500'
+                              : 'bg-slate-300'
                           }`}
                         >
-                          {/* Foto + Informações Principais */}
-                          <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
-                            {/* Reordenação do Produto */}
-                            <div className="flex flex-col items-center justify-center gap-0.5 bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-1.5 py-1 shrink-0">
-                              <button
-                                onClick={() => reorderProduct(prod.id, -1)}
-                                title="Subir ordem do produto"
-                                className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <span className="text-[11px] font-black text-[#1A1D20]">
-                                #{prod.order}
-                              </span>
-                              <button
-                                onClick={() => reorderProduct(prod.id, 1)}
-                                title="Descer ordem do produto"
-                                className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                          <span
+                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
+                              cat.status === 'active'
+                                ? 'translate-x-4'
+                                : 'translate-x-0'
+                            }`}
+                          />
+                        </div>
+                        <span
+                          className={`text-[11px] font-extrabold select-none ${
+                            cat.status === 'active'
+                              ? 'text-emerald-700'
+                              : 'text-[#6C757D]'
+                          }`}
+                        >
+                          {cat.status === 'active' ? 'Ativa' : 'Desativada'}
+                        </span>
+                      </button>
 
-                            {/* Foto Compactada com Thumbnail */}
-                            <div className="w-14 h-14 rounded-xl border border-[#E9ECEF] overflow-hidden bg-slate-100 shrink-0 relative">
-                              <img
-                                src={prod.image}
-                                alt={prod.name}
-                                className={`w-full h-full object-cover ${
-                                  !prod.available ? 'grayscale' : ''
-                                }`}
-                              />
-                              {!prod.available && (
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                  <span className="text-[9px] font-black text-white uppercase tracking-tighter bg-rose-600 px-1 py-0.5 rounded-sm">
-                                    Esgotado
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                      <button
+                        onClick={() => handleEditCategory(cat)}
+                        className="px-3 py-1.5 rounded-xl border border-[#E9ECEF] bg-white hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E] transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Editar</span>
+                      </button>
 
-                            {/* Textos */}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h4
-                                  className={`font-extrabold text-sm truncate transition-all ${
-                                    !prod.available
-                                      ? 'line-through text-[#6C757D]'
-                                      : 'text-[#1A1D20]'
-                                  }`}
+                      <button
+                        onClick={() => handlePromptDeleteCategory(cat)}
+                        className="p-1.5 text-[#6C757D] hover:text-rose-600 transition-colors cursor-pointer"
+                        title="Excluir categoria"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenNewProduct(cat.id)}
+                        className="px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-200 hover:bg-orange-100 text-[#FF5E1E] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ml-auto sm:ml-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Adicionar Produto</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Lista de Produtos desta Categoria */}
+                  <div className="divide-y divide-[#E9ECEF]">
+                    {catProducts.length === 0 ? (
+                      <div className="p-8 text-center space-y-2">
+                        <p className="text-xs text-[#6C757D]">
+                          Nenhum produto cadastrado nesta categoria de vitrine ainda.
+                        </p>
+                        <button
+                          onClick={() => handleOpenNewProduct(cat.id)}
+                          className="text-xs font-bold text-[#FF5E1E] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Cadastrar primeiro produto aqui</span>
+                        </button>
+                      </div>
+                    ) : (
+                      catProducts.map((prod) => {
+                        const tmpl = templates.find((t) => t.id === prod.templateId)
+
+                        return (
+                          <div
+                            key={prod.id}
+                            className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                              !prod.available
+                                ? 'bg-rose-50/20 opacity-80'
+                                : 'hover:bg-[#F8F9FA]/40'
+                            }`}
+                          >
+                            {/* Foto + Informações Principais */}
+                            <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                              {/* Reordenação do Produto */}
+                              <div className="flex flex-col items-center justify-center gap-0.5 bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-1.5 py-1 shrink-0">
+                                <button
+                                  onClick={() => reorderProduct(prod.id, -1)}
+                                  title="Subir ordem do produto"
+                                  className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
                                 >
-                                  {prod.name}
-                                </h4>
-                                {prod.badge && (
-                                  <span
-                                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md transition-all ${
-                                      !prod.available
-                                        ? 'bg-slate-100 text-[#6C757D] opacity-60'
-                                        : 'bg-orange-100 text-[#FF5E1E]'
-                                    }`}
-                                  >
-                                    {prod.badge}
-                                  </span>
-                                )}
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <span className="text-[11px] font-black text-[#1A1D20]">
+                                  #{prod.order}
+                                </span>
+                                <button
+                                  onClick={() => reorderProduct(prod.id, 1)}
+                                  title="Descer ordem do produto"
+                                  className="text-[10px] text-[#6C757D] hover:text-[#FF5E1E] cursor-pointer"
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
                               </div>
 
-                              {prod.desc && (
-                                <p className="text-xs text-[#6C757D] line-clamp-1 mt-0.5">
-                                  {prod.desc}
-                                </p>
-                              )}
-
-                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                {/* Preço */}
-                                <div className="flex items-baseline gap-1.5">
-                                  <span className="text-xs font-black text-[#FF5E1E]">
-                                    {formatCurrency(prod.price)}
-                                  </span>
-                                </div>
-
-                                {/* Template Badge */}
-                                {tmpl && (
-                                  <span className="text-[10px] font-semibold text-slate-600 bg-[#F8F9FA] border border-[#E9ECEF] px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <Sparkles className="w-2.5 h-2.5 text-orange-500" />
-                                    <span>{tmpl.name}</span>
-                                    {tmpl.groups?.length > 0 && (
-                                      <span className="opacity-75 text-[9px] font-bold">
-                                        ({tmpl.groups.length} {tmpl.groups.length === 1 ? 'grupo' : 'grupos'})
-                                      </span>
-                                    )}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Ações: Switch Disponível/Esgotado + Editar + Excluir */}
-                          <div className="flex items-center gap-2 sm:gap-2.5 justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E9ECEF]">
-                            {/* Switch Rápido de Esgotamento */}
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={prod.available}
-                              onClick={() => handleToggleProductStock(prod)}
-                              title={
-                                prod.available
-                                  ? 'Clique para marcar como ESGOTADO no cardápio'
-                                  : 'Clique para REATIVAR o produto no cardápio'
-                              }
-                              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
-                                prod.available
-                                  ? 'border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50'
-                                  : 'border-rose-200 bg-rose-50/60 hover:bg-rose-100'
-                              }`}
-                            >
-                              <div
-                                className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                                  prod.available
-                                    ? 'bg-emerald-500'
-                                    : 'bg-rose-500'
-                                }`}
-                              >
-                                <span
-                                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
-                                    prod.available
-                                      ? 'translate-x-4'
-                                      : 'translate-x-0'
+                              {/* Foto Compactada com Thumbnail */}
+                              <div className="w-14 h-14 rounded-xl border border-[#E9ECEF] overflow-hidden bg-slate-100 shrink-0 relative">
+                                <img
+                                  src={prod.image}
+                                  alt={prod.name}
+                                  className={`w-full h-full object-cover ${
+                                    !prod.available ? 'grayscale' : ''
                                   }`}
                                 />
+                                {!prod.available && (
+                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <span className="text-[9px] font-black text-white uppercase tracking-tighter bg-rose-600 px-1 py-0.5 rounded-sm">
+                                      Esgotado
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                              <span
-                                className={`text-[11px] font-black select-none ${
+
+                              {/* Textos */}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4
+                                    className={`font-extrabold text-sm truncate transition-all ${
+                                      !prod.available
+                                        ? 'line-through text-[#6C757D]'
+                                        : 'text-[#1A1D20]'
+                                    }`}
+                                  >
+                                    {prod.name}
+                                  </h4>
+                                  {prod.badge && (
+                                    <span
+                                      className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md transition-all ${
+                                        !prod.available
+                                          ? 'bg-slate-100 text-[#6C757D] opacity-60'
+                                          : 'bg-orange-100 text-[#FF5E1E]'
+                                      }`}
+                                    >
+                                      {prod.badge}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {prod.desc && (
+                                  <p className="text-xs text-[#6C757D] line-clamp-1 mt-0.5">
+                                    {prod.desc}
+                                  </p>
+                                )}
+
+                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                  {/* Preço */}
+                                  <div className="flex items-baseline gap-1.5">
+                                    <span className="text-xs font-black text-[#FF5E1E]">
+                                      {formatCurrency(prod.price)}
+                                    </span>
+                                  </div>
+
+                                  {/* Template Badge */}
+                                  {tmpl && (
+                                    <span className="text-[10px] font-semibold text-slate-600 bg-[#F8F9FA] border border-[#E9ECEF] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                      <Sparkles className="w-2.5 h-2.5 text-orange-500" />
+                                      <span>{tmpl.name}</span>
+                                      {tmpl.groups?.length > 0 && (
+                                        <span className="opacity-75 text-[9px] font-bold">
+                                          ({tmpl.groups.length} {tmpl.groups.length === 1 ? 'grupo' : 'grupos'})
+                                        </span>
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Ações: Switch Disponível/Esgotado + Editar + Excluir */}
+                            <div className="flex items-center gap-2 sm:gap-2.5 justify-end shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E9ECEF]">
+                              {/* Switch Rápido de Esgotamento */}
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={prod.available}
+                                onClick={() => handleToggleProductStock(prod)}
+                                title={
                                   prod.available
-                                    ? 'text-emerald-800'
-                                    : 'text-rose-700'
+                                    ? 'Clique para marcar como ESGOTADO no cardápio'
+                                    : 'Clique para REATIVAR o produto no cardápio'
+                                }
+                                className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                                  prod.available
+                                    ? 'border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50'
+                                    : 'border-rose-200 bg-rose-50/60 hover:bg-rose-100'
                                 }`}
                               >
-                                {prod.available ? 'Disponível' : 'Esgotado'}
-                              </span>
-                            </button>
+                                <div
+                                  className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                                    prod.available
+                                      ? 'bg-emerald-500'
+                                      : 'bg-rose-500'
+                                  }`}
+                                >
+                                  <span
+                                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
+                                      prod.available
+                                        ? 'translate-x-4'
+                                        : 'translate-x-0'
+                                    }`}
+                                  />
+                                </div>
+                                <span
+                                  className={`text-[11px] font-black select-none ${
+                                    prod.available
+                                      ? 'text-emerald-800'
+                                      : 'text-rose-700'
+                                  }`}
+                                >
+                                  {prod.available ? 'Disponível' : 'Esgotado'}
+                                </span>
+                              </button>
 
-                            <button
-                              onClick={() => handleEditProduct(prod)}
-                              className="px-3 py-1.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E] transition-all flex items-center gap-1.5 cursor-pointer"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Editar</span>
-                            </button>
+                              <button
+                                onClick={() => handleEditProduct(prod)}
+                                className="px-3 py-1.5 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E] transition-all flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Editar</span>
+                              </button>
 
-                            <button
-                              onClick={() => handlePromptDeleteProduct(prod)}
-                              className="p-1.5 text-[#6C757D] hover:text-rose-600 transition-colors cursor-pointer"
-                              title="Excluir produto"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                              <button
+                                onClick={() => handlePromptDeleteProduct(prod)}
+                                className="p-1.5 text-[#6C757D] hover:text-rose-600 transition-colors cursor-pointer"
+                                title="Excluir produto"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })
-                  )}
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
         </div>
       )}
 
@@ -756,15 +634,18 @@ export function MenuVitrineView() {
         />
       )}
 
-      {/* Modal de Confirmação para Categoria */}
-      <ConfirmModal
+      {/* Modal Inteligente de Exclusão de Categoria */}
+      <DeleteCategoryModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="Excluir Categoria"
-        description={`Tem certeza que deseja excluir a categoria "${categoryToDelete?.name}"? Os produtos vinculados a ela serão mantidos.`}
-        confirmText="Sim, Excluir"
-        confirmVariant="danger"
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+          setCategoryToDelete(null)
+        }}
+        category={categoryToDelete}
+        onDeleteCategoryOnly={handleDeleteCategoryOnly}
+        onMoveProductsAndDelete={handleMoveProductsAndDelete}
+        onDeactivateCategory={handleDeactivateCategoryFromModal}
+        onDeleteCategoryAndProducts={handleDeleteCategoryAndProducts}
       />
 
       {/* Modal de Produto */}

@@ -1,5 +1,6 @@
 import { useCustomerStore } from '../store/useCustomerStore'
 import { useStoreAdmin } from '../store/useStoreAdmin'
+import { useCartStore } from '../store/useCartStore'
 
 /**
  * Serviço de WebSocket Nativo RFC 6455 para integração em tempo real com o backend em Go.
@@ -11,6 +12,7 @@ import { useStoreAdmin } from '../store/useStoreAdmin'
  * - Tolerância a falhas quando o backend Go ainda estiver inicializando ou offline em dev
  * - Normalização de envelopes JSON: aceita formatos { type, payload } ou { event, data }
  * - BroadcastChannel nativo do navegador para sincronização cruzada imediata entre abas (Cliente <-> Lojista)
+ * - Sincronização em tempo real do Catálogo (Itens criados, pausados, excluídos e categorias)
  */
 
 class OrdersWebSocketService {
@@ -28,7 +30,7 @@ class OrdersWebSocketService {
     this.shouldReconnect = true
 
     // Identificador único desta aba para evitar loops de eco no BroadcastChannel
-    this.clientId = `client-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+    this.clientId = `client-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     this.broadcastChannel = null
 
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -287,7 +289,7 @@ class OrdersWebSocketService {
       return
     }
 
-    // 4. Sincronização em Massa (Go envia pedidos ativos ao conectar)
+    // 4. Sincronização em Massa de Pedidos
     if (
       type === 'SYNC_ORDERS' ||
       type === 'ORDERS_LIST' ||
@@ -300,16 +302,108 @@ class OrdersWebSocketService {
       return
     }
 
+    // 5. Item Adicionado ao Cardápio em Tempo Real
+    if (type === 'MENU_ITEM_CREATED' || type === 'PRODUCT_CREATED') {
+      if (payload && payload.id) {
+        const currentProducts = useStoreAdmin.getState().products
+        const exists = currentProducts.some((p) => String(p.id) === String(payload.id))
+        if (!exists) {
+          useStoreAdmin.setState((s) => ({
+            products: [...s.products, payload],
+          }))
+          useStoreAdmin.getState().persist()
+        }
+        this.emit('MENU_ITEM_CREATED', payload)
+      }
+      return
+    }
+
+    // 6. Item Atualizado / Pausado / Esgotado em Tempo Real
+    if (type === 'MENU_ITEM_UPDATED' || type === 'PRODUCT_UPDATED') {
+      if (payload && payload.id) {
+        useStoreAdmin.setState((s) => ({
+          products: s.products.map((p) =>
+            String(p.id) === String(payload.id) ? { ...p, ...payload } : p
+          ),
+        }))
+        useStoreAdmin.getState().persist()
+
+        // Se o produto foi marcado como indisponível/pausado, reflete no carrinho
+        if (payload.available === false) {
+          useCartStore.getState().markProductUnavailable(
+            payload.id,
+            'Este item foi pausado/esgotado pelo restaurante.'
+          )
+        }
+
+        this.emit('MENU_ITEM_UPDATED', payload)
+      }
+      return
+    }
+
+    // 7. Item Excluído do Cardápio em Tempo Real
+    if (type === 'MENU_ITEM_DELETED' || type === 'PRODUCT_DELETED') {
+      const prodId = payload.id || payload.productId
+      if (prodId) {
+        useStoreAdmin.setState((s) => ({
+          products: s.products.filter((p) => String(p.id) !== String(prodId)),
+        }))
+        useStoreAdmin.getState().persist()
+
+        // Se o cliente possuir este item na sacola, marca imediatamente como indisponível
+        useCartStore.getState().markProductUnavailable(
+          prodId,
+          'Este produto foi removido do cardápio pelo restaurante.'
+        )
+
+        this.emit('MENU_ITEM_DELETED', { productId: prodId, payload })
+      }
+      return
+    }
+
+    // 8. Categoria Criada / Atualizada / Excluída em Tempo Real
+    if (type === 'CATEGORY_CREATED') {
+      if (payload && payload.id) {
+        useStoreAdmin.setState((s) => ({
+          categories: [...s.categories.filter((c) => String(c.id) !== String(payload.id)), payload],
+        }))
+        useStoreAdmin.getState().persist()
+        this.emit('CATEGORY_CREATED', payload)
+      }
+      return
+    }
+
+    if (type === 'CATEGORY_UPDATED') {
+      if (payload && payload.id) {
+        useStoreAdmin.setState((s) => ({
+          categories: s.categories.map((c) =>
+            String(c.id) === String(payload.id) ? { ...c, ...payload } : c
+          ),
+        }))
+        useStoreAdmin.getState().persist()
+        this.emit('CATEGORY_UPDATED', payload)
+      }
+      return
+    }
+
+    if (type === 'CATEGORY_DELETED') {
+      const catId = payload.id || payload.categoryId
+      if (catId) {
+        useStoreAdmin.setState((s) => ({
+          categories: s.categories.filter((c) => String(c.id) !== String(catId)),
+        }))
+        useStoreAdmin.getState().persist()
+        this.emit('CATEGORY_DELETED', { categoryId: catId, payload })
+      }
+      return
+    }
+
     // Dispara listener genérico para qualquer outro tipo customizado do backend
     this.emit(type, payload)
   }
 
   /**
    * Envia uma mensagem no formato Go JSON para o servidor
-   *
-   * @param {string} type - Tipo de evento, ex: 'UPDATE_ORDER_STATUS'
-   * @param {any} payload - Dados anexados
-   * @returns {boolean} Se foi enviado com sucesso
    */
   send(type, payload = {}) {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -343,12 +437,8 @@ class OrdersWebSocketService {
       createdAt: order.createdAt || 'Agora mesmo',
     }
 
-    // 1. Envia via rede WebSocket para o backend Go (que faz broadcast para todos os lojistas)
     this.send('CREATE_ORDER', normalizedOrder)
-
-    // 2. Dispara no canal BroadcastChannel local (sincronização imediata entre abas no mesmo computador)
     this.broadcastLocal('ORDER_CREATED', normalizedOrder)
-
     return true
   }
 
@@ -362,12 +452,8 @@ class OrdersWebSocketService {
       updatedAt: new Date().toISOString(),
     }
 
-    // 1. Envia ao backend Go via WebSocket
     this.send('UPDATE_ORDER_STATUS', payload)
-
-    // 2. Notifica abas irmãs locais (ex: tela do cliente aberta no mesmo navegador)
     this.broadcastLocal('ORDER_STATUS_UPDATED', payload)
-
     return true
   }
 
@@ -382,8 +468,42 @@ class OrdersWebSocketService {
 
     this.send('UPDATE_STORE_STATUS', payload)
     this.broadcastLocal('STORE_STATUS_UPDATED', payload)
-
     return true
+  }
+
+  /**
+   * Broadcasts de Catálogo (Itens e Categorias)
+   */
+  broadcastMenuItemCreated(product) {
+    this.send('MENU_ITEM_CREATED', product)
+    this.broadcastLocal('MENU_ITEM_CREATED', product)
+  }
+
+  broadcastMenuItemUpdated(product) {
+    this.send('MENU_ITEM_UPDATED', product)
+    this.broadcastLocal('MENU_ITEM_UPDATED', product)
+  }
+
+  broadcastMenuItemDeleted(productId, categoryId) {
+    const payload = { id: productId, productId, categoryId }
+    this.send('MENU_ITEM_DELETED', payload)
+    this.broadcastLocal('MENU_ITEM_DELETED', payload)
+  }
+
+  broadcastCategoryCreated(category) {
+    this.send('CATEGORY_CREATED', category)
+    this.broadcastLocal('CATEGORY_CREATED', category)
+  }
+
+  broadcastCategoryUpdated(category) {
+    this.send('CATEGORY_UPDATED', category)
+    this.broadcastLocal('CATEGORY_UPDATED', category)
+  }
+
+  broadcastCategoryDeleted(categoryId) {
+    const payload = { id: categoryId, categoryId }
+    this.send('CATEGORY_DELETED', payload)
+    this.broadcastLocal('CATEGORY_DELETED', payload)
   }
 
   /**

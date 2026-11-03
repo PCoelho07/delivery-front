@@ -6,10 +6,8 @@ import { persist } from 'zustand/middleware'
  *
  * Características:
  * - Cada restaurante (identificado pelo seu slug ou id) possui sua própria sacola isolada.
- * - Ao navegar da Loja A para a Loja B:
- *   - A sacola da Loja A é preservada intacta na memória/localStorage.
- *   - A Loja B abre com seu próprio carrinho (se vazio, não exibe barra de sacola).
- * - Ao retornar para a Loja A, todos os lanches adicionados anteriormente reaparecem automaticamente.
+ * - Suporta marcação de itens indisponíveis/esgotados em tempo real via WebSockets.
+ * - Bloqueia finalização se houver itens removidos ou esgotados pelo restaurante.
  */
 export const useCartStore = create(
   persist(
@@ -22,14 +20,12 @@ export const useCartStore = create(
 
       /**
        * Alterna o contexto ativo para o restaurante especificado.
-       * Salva o carrinho da loja anterior e restaura o carrinho independente da nova loja.
        */
       setStoreSlug: (slug) => {
         if (!slug) return
         const prevSlug = get().currentStoreSlug
         if (prevSlug === slug) return
 
-        // 1. Salva o carrinho da loja anterior no dicionário
         const prevItems = get().items || []
         const prevCoupon = get().appliedCoupon || null
         const updatedCarts = {
@@ -40,7 +36,6 @@ export const useCartStore = create(
           },
         }
 
-        // 2. Recupera o carrinho da nova loja (ou inicia vazio)
         const targetCart = updatedCarts[slug] || { items: [], appliedCoupon: null }
 
         set({
@@ -108,6 +103,7 @@ export const useCartStore = create(
           observation: observation.trim(),
           unitPrice,
           totalPrice,
+          isUnavailable: false,
         }
 
         const nextItems = [...get().items, newItem]
@@ -131,6 +127,7 @@ export const useCartStore = create(
         const cloned = orderItems.map((item, idx) => ({
           ...item,
           cartItemId: `${item.product?.id || idx}-${Date.now()}-${idx}`,
+          isUnavailable: false,
         }))
         const slug = get().currentStoreSlug
 
@@ -177,6 +174,56 @@ export const useCartStore = create(
 
       removeItem: (cartItemId) => {
         const nextItems = get().items.filter((i) => i.cartItemId !== cartItemId)
+        const slug = get().currentStoreSlug
+
+        set((state) => ({
+          items: nextItems,
+          cartsByStore: {
+            ...state.cartsByStore,
+            [slug]: {
+              items: nextItems,
+              appliedCoupon: state.appliedCoupon,
+            },
+          },
+        }))
+      },
+
+      /**
+       * Marca produtos excluídos ou pausados como indisponíveis em tempo real
+       */
+      markProductUnavailable: (productId, reason = 'Item esgotado ou excluído') => {
+        const current = get().items
+        const hasMatch = current.some(
+          (it) => String(it.product?.id) === String(productId)
+        )
+        if (!hasMatch) return false
+
+        const nextItems = current.map((it) =>
+          String(it.product?.id) === String(productId)
+            ? { ...it, isUnavailable: true, unavailableReason: reason }
+            : it
+        )
+        const slug = get().currentStoreSlug
+
+        set((state) => ({
+          items: nextItems,
+          cartsByStore: {
+            ...state.cartsByStore,
+            [slug]: {
+              items: nextItems,
+              appliedCoupon: state.appliedCoupon,
+            },
+          },
+        }))
+
+        return true
+      },
+
+      /**
+       * Remove de uma vez todos os itens indisponíveis do carrinho
+       */
+      removeUnavailableItems: () => {
+        const nextItems = get().items.filter((i) => !i.isUnavailable)
         const slug = get().currentStoreSlug
 
         set((state) => ({

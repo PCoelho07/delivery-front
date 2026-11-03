@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   X,
   Tag,
+  AlertCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '../../lib/utils'
@@ -22,6 +23,7 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
   const items = useCartStore((state) => state.items)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const clearCart = useCartStore((state) => state.clearCart)
+  const removeUnavailableItems = useCartStore((state) => state.removeUnavailableItems)
   const appliedCoupon = useCartStore((state) => state.appliedCoupon)
   const setAppliedCoupon = useCartStore((state) => state.setAppliedCoupon)
   const removeAppliedCoupon = useCartStore((state) => state.removeAppliedCoupon)
@@ -30,6 +32,11 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
 
   const [showCouponInput, setShowCouponInput] = useState(false)
   const [couponCode, setCouponCode] = useState('')
+
+  const hasUnavailableItems = useMemo(
+    () => items.some((item) => item.isUnavailable),
+    [items]
+  )
 
   const totalCount = items.reduce((acc, item) => acc + item.quantity, 0)
   const totalAmount = items.reduce((acc, item) => acc + item.totalPrice, 0)
@@ -88,6 +95,12 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
   }
 
   const handleProceed = () => {
+    if (hasUnavailableItems) {
+      toast.error('Itens indisponíveis na sacola', {
+        description: 'Remova os produtos esgotados ou excluídos para prosseguir para a entrega.',
+      })
+      return
+    }
     if (isBelowMin) {
       toast.error('Pedido abaixo do valor mínimo', {
         description: `O pedido mínimo desta loja é de ${formatCurrency(minOrder)}. Adicione mais ${formatCurrency(amountNeeded)} para avançar para a entrega.`,
@@ -193,6 +206,30 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
             </div>
           </div>
 
+          {/* Alerta de Itens Indisponíveis / Excluídos em Tempo Real */}
+          {hasUnavailableItems && (
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 space-y-2 shadow-xs">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-rose-950">
+                    Itens indisponíveis na sua sacola
+                  </p>
+                  <p className="text-[11.5px] text-rose-700 leading-relaxed mt-0.5">
+                    Um ou mais produtos foram pausados ou excluídos pelo restaurante. Remova-os para continuar.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={removeUnavailableItems}
+                className="w-full py-2 rounded-xl bg-white border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-100/50 transition-colors cursor-pointer"
+              >
+                Remover itens indisponíveis
+              </button>
+            </div>
+          )}
+
           {/* Lista de Itens do Pedido */}
           <section>
             <div className="flex items-center justify-between mb-3">
@@ -227,36 +264,61 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
                 {items.map((cartItem) => (
                   <article
                     key={cartItem.cartItemId}
-                    className="bg-white rounded-2xl p-3 flex items-center gap-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)]"
+                    className={`bg-white rounded-2xl p-3 flex items-center gap-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.03)] border transition-colors ${
+                      cartItem.isUnavailable
+                        ? 'border-rose-300 bg-rose-50/20'
+                        : 'border-transparent'
+                    }`}
                   >
                     {/* Foto do Item */}
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-[#F8F9FA]">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-[#F8F9FA] relative">
                       {cartItem.product.imageUrl ? (
                         <img
                           src={cartItem.product.imageUrl}
                           alt={cartItem.product.name}
-                          className="w-full h-full object-cover"
+                          className={`w-full h-full object-cover ${
+                            cartItem.isUnavailable ? 'grayscale opacity-60' : ''
+                          }`}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[11px] text-[#6C757D]">
                           Sem foto
                         </div>
                       )}
+                      {cartItem.isUnavailable && (
+                        <span className="absolute inset-x-0 bottom-0 bg-rose-600 text-white text-[9px] font-extrabold text-center py-0.5">
+                          ESGOTADO
+                        </span>
+                      )}
                     </div>
 
                     {/* Detalhes + Preço e Stepper */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between min-h-[78px]">
                       <div>
-                        <h4 className="text-[15px] font-bold text-[#1A1D20] truncate">
-                          {cartItem.product.name}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-[15px] font-bold text-[#1A1D20] truncate">
+                            {cartItem.product.name}
+                          </h4>
+                          {cartItem.isUnavailable && (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.2 rounded-md">
+                              Indisponível
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[12px] text-[#6C757D] truncate mt-0.5">
                           {formatItemSubtitle(cartItem)}
                         </p>
+                        {cartItem.isUnavailable && cartItem.unavailableReason && (
+                          <p className="text-[11px] text-rose-600 font-medium mt-0.5">
+                            {cartItem.unavailableReason}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[15px] font-bold text-[#1A1D20]">
+                        <span className={`text-[15px] font-bold ${
+                          cartItem.isUnavailable ? 'text-gray-400 line-through' : 'text-[#1A1D20]'
+                        }`}>
                           {formatCurrency(cartItem.totalPrice)}
                         </span>
 
@@ -290,14 +352,22 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
 
                           <button
                             type="button"
-                            onClick={() =>
+                            onClick={() => {
+                              if (cartItem.isUnavailable) {
+                                toast.error('Este produto está esgotado ou indisponível.')
+                                return
+                              }
                               updateQuantity(
                                 cartItem.cartItemId,
                                 cartItem.quantity + 1
                               )
-                            }
+                            }}
                             aria-label="Aumentar quantidade"
-                            className="p-0.5 text-[#FF5E1E] hover:text-[#E64E12] transition-colors cursor-pointer"
+                            className={`p-0.5 transition-colors ${
+                              cartItem.isUnavailable
+                                ? 'text-gray-300 cursor-not-allowed'
+                                : 'text-[#FF5E1E] hover:text-[#E64E12] cursor-pointer'
+                            }`}
                           >
                             <Plus className="w-4 h-4 stroke-[2.5]" />
                           </button>
@@ -456,7 +526,7 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
         {/* Rodapé Fixo com Alerta de Pedido Mínimo e Botão Continuar para Entrega */}
         {items.length > 0 && (
           <footer className="shrink-0 bg-white border-t border-gray-100 px-4 py-3.5 space-y-2.5">
-            {isBelowMin && (
+            {isBelowMin && !hasUnavailableItems && (
               <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 flex items-center justify-between text-xs text-amber-900 shadow-2xs">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
@@ -474,14 +544,18 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
               type="button"
               onClick={handleProceed}
               className={`w-full h-12 font-semibold text-[15px] rounded-2xl px-5 flex items-center justify-between transition-all ${
-                isBelowMin
+                hasUnavailableItems
+                  ? 'bg-rose-600 hover:bg-rose-700 text-white cursor-pointer shadow-xs'
+                  : isBelowMin
                   ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-xs'
                   : 'bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99] text-white cursor-pointer shadow-xs'
               }`}
             >
               <span className="w-5" />
               <span>
-                {isBelowMin
+                {hasUnavailableItems
+                  ? 'Remova os itens indisponíveis para avançar'
+                  : isBelowMin
                   ? `Mínimo não atingido (Faltam ${formatCurrency(amountNeeded)})`
                   : 'Continuar para entrega'}
               </span>
@@ -493,4 +567,3 @@ export function CartModal({ store, onClose, onContinueToDelivery }) {
     </div>
   )
 }
-

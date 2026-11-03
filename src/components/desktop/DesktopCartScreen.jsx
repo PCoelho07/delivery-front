@@ -9,7 +9,6 @@ import {
   Tag,
   TicketPercent,
   Trash2,
-  X,
   AlertCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -26,6 +25,7 @@ export function DesktopCartScreen({
   const items = useCartStore((state) => state.items)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const removeItem = useCartStore((state) => state.removeItem)
+  const removeUnavailableItems = useCartStore((state) => state.removeUnavailableItems)
   const clearCart = useCartStore((state) => state.clearCart)
   const appliedCoupon = useCartStore((state) => state.appliedCoupon)
   const setAppliedCoupon = useCartStore((state) => state.setAppliedCoupon)
@@ -35,6 +35,11 @@ export function DesktopCartScreen({
 
   const [couponCode, setCouponCode] = useState('')
   const [showCouponInput, setShowCouponInput] = useState(true)
+
+  const hasUnavailableItems = useMemo(
+    () => items.some((item) => item.isUnavailable),
+    [items]
+  )
 
   const totalCount = useMemo(
     () => items.reduce((acc, item) => acc + item.quantity, 0),
@@ -93,6 +98,12 @@ export function DesktopCartScreen({
   const handleAdvance = () => {
     if (items.length === 0) {
       toast.error('Sua sacola está vazia.')
+      return
+    }
+    if (hasUnavailableItems) {
+      toast.error('Itens indisponíveis na sacola', {
+        description: 'Remova os produtos excluídos ou esgotados para avançar para a finalização.',
+      })
       return
     }
     if (store?.statusMode === 'paused') {
@@ -171,31 +182,79 @@ export function DesktopCartScreen({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Coluna da Esquerda: Itens da Sacola + Cupom (7 Colunas no Desktop) */}
             <div className="lg:col-span-7 space-y-4">
+              {/* Aviso se houver itens excluídos ou esgotados */}
+              {hasUnavailableItems && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-xs">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold text-rose-950">
+                        Produtos indisponíveis na sacola
+                      </p>
+                      <p className="text-[11px] text-rose-700">
+                        Um ou mais itens foram pausados ou excluídos pelo restaurante. Remova-os para concluir o pedido.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeUnavailableItems}
+                    className="px-3.5 py-2 rounded-xl bg-white border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-100/50 transition-colors cursor-pointer shrink-0"
+                  >
+                    Remover indisponíveis
+                  </button>
+                </div>
+              )}
+
               {items.map((item) => (
                 <div
                   key={item.cartItemId}
-                  className="bg-white rounded-2xl p-4 sm:p-4.5 border border-gray-200/80 shadow-2xs flex items-center justify-between gap-4"
+                  className={`bg-white rounded-2xl p-4 sm:p-4.5 border shadow-2xs flex items-center justify-between gap-4 transition-colors ${
+                    item.isUnavailable
+                      ? 'border-rose-300 bg-rose-50/20'
+                      : 'border-gray-200/80'
+                  }`}
                 >
                   {/* Foto do Produto */}
-                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl overflow-hidden bg-gray-100 shrink-0">
+                  <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl overflow-hidden bg-gray-100 shrink-0 relative">
                     {item.product.imageUrl ? (
                       <img
                         src={item.product.imageUrl}
                         alt={item.product.name}
-                        className="w-full h-full object-cover"
+                        className={`w-full h-full object-cover ${
+                          item.isUnavailable ? 'grayscale opacity-60' : ''
+                        }`}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[10px] text-[#6C757D]">
                         Sem foto
                       </div>
                     )}
+                    {item.isUnavailable && (
+                      <span className="absolute inset-x-0 bottom-0 bg-rose-600 text-white text-[9px] font-extrabold text-center py-0.5">
+                        ESGOTADO
+                      </span>
+                    )}
                   </div>
 
                   {/* Informações */}
                   <div className="flex-1 min-w-0">
-                    <h2 className="font-bold text-[#1A1D20] text-base leading-snug truncate">
-                      {item.quantity}x {item.product.name}
-                    </h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-bold text-[#1A1D20] text-base leading-snug truncate">
+                        {item.quantity}x {item.product.name}
+                      </h2>
+                      {item.isUnavailable && (
+                        <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-md">
+                          Indisponível
+                        </span>
+                      )}
+                    </div>
+
+                    {item.isUnavailable && item.unavailableReason && (
+                      <p className="text-xs text-rose-600 font-medium mt-0.5">
+                        {item.unavailableReason}
+                      </p>
+                    )}
 
                     {/* Adicionais */}
                     {item.addons?.length > 0 && (
@@ -231,7 +290,9 @@ export function DesktopCartScreen({
                       </p>
                     )}
 
-                    <p className="font-extrabold text-[#FF5E1E] text-sm sm:text-base mt-1">
+                    <p className={`font-extrabold text-sm sm:text-base mt-1 ${
+                      item.isUnavailable ? 'text-gray-400 line-through' : 'text-[#FF5E1E]'
+                    }`}>
                       {formatCurrency(item.totalPrice)}
                     </p>
                   </div>
@@ -263,8 +324,18 @@ export function DesktopCartScreen({
 
                     <button
                       type="button"
-                      onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#FF5E1E] hover:bg-[#E64E12] text-white flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+                      onClick={() => {
+                        if (item.isUnavailable) {
+                          toast.error('Este produto está esgotado ou indisponível.')
+                          return
+                        }
+                        updateQuantity(item.cartItemId, item.quantity + 1)
+                      }}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors cursor-pointer ${
+                        item.isUnavailable
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-[#FF5E1E] hover:bg-[#E64E12] text-white'
+                      }`}
                       title="Aumentar quantidade"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -278,75 +349,69 @@ export function DesktopCartScreen({
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200/80 rounded-xl p-3.5">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center shrink-0">
                         <Tag className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs sm:text-sm font-black text-emerald-950 truncate">
-                          Cupom {appliedCoupon.code} aplicado!
+                        <p className="text-xs font-bold text-emerald-950 truncate">
+                          Cupom {appliedCoupon.code} aplicado com sucesso!
                         </p>
-                        <p className="text-xs text-emerald-700">
-                          {appliedCoupon.discountPercent}% OFF (-{formatCurrency(discountAmount)})
+                        <p className="text-[11px] text-emerald-700">
+                          {appliedCoupon.discountPercent}% de desconto {couponEvaluation?.scopeLabel ? `(${couponEvaluation.scopeLabel})` : ''} (-{formatCurrency(discountAmount)})
                         </p>
                       </div>
                     </div>
+
                     <button
                       type="button"
-                      onClick={() => removeAppliedCoupon()}
-                      className="p-1.5 rounded-lg text-emerald-700 hover:text-rose-600 hover:bg-emerald-100 transition-colors cursor-pointer shrink-0"
-                      title="Remover cupom"
+                      onClick={removeAppliedCoupon}
+                      className="text-xs font-bold text-emerald-700 hover:text-rose-600 transition-colors cursor-pointer ml-3 shrink-0"
                     >
-                      <X className="w-4 h-4" />
+                      Remover
                     </button>
                   </div>
                 ) : (
                   <>
-                    {/* Botão Superior com Ícone Laranja e Texto Exato do Mobile */}
                     <button
                       type="button"
-                      onClick={() => setShowCouponInput((prev) => !prev)}
-                      className="w-full flex items-center justify-between cursor-pointer text-left group p-0.5 rounded-xl transition-colors"
+                      onClick={() => setShowCouponInput(!showCouponInput)}
+                      className="w-full flex items-center justify-between cursor-pointer text-left"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#FFF0EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                          <TicketPercent
-                            className="w-5 h-5 text-[#FF5E1E]"
-                            strokeWidth={2}
-                          />
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-orange-50 text-[#FF5E1E] flex items-center justify-center shrink-0">
+                          <TicketPercent className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-[14px] font-bold text-[#1A1D20] leading-tight">
+                          <p className="text-xs sm:text-sm font-bold text-[#1A1D20]">
                             Possui cupom de desconto?
                           </p>
-                          <p className="text-[12px] text-[#6C757D] mt-0.5">
-                            Insira o código promocional para obter desconto em %
+                          <p className="text-[11px] text-[#6C757D]">
+                            Insira seu código promocional
                           </p>
                         </div>
                       </div>
-
                       <ChevronRight
-                        className={`w-4 h-4 text-[#6C757D] transition-transform duration-200 ${
+                        className={`w-4 h-4 text-[#6C757D] transition-transform ${
                           showCouponInput ? 'rotate-90' : ''
                         }`}
                       />
                     </button>
 
-                    {/* Input com Placeholder e Botão Laranja "Aplicar" como no Mobile */}
                     {showCouponInput && (
                       <form
                         onSubmit={handleApplyCoupon}
-                        className="pt-2 border-t border-gray-100 flex gap-2.5 items-center"
+                        className="pt-2 border-t border-gray-100 flex gap-2"
                       >
                         <input
                           type="text"
                           value={couponCode}
                           onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                          placeholder="EX: PRIMEIRACOMPRA"
-                          className="flex-1 bg-[#F8F9FA] border border-[#E2E5E9] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-bold uppercase text-[#1A1D20] placeholder:text-[#ADB5BD] placeholder:font-normal focus:outline-none focus:border-[#FF5E1E] transition-colors"
+                          placeholder="DIGITE SEU CUPOM"
+                          className="flex-1 bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2 text-xs font-bold uppercase text-[#1A1D20] placeholder:text-gray-400 placeholder:font-normal outline-none focus:border-[#FF5E1E]"
                         />
                         <button
                           type="submit"
-                          className="px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-95 text-white text-xs sm:text-sm font-bold cursor-pointer transition-colors shadow-2xs shrink-0"
+                          className="px-4 py-2 bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-2xs"
                         >
                           Aplicar
                         </button>
@@ -355,28 +420,23 @@ export function DesktopCartScreen({
                   </>
                 )}
               </div>
-
-              {/* Botão para limpar carrinho */}
-              <div className="text-right pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    clearCart()
-                    toast.info('Sacola limpa.')
-                  }}
-                  className="text-xs text-[#6C757D] hover:text-rose-600 transition-colors cursor-pointer"
-                >
-                  Esvaziar sacola
-                </button>
-              </div>
             </div>
 
-            {/* Coluna da Direita: Resumo dos Valores (Proporcional e Alinhado em Altura) */}
+            {/* Coluna da Direita: Resumo Financeiro & Botão de Avançar (5 Colunas) */}
             <aside className="lg:col-span-5 sticky top-6">
-              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-gray-200/80 shadow-2xs space-y-3.5">
-                <h2 className="font-bold text-sm sm:text-[15px] text-[#1A1D20] border-b border-gray-100 pb-2.5">
-                  Resumo dos Valores
-                </h2>
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/80 shadow-2xs space-y-5">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                  <h3 className="font-extrabold text-[#1A1D20] text-base">
+                    Resumo do Pedido
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={clearCart}
+                    className="text-xs text-[#6C757D] hover:text-rose-600 transition-colors cursor-pointer"
+                  >
+                    Esvaziar Sacola
+                  </button>
+                </div>
 
                 <div className="space-y-2 text-xs sm:text-[13px] text-[#6C757D]">
                   <div className="flex justify-between items-center">
@@ -409,7 +469,7 @@ export function DesktopCartScreen({
                 </div>
 
                 {/* Aviso de Pedido Mínimo */}
-                {isBelowMin && (
+                {isBelowMin && !hasUnavailableItems && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex items-start gap-2 text-xs text-amber-800">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
@@ -425,14 +485,18 @@ export function DesktopCartScreen({
                 <button
                   type="button"
                   onClick={handleAdvance}
-                  disabled={isBelowMin || store?.isOpen === false || store?.statusMode === 'paused'}
+                  disabled={isBelowMin || hasUnavailableItems || store?.isOpen === false || store?.statusMode === 'paused'}
                   className={`w-full py-3 px-4 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer ${
-                    isBelowMin || store?.isOpen === false || store?.statusMode === 'paused'
+                    isBelowMin || hasUnavailableItems || store?.isOpen === false || store?.statusMode === 'paused'
                       ? 'bg-gray-300 cursor-not-allowed shadow-none'
                       : 'bg-[#FF5E1E] hover:bg-[#E64E12]'
                   }`}
                 >
-                  <span>Avançar para Endereço & Dados</span>
+                  <span>
+                    {hasUnavailableItems
+                      ? 'Remova os itens indisponíveis para avançar'
+                      : 'Avançar para Endereço & Dados'}
+                  </span>
                   <ArrowRight className="w-4 h-4 stroke-[2.2]" />
                 </button>
               </div>

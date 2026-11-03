@@ -1,86 +1,69 @@
 import { create } from 'zustand'
 import { formatTitleCase } from '../utils/textUtils'
+import { ordersWebSocket } from '../services/ordersWebSocket'
 
-const STORAGE_KEY = 'delivery_admin_store_v3'
+export const STORAGE_KEY = 'delivery_admin_store_v4'
 
-const DEFAULT_CATEGORIES = [
-  { id: 'cat-populares', name: 'Populares', order: 1, status: 'active', icon: '🔥' },
-  { id: 'cat-lanches', name: 'Lanches Artesanais', order: 2, status: 'active', icon: '🍔' },
-  { id: 'cat-bebidas', name: 'Bebidas & Sucos', order: 3, status: 'active', icon: '🥤' },
+const LEGACY_STORAGE_KEYS = [
+  'delivery_admin_store',
+  'delivery_admin_store_v1',
+  'delivery_admin_store_v2',
+  'delivery_admin_store_v3',
+  'delivery_customer_store_v1',
+  'delivery_customer_store_v2',
 ]
 
-const DEFAULT_TEMPLATES = [
+function cleanupLegacyStorageKeys() {
+  if (typeof window === 'undefined' || !window.localStorage) return
+  LEGACY_STORAGE_KEYS.forEach((key) => {
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      // ignorar
+    }
+  })
+}
+
+cleanupLegacyStorageKeys()
+
+const TAB_SENDER_ID = `admin-tab-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+let adminBroadcastChannel = null
+
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    adminBroadcastChannel = new BroadcastChannel('delivery_admin_store_sync')
+  } catch {
+    adminBroadcastChannel = null
+  }
+}
+
+// Lista de Fusos Horários Brasileiros suportados
+export const BRAZIL_TIMEZONES = [
   {
-    id: 'tmpl-burger',
-    name: '🍔 Hambúrgueres (Ponto & Adicionais)',
-    desc: 'Ponto da carne, adicionais pagos e preferências',
-    groups: [
-      {
-        id: 'grp-1',
-        name: 'Ponto da Carne',
-        required: true,
-        min: 1,
-        max: 1,
-        items: [
-          { id: 'it-1', name: 'Ao Ponto (Rosado e Suculento)', price: 0 },
-          { id: 'it-2', name: 'Bem Passado', price: 0 },
-          { id: 'it-3', name: 'Mal Passado', price: 0 },
-        ],
-      },
-      {
-        id: 'grp-2',
-        name: 'Turbine seu Hambúrguer (Adicionais)',
-        required: false,
-        min: 0,
-        max: 5,
-        items: [
-          { id: 'it-4', name: 'Bacon em Fatias Crocantes', price: 5.0 },
-          { id: 'it-5', name: 'Queijo Cheddar Inglês Fatiado', price: 4.0 },
-          { id: 'it-6', name: 'Hambúrguer Extra 160g', price: 12.0 },
-        ],
-      },
-    ],
+    id: 'America/Sao_Paulo',
+    label: 'Horário de Brasília (SP, RJ, MG, PR, SC, RS, GO, DF, BA, CE, PE, RN, PB, AL, SE, PI, MA, PA, TO, AP)',
+    shortLabel: 'Brasília (GMT-3)',
   },
   {
-    id: 'tmpl-pizza',
-    name: '🍕 Pizzas (Bordas & Massas)',
-    desc: 'Bordas recheadas e tipo de massa',
-    groups: [
-      {
-        id: 'grp-p1',
-        name: 'Borda Recheada',
-        required: false,
-        min: 0,
-        max: 1,
-        items: [
-          { id: 'it-p1', name: 'Sem Borda Recheada', price: 0 },
-          { id: 'it-p2', name: 'Borda de Catupiry Original', price: 10.0 },
-          { id: 'it-p3', name: 'Borda de Cheddar Cremoso', price: 10.0 },
-          { id: 'it-p4', name: 'Borda Vulcão 4 Queijos', price: 14.0 },
-        ],
-      },
-    ],
+    id: 'America/Manaus',
+    label: 'Horário do Amazonas / Mato Grosso (AM, RR, RO, MT, MS)',
+    shortLabel: 'Amazonas / MT (GMT-4)',
   },
   {
-    id: 'tmpl-acai',
-    name: '🍧 Açaí (Acompanhamentos)',
-    desc: 'Tamanho e acompanhamentos grátis',
-    groups: [
-      {
-        id: 'grp-a1',
-        name: 'Acompanhamentos Grátis (Escolha até 3)',
-        required: false,
-        min: 0,
-        max: 3,
-        items: [
-          { id: 'it-a1', name: 'Leite Ninho', price: 0 },
-          { id: 'it-a2', name: 'Granola Crocante', price: 0 },
-          { id: 'it-a3', name: 'Banana Fatiada', price: 0 },
-          { id: 'it-a4', name: 'Morango Fresco', price: 0 },
-        ],
-      },
-    ],
+    id: 'America/Rio_Branco',
+    label: 'Horário do Acre (AC e Sudoeste do AM)',
+    shortLabel: 'Acre (GMT-5)',
   },
+  {
+    id: 'America/Noronha',
+    label: 'Fernando de Noronha (PE)',
+    shortLabel: 'Noronha (GMT-2)',
+  },
+]
+
+export const DEFAULT_CATEGORIES = []
+
+export const DEFAULT_TEMPLATES = [
   {
     id: 'tmpl-none',
     name: '🚫 Nenhum (Sem adicionais / Bebida)',
@@ -89,187 +72,28 @@ const DEFAULT_TEMPLATES = [
   },
 ]
 
-const DEFAULT_PRODUCTS = [
-  {
-    id: 'item-1',
-    name: 'Brasa da Casa',
-    categoryId: 'cat-populares',
-    templateId: 'tmpl-burger',
-    price: 34.9,
-    oldPrice: null,
-    desc: 'Blend 180 g, cheddar, cebola caramelizada e maionese da casa.',
-    image:
-      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 1,
-    badge: 'MAIS PEDIDO',
-  },
-  {
-    id: 'item-2',
-    name: 'Duplo Smash',
-    categoryId: 'cat-populares',
-    templateId: 'tmpl-burger',
-    price: 39.9,
-    oldPrice: null,
-    desc: 'Dois smashs, cheddar duplo, picles e nosso molho especial.',
-    image:
-      'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 2,
-    badge: null,
-  },
-  {
-    id: 'item-3',
-    name: 'Batata Rústica Especial',
-    categoryId: 'cat-populares',
-    templateId: 'tmpl-none',
-    price: 19.9,
-    oldPrice: null,
-    desc: 'Douradinha, com alecrim, flor de sal e aioli de alho assado.',
-    image:
-      'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 3,
-    badge: null,
-  },
-  {
-    id: 'item-4',
-    name: 'Double Cheddar Smash',
-    categoryId: 'cat-lanches',
-    templateId: 'tmpl-burger',
-    price: 38.9,
-    oldPrice: null,
-    desc: 'Dois smash burgers, cheddar derretido, picles e maionese no brioche.',
-    image:
-      'https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 1,
-    badge: null,
-  },
-  {
-    id: 'item-5',
-    name: 'Clássico Salada Brasa',
-    categoryId: 'cat-lanches',
-    templateId: 'tmpl-burger',
-    price: 32.9,
-    oldPrice: null,
-    desc: 'Hambúrguer 180 g na brasa, queijo prato, alface americana, tomate e molho especial.',
-    image:
-      'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 2,
-    badge: null,
-  },
-  {
-    id: 'item-6',
-    name: 'Bacon BBQ Defumado',
-    categoryId: 'cat-lanches',
-    templateId: 'tmpl-burger',
-    price: 41.9,
-    oldPrice: null,
-    desc: 'Blend 180 g, fatias de bacon crocante, queijo cheddar, onion rings e barbecue da casa.',
-    image:
-      'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 3,
-    badge: null,
-  },
-  {
-    id: 'item-7',
-    name: 'Coca-Cola Lata 350ml',
-    categoryId: 'cat-bebidas',
-    templateId: 'tmpl-none',
-    price: 6.9,
-    oldPrice: null,
-    desc: 'Lata 350ml trincando de gelada.',
-    image:
-      'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 1,
-    badge: null,
-  },
-  {
-    id: 'item-8',
-    name: 'Suco Natural de Laranja 500ml',
-    categoryId: 'cat-bebidas',
-    templateId: 'tmpl-none',
-    price: 12.9,
-    oldPrice: null,
-    desc: 'Feito na hora com laranjas selecionadas, sem adição de conservantes.',
-    image:
-      'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80',
-    available: true,
-    order: 2,
-    badge: null,
-  },
-]
+export const DEFAULT_PRODUCTS = []
 
-export const DEFAULT_COUPONS = [
-  {
-    id: 'cupom-1',
-    code: 'PRIMEIRACOMPRA',
-    discountPercent: 10,
-    active: true,
-    targetType: 'all',
-    targetCategoryId: null,
-    targetCategoryName: '',
-    targetProductIds: [],
-    targetProductNames: [],
-    createdAt: '2026-01-01',
-  },
-  {
-    id: 'cupom-2',
-    code: 'DIADOBURGER',
-    discountPercent: 15,
-    active: true,
-    targetType: 'category',
-    targetCategoryId: 'cat-lanches',
-    targetCategoryName: 'Lanches Artesanais',
-    targetProductIds: [],
-    targetProductNames: [],
-    createdAt: '2026-01-01',
-  },
-  {
-    id: 'cupom-3',
-    code: 'PROMOBRASA',
-    discountPercent: 20,
-    active: true,
-    targetType: 'product',
-    targetCategoryId: null,
-    targetCategoryName: '',
-    targetProductIds: ['item-1'],
-    targetProductNames: ['Brasa da Casa'],
-    createdAt: '2026-01-01',
-  },
-]
-
-const DEFAULT_SCHEDULE = [
-  { id: 'seg', name: 'Segunda-feira', shortName: 'Seg', open: true, start: '18:00', end: '23:30' },
-  { id: 'ter', name: 'Terça-feira', shortName: 'Ter', open: true, start: '18:00', end: '23:30' },
-  { id: 'qua', name: 'Quarta-feira', shortName: 'Qua', open: true, start: '18:00', end: '23:30' },
-  { id: 'qui', name: 'Quinta-feira', shortName: 'Qui', open: true, start: '18:00', end: '23:30' },
-  { id: 'sex', name: 'Sexta-feira', shortName: 'Sex', open: true, start: '18:00', end: '00:00' },
-  { id: 'sab', name: 'Sábado', shortName: 'Sáb', open: true, start: '18:00', end: '00:30' },
-  { id: 'dom', name: 'Domingo', shortName: 'Dom', open: true, start: '18:00', end: '23:30' },
-]
-
-export const DEFAULT_NEIGHBORHOODS = [
-  { id: 'nb-centro', name: 'Centro', fee: 3.0, active: true },
-  { id: 'nb-jd-america', name: 'Jardim América', fee: 4.0, active: true },
-  { id: 'nb-vila-nova', name: 'Vila Nova', fee: 5.0, active: true },
-  { id: 'nb-bela-vista', name: 'Bela Vista', fee: 5.0, active: true },
-  { id: 'nb-alto-boa-vista', name: 'Alto da Boa Vista', fee: 6.0, active: true },
-  { id: 'nb-distrito-industrial', name: 'Distrito Industrial', fee: 8.0, active: false },
+export const DEFAULT_SCHEDULE = [
+  { id: 'seg', dayIndex: 1, day: 'Segunda-feira', short: 'Seg', open: false, start: '00:00', end: '00:00' },
+  { id: 'ter', dayIndex: 2, day: 'Terça-feira', short: 'Ter', open: false, start: '00:00', end: '00:00' },
+  { id: 'qua', dayIndex: 3, day: 'Quarta-feira', short: 'Qua', open: false, start: '00:00', end: '00:00' },
+  { id: 'qui', dayIndex: 4, day: 'Quinta-feira', short: 'Qui', open: false, start: '00:00', end: '00:00' },
+  { id: 'sex', dayIndex: 5, day: 'Sexta-feira', short: 'Sex', open: false, start: '00:00', end: '00:00' },
+  { id: 'sab', dayIndex: 6, day: 'Sábado', short: 'Sáb', open: false, start: '00:00', end: '00:00' },
+  { id: 'dom', dayIndex: 0, day: 'Domingo', short: 'Dom', open: false, start: '00:00', end: '00:00' },
 ]
 
 export const DEFAULT_DELIVERY_CONFIG = {
   pricingMode: 'by_neighborhood', // 'fixed' | 'by_neighborhood'
-  fixedFee: 5.0,
+  fixedFee: 0,
+  minOrder: 0,
   estimatedDelivery: '40 - 50 min',
   estimatedPickup: '20 - 30 min',
   allowPickup: true,
-  minOrder: 15.0,
 }
+
+export const DEFAULT_NEIGHBORHOODS = []
 
 export const DEFAULT_PAYMENT_CONFIG = {
   methods: {
@@ -279,124 +103,144 @@ export const DEFAULT_PAYMENT_CONFIG = {
     debit: true,
   },
   pix: {
-    keyType: 'cnpj', // 'cnpj' | 'cpf' | 'email' | 'phone' | 'random'
-    key: '00.000.000/0001-00',
-    beneficiary: 'Brasa Burger',
+    keyType: 'cnpj', // 'cnpj' | 'cpf' | 'phone' | 'email' | 'random'
+    key: '',
+    beneficiary: '',
   },
 }
 
+export const DEFAULT_COUPONS = []
+
 /**
- * Calcula o status real de atendimento da loja (automático vs pausas manuais)
+ * Converte string "HH:MM" em total de minutos desde 00:00
  */
-export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_Paulo', statusMode = 'auto') {
-  // Sempre descobre o horário programado para o dia de hoje
-  let formattedHours = '18:00 às 23:30'
+function parseTimeToMinutes(timeStr) {
+  if (!timeStr || typeof timeStr !== 'string') return 0
+  const [h, m] = timeStr.split(':').map(Number)
+  return (h || 0) * 60 + (m || 0)
+}
+
+/**
+ * Calcula em tempo real se a loja está aberta ou fechada com base em:
+ * 1) Gatilho manual de emergência (storeStatusMode: 'paused' | 'forced_open' | 'auto')
+ * 2) Fuso horário configurado (ex: 'America/Sao_Paulo')
+ * 3) Grade de horários da semana (incluindo virada de meia-noite ex: 18:00 às 02:00)
+ */
+export function calculateStoreLiveStatus(
+  schedule = DEFAULT_SCHEDULE,
+  timezone = 'America/Sao_Paulo',
+  storeStatusMode = 'auto'
+) {
   try {
-    const dayMap = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
     const now = new Date()
-    const todayIndex = now.getDay()
-    const todayId = dayMap[todayIndex]
-    const todaySchedule = Array.isArray(schedule) ? schedule.find((d) => d.id === todayId) : null
-    if (todaySchedule && todaySchedule.open) {
-      formattedHours = `${todaySchedule.start || '18:00'} às ${todaySchedule.end || '23:30'}`
-    } else if (todaySchedule && !todaySchedule.open) {
-      formattedHours = 'Sem expediente hoje'
-    }
-  } catch {
-    formattedHours = '18:00 às 23:30'
-  }
-
-  if (statusMode === 'paused') {
-    return {
-      isOpen: false,
-      mode: 'paused',
-      badge: 'Pausa Temporária',
-      label: 'Fechado Temporariamente',
-      subtext: 'Pausa acionada manualmente no painel',
-      clientTag: 'Fechado temporariamente',
-      variant: 'paused',
-      todayHours: formattedHours,
-    }
-  }
-
-  if (statusMode === 'forced_open') {
-    return {
-      isOpen: true,
-      mode: 'forced_open',
-      badge: 'Aberto (Manual)',
-      label: 'Aberto Agora',
-      subtext: 'Abertura manual fora do horário programado',
-      clientTag: 'Aberto',
-      variant: 'open',
-      todayHours: formattedHours,
-    }
-  }
-
-  // Modo Automático: calcula com base no fuso horário e na grade da semana
-  try {
-    const dayMap = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab']
-    const now = new Date()
-    const formatter = new Intl.DateTimeFormat('pt-BR', {
-      timeZone: timezone,
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone || 'America/Sao_Paulo',
+      weekday: 'short',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
     })
-    const parts = formatter.formatToParts(now)
-    const hourPart = parts.find((p) => p.type === 'hour')?.value || '00'
-    const minutePart = parts.find((p) => p.type === 'minute')?.value || '00'
-    const currentClock = `${hourPart}:${minutePart}`
-    const todayIndex = now.getDay()
-    const todayId = dayMap[todayIndex]
-    const todaySchedule = schedule.find((d) => d.id === todayId)
 
-    if (!todaySchedule || !todaySchedule.open) {
-      return {
-        isOpen: false,
-        mode: 'auto',
-        badge: 'Fechado Hoje',
-        label: 'Fechado Hoje',
-        subtext: 'Sem expediente programado para hoje',
-        clientTag: 'Fechado',
-        variant: 'closed',
-        todayHours: 'Fechado hoje',
+    const parts = formatter.formatToParts(now)
+    const partMap = {}
+    parts.forEach((p) => {
+      partMap[p.type] = p.value
+    })
+
+    const weekdayMap = {
+      Sun: 0,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
+    }
+
+    const currentDayIndex = weekdayMap[partMap.weekday] ?? now.getDay()
+    const currentHour = parseInt(partMap.hour, 10) % 24
+    const currentMinute = parseInt(partMap.minute, 10) || 0
+    const currentMinutes = currentHour * 60 + currentMinute
+    const currentTimeFormatted = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`
+
+    const todaySchedule =
+      schedule.find((d) => d.dayIndex === currentDayIndex) || schedule[0]
+
+    const prevDayIndex = (currentDayIndex + 6) % 7
+    const yesterdaySchedule = schedule.find((d) => d.dayIndex === prevDayIndex)
+
+    // 1. Verifica se ainda estamos no turno da madrugada de ontem (ex: ontem abriu 18:00 até 02:00)
+    let isOpenBySchedule = false
+    let activeShiftText = todaySchedule?.open
+      ? `${todaySchedule.start} às ${todaySchedule.end}`
+      : 'Fechado hoje'
+
+    if (yesterdaySchedule && yesterdaySchedule.open) {
+      const yStart = parseTimeToMinutes(yesterdaySchedule.start)
+      const yEnd = parseTimeToMinutes(yesterdaySchedule.end)
+      if (yEnd < yStart && currentMinutes <= yEnd) {
+        isOpenBySchedule = true
+        activeShiftText = `${yesterdaySchedule.start} às ${yesterdaySchedule.end}`
       }
     }
 
-    const start = todaySchedule.start || '18:00'
-    const end = todaySchedule.end || '23:30'
-    const formattedHours = `${start} às ${end}`
+    // 2. Verifica o horário do dia atual
+    if (!isOpenBySchedule && todaySchedule && todaySchedule.open) {
+      const tStart = parseTimeToMinutes(todaySchedule.start)
+      const tEnd = parseTimeToMinutes(todaySchedule.end)
 
-    // Lógica para horário convencional vs madrugada (ex: 18:00 às 00:30)
-    let inWindow = false
-    if (start <= end) {
-      inWindow = currentClock >= start && currentClock <= end
-    } else {
-      inWindow = currentClock >= start || currentClock <= end
+      if (tEnd >= tStart) {
+        // Turno normal no mesmo dia (ex: 18:00 às 23:30)
+        if (currentMinutes >= tStart && currentMinutes <= tEnd) {
+          isOpenBySchedule = true
+        }
+      } else {
+        // Turno que atravessa a meia-noite (ex: 18:00 às 02:00)
+        if (currentMinutes >= tStart) {
+          isOpenBySchedule = true
+        }
+      }
     }
 
-    if (inWindow) {
+    // 3. Aplica o modo de operação (Auto vs Pausado Manualmente vs Forçado Aberto)
+    if (storeStatusMode === 'paused') {
+      return {
+        isOpen: false,
+        mode: 'paused',
+        badge: 'Pausado Manualmente',
+        label: 'Fechado Temporariamente',
+        subtext: 'Vendas pausadas pelo gestor',
+        todayHours: activeShiftText,
+        currentTimeFormatted,
+        todaySchedule,
+      }
+    }
+
+    if (storeStatusMode === 'forced_open') {
       return {
         isOpen: true,
-        mode: 'auto',
-        badge: 'Aberto Agora',
-        label: 'Aberto (Automático)',
-        subtext: `Atendimento hoje até às ${end}`,
-        clientTag: 'Aberto',
-        variant: 'open',
-        todayHours: formattedHours,
+        mode: 'forced_open',
+        badge: 'Aberto Manualmente',
+        label: 'Aberto agora',
+        subtext: `Horário livre ativado (${activeShiftText})`,
+        todayHours: activeShiftText,
+        currentTimeFormatted,
+        todaySchedule,
       }
-    } else {
-      return {
-        isOpen: false,
-        mode: 'auto',
-        badge: 'Fechado',
-        label: `Abre às ${start}`,
-        subtext: `Fechado no momento (abre hoje às ${start})`,
-        clientTag: 'Fechado',
-        variant: 'closed',
-        todayHours: formattedHours,
-      }
+    }
+
+    // Modo Automático (segue rigorosamente a tabela de horários)
+    return {
+      isOpen: isOpenBySchedule,
+      mode: 'auto',
+      badge: isOpenBySchedule ? 'Aberto (Automático)' : 'Fechado (Fora do Horário)',
+      label: isOpenBySchedule ? 'Aberto agora' : 'Fechado no momento',
+      subtext: todaySchedule?.open
+        ? `Hoje das ${todaySchedule.start} às ${todaySchedule.end}`
+        : 'Não abrimos hoje',
+      todayHours: activeShiftText,
+      currentTimeFormatted,
+      todaySchedule,
     }
   } catch (err) {
     console.warn('Erro ao calcular status ao vivo da loja:', err)
@@ -412,77 +256,90 @@ export function calculateStoreLiveStatus(schedule = [], timezone = 'America/Sao_
   }
 }
 
+function normalizeStorePayload(parsed) {
+  if (!parsed || typeof parsed !== 'object') return null
+  const next = { ...parsed }
+
+  if (!Array.isArray(next.templates) || next.templates.length === 0) {
+    next.templates = DEFAULT_TEMPLATES
+  } else {
+    next.templates = next.templates.map((t) => ({
+      ...t,
+      groups: Array.isArray(t.groups) ? t.groups : [],
+    }))
+  }
+  if (!Array.isArray(next.schedule) || next.schedule.length === 0) {
+    next.schedule = DEFAULT_SCHEDULE
+  }
+  if (!next.timezone) {
+    next.timezone = 'America/Sao_Paulo'
+  }
+  if (!next.storeStatusMode) {
+    next.storeStatusMode = 'auto'
+  }
+  if (!Array.isArray(next.neighborhoods)) {
+    next.neighborhoods = []
+  }
+  if (!Array.isArray(next.categories)) {
+    next.categories = []
+  }
+  if (!Array.isArray(next.products)) {
+    next.products = []
+  }
+  if (!Array.isArray(next.coupons)) {
+    next.coupons = []
+  }
+  if (!next.deliveryConfig) {
+    next.deliveryConfig = DEFAULT_DELIVERY_CONFIG
+  } else {
+    next.deliveryConfig = { ...DEFAULT_DELIVERY_CONFIG, ...next.deliveryConfig }
+  }
+  if (!next.paymentConfig) {
+    next.paymentConfig = DEFAULT_PAYMENT_CONFIG
+  } else {
+    next.paymentConfig = {
+      methods: {
+        ...DEFAULT_PAYMENT_CONFIG.methods,
+        ...(next.paymentConfig.methods || {}),
+      },
+      pix: {
+        ...DEFAULT_PAYMENT_CONFIG.pix,
+        ...(next.paymentConfig.pix || {}),
+      },
+    }
+  }
+  return next
+}
+
 const loadInitialState = () => {
   try {
     const cached = localStorage.getItem(STORAGE_KEY)
     if (cached) {
-      const parsed = JSON.parse(cached)
-      if (Array.isArray(parsed.templates)) {
-        parsed.templates = parsed.templates.map((t) => {
-          if (!Array.isArray(t.groups)) {
-            const def = DEFAULT_TEMPLATES.find((dt) => dt.id === t.id)
-            return def ? { ...def, ...t, groups: def.groups } : { ...t, groups: [] }
-          }
-          return t
-        })
-      }
-      if (!Array.isArray(parsed.schedule) || parsed.schedule.length === 0) {
-        parsed.schedule = DEFAULT_SCHEDULE
-      }
-      if (!parsed.timezone) {
-        parsed.timezone = 'America/Sao_Paulo'
-      }
-      if (!parsed.storeStatusMode) {
-        parsed.storeStatusMode = 'auto'
-      }
-      if (!Array.isArray(parsed.neighborhoods) || parsed.neighborhoods.length === 0) {
-        parsed.neighborhoods = DEFAULT_NEIGHBORHOODS
-      }
-      if (!Array.isArray(parsed.categories) || parsed.categories.length === 0) {
-        parsed.categories = DEFAULT_CATEGORIES
-      }
-      if (!Array.isArray(parsed.products) || parsed.products.length === 0) {
-        parsed.products = DEFAULT_PRODUCTS
-      }
-      if (!Array.isArray(parsed.coupons) || parsed.coupons.length === 0) {
-        parsed.coupons = DEFAULT_COUPONS
-      }
-      if (!parsed.deliveryConfig) {
-        parsed.deliveryConfig = DEFAULT_DELIVERY_CONFIG
-      } else {
-        parsed.deliveryConfig = { ...DEFAULT_DELIVERY_CONFIG, ...parsed.deliveryConfig }
-      }
-      if (!parsed.paymentConfig) {
-        parsed.paymentConfig = DEFAULT_PAYMENT_CONFIG
-      } else {
-        parsed.paymentConfig = {
-          methods: {
-            ...DEFAULT_PAYMENT_CONFIG.methods,
-            ...(parsed.paymentConfig.methods || {}),
-          },
-          pix: {
-            ...DEFAULT_PAYMENT_CONFIG.pix,
-            ...(parsed.paymentConfig.pix || {}),
-          },
-        }
-      }
-      return parsed
+      const parsed = normalizeStorePayload(JSON.parse(cached))
+      if (parsed) return parsed
     }
   } catch (error) {
     console.warn('Erro ao carregar dados administrativos do localStorage:', error)
   }
 
   return {
+    updatedAt: 0,
     isStoreOpen: true,
     storeStatusMode: 'auto',
     soundEnabled: true,
     storeInfo: {
       name: 'Brasa Burger',
       slug: 'brasa-burger',
-      phone: '(00) 00000-0000',
-      whatsapp: '5500000000000',
-      instagram: '@brasaburger',
-      minOrder: 25.00,
+      corporateName: '',
+      cnpj: '',
+      subtitle: 'Hambúrguer artesanal · Feito na brasa',
+      phone: '',
+      whatsapp: '',
+      instagram: '',
+      address: '',
+      logoUrl: '',
+      bannerUrl: '',
+      minOrder: 0,
       estimatedDelivery: '40 - 50 min',
       estimatedPickup: '20 - 30 min',
     },
@@ -501,6 +358,7 @@ const loadInitialState = () => {
 const initial = loadInitialState()
 
 export const useStoreAdmin = create((set, get) => ({
+  updatedAt: initial.updatedAt || 0,
   activeTab: 'pedidos',
   isMobileSidebarOpen: false,
   isStoreOpen: initial.isStoreOpen ?? true,
@@ -569,7 +427,7 @@ export const useStoreAdmin = create((set, get) => ({
   // Gestão de Categorias
   addCategory: ({ name, order, status }) => {
     const existing = [...get().categories].sort(
-      (a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id)
+      (a, b) => (a.order !== b.order ? a.order - b.order : String(a.id).localeCompare(String(b.id)))
     )
     const requestedOrder = Math.max(1, Number(order) || existing.length + 1)
     const insertIndex = Math.min(requestedOrder - 1, existing.length)
@@ -589,16 +447,21 @@ export const useStoreAdmin = create((set, get) => ({
 
     set({ categories: existing })
     get().persist()
+    try {
+      ordersWebSocket?.broadcastCategoryCreated?.(newCategory)
+    } catch {
+      // safe fallback
+    }
     return newCategory
   },
 
   updateCategory: (id, partial) => {
-    const currentCat = get().categories.find((c) => c.id === id)
+    const currentCat = get().categories.find((c) => String(c.id) === String(id))
     if (!currentCat) return
 
     const existing = get()
-      .categories.filter((c) => c.id !== id)
-      .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id))
+      .categories.filter((c) => String(c.id) !== String(id))
+      .sort((a, b) => (a.order !== b.order ? a.order - b.order : String(a.id).localeCompare(String(b.id))))
 
     const updatedCat = {
       ...currentCat,
@@ -621,33 +484,141 @@ export const useStoreAdmin = create((set, get) => ({
 
     set({ categories: existing })
     get().persist()
+    try {
+      ordersWebSocket?.broadcastCategoryUpdated?.(updatedCat)
+    } catch {
+      // safe fallback
+    }
   },
 
   deleteCategory: (id) => {
-    set((state) => ({
-      categories: state.categories.filter((c) => c.id !== id),
-      // Move produtos da categoria excluída para a primeira categoria restante
-      products: state.products.map((p) =>
-        p.categoryId === id ? { ...p, categoryId: state.categories[0]?.id || '' } : p
-      ),
-    }))
+    set((state) => {
+      const remainingCategories = state.categories.filter(
+        (c) => String(c.id) !== String(id)
+      )
+      const fallbackCatId = remainingCategories[0]?.id || ''
+      return {
+        categories: remainingCategories,
+        // Se ainda houver outra categoria, move os produtos; se não houver nenhuma, remove os órfãos
+        products: fallbackCatId
+          ? state.products.map((p) =>
+              String(p.categoryId) === String(id)
+                ? { ...p, categoryId: fallbackCatId }
+                : p
+            )
+          : state.products.filter((p) => String(p.categoryId) !== String(id)),
+      }
+    })
     get().persist()
+    try {
+      ordersWebSocket?.broadcastCategoryDeleted?.(id)
+    } catch {
+      // safe fallback
+    }
+  },
+
+  moveProductsAndDeleteCategory: (categoryId, targetCategoryId) => {
+    const productsToMove = get().products.filter(
+      (p) => String(p.categoryId) === String(categoryId)
+    )
+    set((state) => {
+      const remainingCategories = state.categories.filter(
+        (c) => String(c.id) !== String(categoryId)
+      )
+      // Renormaliza a ordem das categorias
+      remainingCategories
+        .sort((a, b) => a.order - b.order)
+        .forEach((c, idx) => {
+          c.order = idx + 1
+        })
+
+      // Move os produtos da categoria apagada para a categoria de destino
+      const updatedProducts = state.products.map((p) => {
+        if (String(p.categoryId) === String(categoryId)) {
+          return { ...p, categoryId: targetCategoryId }
+        }
+        return p
+      })
+
+      return {
+        categories: remainingCategories,
+        products: updatedProducts,
+      }
+    })
+    get().persist()
+
+    try {
+      ordersWebSocket?.broadcastCategoryDeleted?.(categoryId)
+      productsToMove.forEach((p) => {
+        ordersWebSocket?.broadcastMenuItemUpdated?.({
+          ...p,
+          categoryId: targetCategoryId,
+        })
+      })
+    } catch {
+      // safe fallback
+    }
+  },
+
+  deleteCategoryAndProducts: (categoryId) => {
+    const prodsToDelete = get().products.filter(
+      (p) => String(p.categoryId) === String(categoryId)
+    )
+    set((state) => {
+      const remainingCategories = state.categories.filter(
+        (c) => String(c.id) !== String(categoryId)
+      )
+      remainingCategories
+        .sort((a, b) => a.order - b.order)
+        .forEach((c, idx) => {
+          c.order = idx + 1
+        })
+
+      const remainingProducts = state.products.filter(
+        (p) => String(p.categoryId) !== String(categoryId)
+      )
+
+      return {
+        categories: remainingCategories,
+        products: remainingProducts,
+      }
+    })
+    get().persist()
+
+    try {
+      ordersWebSocket?.broadcastCategoryDeleted?.(categoryId)
+      prodsToDelete.forEach((p) => {
+        ordersWebSocket?.broadcastMenuItemDeleted?.(p.id, categoryId)
+      })
+    } catch {
+      // safe fallback
+    }
   },
 
   toggleCategoryStatus: (id) => {
+    let updated = null
     set((state) => ({
-      categories: state.categories.map((c) =>
-        c.id === id
-          ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' }
-          : c
-      ),
+      categories: state.categories.map((c) => {
+        if (String(c.id) === String(id)) {
+          updated = { ...c, status: c.status === 'active' ? 'inactive' : 'active' }
+          return updated
+        }
+        return c
+      }),
     }))
     get().persist()
+    if (updated) {
+      try {
+        ordersWebSocket?.broadcastCategoryUpdated?.(updated)
+      } catch {
+        // safe fallback
+      }
+    }
   },
 
   reorderCategory: (id, direction) => {
     const list = [...get().categories].sort((a, b) => a.order - b.order)
-    const index = list.findIndex((c) => c.id === id)
+    const index = list.findIndex((c) => String(c.id) === String(id))
     const targetIndex = index + direction
     if (targetIndex >= 0 && targetIndex < list.length) {
       const current = list[index]
@@ -663,9 +634,11 @@ export const useStoreAdmin = create((set, get) => ({
 
   // Gestão de Produtos
   addProduct: (productData) => {
+    const targetCatId =
+      productData.categoryId || get().categories[0]?.id || ''
     const existingInCat = get()
-      .products.filter((p) => p.categoryId === productData.categoryId)
-      .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id))
+      .products.filter((p) => String(p.categoryId) === String(targetCatId))
+      .sort((a, b) => (a.order !== b.order ? a.order - b.order : Number(a.id) - Number(b.id)))
 
     const requestedOrder = Math.max(
       1,
@@ -676,7 +649,7 @@ export const useStoreAdmin = create((set, get) => ({
     const newProduct = {
       id: Date.now(),
       name: formatTitleCase(productData.name),
-      categoryId: productData.categoryId,
+      categoryId: targetCatId,
       templateId: productData.templateId || 'tmpl-none',
       price: Number(productData.price) || 0,
       oldPrice: null,
@@ -698,18 +671,23 @@ export const useStoreAdmin = create((set, get) => ({
     })
 
     const otherProducts = get().products.filter(
-      (p) => p.categoryId !== productData.categoryId
+      (p) => String(p.categoryId) !== String(targetCatId)
     )
 
     set({
       products: [...otherProducts, ...existingInCat],
     })
     get().persist()
+    try {
+      ordersWebSocket?.broadcastMenuItemCreated?.(newProduct)
+    } catch {
+      // safe fallback
+    }
     return newProduct
   },
 
   updateProduct: (id, partial) => {
-    const currentProd = get().products.find((p) => p.id === id)
+    const currentProd = get().products.find((p) => String(p.id) === String(id))
     if (!currentProd) return
 
     const targetCategoryId = partial.categoryId || currentProd.categoryId
@@ -717,6 +695,7 @@ export const useStoreAdmin = create((set, get) => ({
     const updatedProd = {
       ...currentProd,
       ...partial,
+      categoryId: targetCategoryId,
       name:
         partial.name !== undefined
           ? formatTitleCase(partial.name)
@@ -726,8 +705,12 @@ export const useStoreAdmin = create((set, get) => ({
     }
 
     const catProds = get()
-      .products.filter((p) => p.categoryId === targetCategoryId && p.id !== id)
-      .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id))
+      .products.filter(
+        (p) =>
+          String(p.categoryId) === String(targetCategoryId) &&
+          String(p.id) !== String(id)
+      )
+      .sort((a, b) => (a.order !== b.order ? a.order - b.order : Number(a.id) - Number(b.id)))
 
     const requestedOrder = Math.max(
       1,
@@ -741,24 +724,31 @@ export const useStoreAdmin = create((set, get) => ({
     })
 
     const otherProducts = get().products.filter(
-      (p) => p.categoryId !== targetCategoryId && p.id !== id
+      (p) =>
+        String(p.categoryId) !== String(targetCategoryId) &&
+        String(p.id) !== String(id)
     )
 
     set({
       products: [...otherProducts, ...catProds],
     })
     get().persist()
+    try {
+      ordersWebSocket?.broadcastMenuItemUpdated?.(updatedProd)
+    } catch {
+      // safe fallback
+    }
   },
 
   deleteProduct: (id) => {
-    const prodToDelete = get().products.find((p) => p.id === id)
+    const prodToDelete = get().products.find((p) => String(p.id) === String(id))
     set((state) => {
-      const remaining = state.products.filter((p) => p.id !== id)
+      const remaining = state.products.filter((p) => String(p.id) !== String(id))
       if (!prodToDelete) return { products: remaining }
 
       // Renormaliza a ordem dos produtos restantes desta categoria (1, 2, 3...)
       const catProds = remaining
-        .filter((p) => p.categoryId === prodToDelete.categoryId)
+        .filter((p) => String(p.categoryId) === String(prodToDelete.categoryId))
         .sort((a, b) => a.order - b.order)
       catProds.forEach((p, idx) => {
         p.order = idx + 1
@@ -766,39 +756,58 @@ export const useStoreAdmin = create((set, get) => ({
 
       return {
         products: remaining.map((p) => {
-          const match = catProds.find((cp) => cp.id === p.id)
+          const match = catProds.find((cp) => String(cp.id) === String(p.id))
           return match ? { ...p, order: match.order } : p
         }),
       }
     })
     get().persist()
+    if (prodToDelete) {
+      try {
+        ordersWebSocket?.broadcastMenuItemDeleted?.(id, prodToDelete.categoryId)
+      } catch {
+        // safe fallback
+      }
+    }
   },
 
   toggleProductAvailability: (id) => {
+    let updated = null
     set((state) => ({
-      products: state.products.map((p) =>
-        p.id === id ? { ...p, available: !p.available } : p
-      ),
+      products: state.products.map((p) => {
+        if (String(p.id) === String(id)) {
+          updated = { ...p, available: !p.available }
+          return updated
+        }
+        return p
+      }),
     }))
     get().persist()
+    if (updated) {
+      try {
+        ordersWebSocket?.broadcastMenuItemUpdated?.(updated)
+      } catch {
+        // safe fallback
+      }
+    }
   },
 
   reorderProduct: (id, direction) => {
     const allProducts = get().products
-    const prod = allProducts.find((p) => p.id === id)
+    const prod = allProducts.find((p) => String(p.id) === String(id))
     if (!prod) return
 
     // Lista ordenada dos produtos desta categoria
     const catProds = allProducts
-      .filter((p) => p.categoryId === prod.categoryId)
-      .sort((a, b) => (a.order !== b.order ? a.order - b.order : a.id - b.id))
+      .filter((p) => String(p.categoryId) === String(prod.categoryId))
+      .sort((a, b) => (a.order !== b.order ? a.order - b.order : Number(a.id) - Number(b.id)))
 
     // Garante que a sequência seja estritamente 1, 2, 3... (corrige duplicidades)
     catProds.forEach((p, idx) => {
       p.order = idx + 1
     })
 
-    const currentIndex = catProds.findIndex((p) => p.id === id)
+    const currentIndex = catProds.findIndex((p) => String(p.id) === String(id))
     const targetIndex = currentIndex + direction
 
     if (targetIndex >= 0 && targetIndex < catProds.length) {
@@ -808,7 +817,7 @@ export const useStoreAdmin = create((set, get) => ({
 
       set((state) => ({
         products: state.products.map((p) => {
-          const updated = catProds.find((cp) => cp.id === p.id)
+          const updated = catProds.find((cp) => String(cp.id) === String(p.id))
           return updated ? { ...p, order: updated.order } : p
         }),
       }))
@@ -1114,27 +1123,116 @@ export const useStoreAdmin = create((set, get) => ({
     get().persist()
   },
 
+  getSerializableState: () => {
+    const state = get()
+    return {
+      updatedAt: state.updatedAt || Date.now(),
+      isStoreOpen: state.isStoreOpen,
+      storeStatusMode: state.storeStatusMode,
+      soundEnabled: state.soundEnabled,
+      storeInfo: state.storeInfo,
+      categories: state.categories,
+      templates: state.templates,
+      products: state.products,
+      schedule: state.schedule,
+      timezone: state.timezone,
+      deliveryConfig: state.deliveryConfig,
+      neighborhoods: state.neighborhoods,
+      paymentConfig: state.paymentConfig,
+      coupons: state.coupons,
+    }
+  },
+
   persist: () => {
+    const now = Date.now()
+    set({ updatedAt: now })
+    const toSave = {
+      ...get().getSerializableState(),
+      updatedAt: now,
+    }
+
+    // 1. Persiste no localStorage (limpando chaves antigas caso haja limite de quota)
     try {
-      const state = get()
-      const toSave = {
-        isStoreOpen: state.isStoreOpen,
-        storeStatusMode: state.storeStatusMode,
-        soundEnabled: state.soundEnabled,
-        storeInfo: state.storeInfo,
-        categories: state.categories,
-        templates: state.templates,
-        products: state.products,
-        schedule: state.schedule,
-        timezone: state.timezone,
-        deliveryConfig: state.deliveryConfig,
-        neighborhoods: state.neighborhoods,
-        paymentConfig: state.paymentConfig,
-        coupons: state.coupons,
-      }
+      cleanupLegacyStorageKeys()
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
     } catch (e) {
-      console.warn('Falha ao persistir dados administrativos:', e)
+      console.warn('Falha ao persistir dados administrativos no localStorage:', e)
+    }
+
+    // 2. Sincroniza imediatamente entre abas abertas no mesmo navegador via BroadcastChannel
+    if (adminBroadcastChannel) {
+      try {
+        adminBroadcastChannel.postMessage({
+          _senderId: TAB_SENDER_ID,
+          payload: toSave,
+        })
+      } catch {
+        // ignorar
+      }
+    }
+
+    // 3. Sincroniza com o servidor de desenvolvimento (permite sincronizar entre localhost e IP na rede local / mobile)
+    if (typeof fetch === 'function') {
+      fetch('/__store_sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSave),
+      }).catch(() => {
+        // Ignora silenciosamente em produção caso o endpoint não exista
+      })
+    }
+  },
+
+  pushToServer: () => {
+    const toSave = get().getSerializableState()
+    if (
+      typeof fetch === 'function' &&
+      (toSave.categories?.length > 0 ||
+        toSave.products?.length > 0 ||
+        toSave.updatedAt > 0)
+    ) {
+      fetch('/__store_sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toSave),
+      }).catch(() => {})
+    }
+  },
+
+  syncFromServer: async () => {
+    if (typeof fetch !== 'function') return
+    try {
+      const res = await fetch('/__store_sync', { cache: 'no-store' })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!data || data.empty) return
+
+      const normalized = normalizeStorePayload(data)
+      if (!normalized) return
+
+      const localUpdatedAt = get().updatedAt || 0
+      const remoteUpdatedAt = normalized.updatedAt || 0
+      const localIsEmpty =
+        (get().categories?.length || 0) === 0 &&
+        (get().products?.length || 0) === 0
+      const remoteHasData =
+        (normalized.categories?.length || 0) > 0 ||
+        (normalized.products?.length || 0) > 0
+
+      if (
+        remoteUpdatedAt > localUpdatedAt ||
+        (localIsEmpty && remoteHasData)
+      ) {
+        set((state) => ({ ...state, ...normalized }))
+        try {
+          cleanupLegacyStorageKeys()
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized))
+        } catch {
+          // ignorar
+        }
+      }
+    } catch {
+      // Ignora silenciosamente
     }
   },
 
@@ -1142,11 +1240,25 @@ export const useStoreAdmin = create((set, get) => ({
     try {
       const cached = localStorage.getItem(STORAGE_KEY)
       if (cached) {
-        const parsed = JSON.parse(cached)
-        set((state) => ({ ...state, ...parsed }))
+        const parsed = normalizeStorePayload(JSON.parse(cached))
+        if (parsed) {
+          set((state) => ({ ...state, ...parsed }))
+        }
       }
     } catch (e) {
       console.warn('Falha ao recarregar dados do localStorage:', e)
     }
   },
 }))
+
+if (adminBroadcastChannel) {
+  adminBroadcastChannel.onmessage = (event) => {
+    const msg = event.data
+    if (msg && msg._senderId !== TAB_SENDER_ID && msg.payload) {
+      const normalized = normalizeStorePayload(msg.payload)
+      if (normalized) {
+        useStoreAdmin.setState((state) => ({ ...state, ...normalized }))
+      }
+    }
+  }
+}

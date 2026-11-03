@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export const CUSTOMER_STORAGE_KEY = 'delivery-customer-cache-v2'
+
 export const useCustomerStore = create(
   persist(
     (set) => ({
@@ -163,7 +165,7 @@ export const useCustomerStore = create(
         })),
     }),
     {
-      name: 'delivery-customer-cache-v1',
+      name: CUSTOMER_STORAGE_KEY,
     }
   )
 )
