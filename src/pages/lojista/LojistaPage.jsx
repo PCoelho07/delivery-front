@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BackofficeSidebar } from '../../components/backoffice/BackofficeSidebar'
 import { BackofficeTopbar } from '../../components/backoffice/BackofficeTopbar'
 import { MenuVitrineView } from '../../components/backoffice/menu/MenuVitrineView'
@@ -16,6 +17,16 @@ export function LojistaPage() {
 
   // Conexão WebSocket e orquestração de alertas sonoros/desktop em qualquer aba
   useGlobalOrderNotifications()
+
+  // Publica o estado atual da loja para sincronização entre abas e dispositivos na rede
+  useEffect(() => {
+    const state = useStoreAdmin.getState()
+    if ((state.categories?.length || 0) > 0 || (state.products?.length || 0) > 0) {
+      state.pushToServer?.()
+    } else {
+      state.syncFromServer?.()
+    }
+  }, [])
 
   return (
     <div className="flex-1 flex flex-col md:flex-row h-full overflow-hidden bg-[#F8F9FA]">
@@ -49,4 +60,3 @@ export function LojistaPage() {
     </div>
   )
 }
-

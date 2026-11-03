@@ -90,9 +90,9 @@ export function StoreHeader({
       </div>
 
       {/* Faixa Interativa Abaixo do Banner: Redes Sociais no Canto Superior Esquerdo e Logo Centralizada */}
-      <div className="relative z-10 -mt-9 px-4 flex items-center justify-between">
-        {/* Canto superior esquerdo abaixo do plano de fundo (ajuste de altura via pt-11) */}
-        <div className="flex items-center gap-2 pt-11 shrink-0">
+      <div className="relative z-10 -mt-9 px-4 min-h-[76px] flex items-center justify-between">
+        {/* Canto superior esquerdo abaixo do plano de fundo (min-h-8 garante altura fixa mesmo sem ícones cadastrados) */}
+        <div className="flex items-center gap-2 pt-11 min-h-8 shrink-0">
           {whatsappUrl && (
             <a
               href={whatsappUrl}
@@ -120,7 +120,7 @@ export function StoreHeader({
         </div>
 
         {/* Logo Circular Centralizada */}
-        <div className="absolute left-1/2 -translate-x-1/2 w-[76px] h-[76px] rounded-full bg-[#1A1D20] border-[3.5px] border-[#F8F9FA] flex flex-col items-center justify-center overflow-hidden shadow-xs">
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[76px] h-[76px] rounded-full bg-[#1A1D20] border-[3.5px] border-[#F8F9FA] flex flex-col items-center justify-center overflow-hidden shadow-xs">
           {store.logoUrl ? (
             <img
               src={store.logoUrl}
@@ -165,11 +165,10 @@ export function StoreHeader({
             <span className="font-bold text-[#1A1D20] group-hover:text-[#FF5E1E] transition-colors">
               {store.rating}
             </span>
-            {store.reviewsCount && (
-              <span className="text-[#6C757D] underline decoration-[#6C757D]/60 underline-offset-2 group-hover:text-[#FF5E1E] group-hover:decoration-[#FF5E1E] transition-colors">
-                ({store.reviewsCount} avaliações)
-              </span>
-            )}
+            <span className="text-[#6C757D] underline decoration-[#6C757D]/60 underline-offset-2 group-hover:text-[#FF5E1E] group-hover:decoration-[#FF5E1E] transition-colors">
+              ({store.reviewsCount || 0}{' '}
+              {store.reviewsCount === 1 ? 'avaliação' : 'avaliações'})
+            </span>
             <ChevronRight
               className="w-3.5 h-3.5 text-[#FF5E1E] shrink-0 group-hover:translate-x-0.5 transition-transform"
               strokeWidth={2.4}
@@ -186,7 +185,7 @@ export function StoreHeader({
             strokeWidth={2.2}
           />
           <span className="font-semibold text-[#1A1D20]">
-            Pedido mín. {formatCurrency(store.minOrder ?? 10)}
+            Pedido mín. {formatCurrency(store.minOrder ?? 0)}
           </span>
         </div>
 
@@ -199,7 +198,7 @@ export function StoreHeader({
         >
           <Clock className="w-3.5 h-3.5 text-[#FF5E1E] shrink-0" strokeWidth={2.2} />
           <span className="font-semibold text-[11.5px] truncate max-w-[125px] sm:max-w-none">
-            {store.todayHours || store.openingHours || '18:00 às 23:30'}
+            {store.todayHours || store.openingHours || 'Consulte horários'}
           </span>
           <Info className="w-3.5 h-3.5 text-[#6C757D] group-hover:text-[#FF5E1E] transition-colors shrink-0" />
         </button>

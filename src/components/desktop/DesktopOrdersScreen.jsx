@@ -1,41 +1,52 @@
 import {
   ArrowLeft,
+  Ban,
+  CheckCircle2,
+  ChefHat,
   Clock,
   RotateCcw,
   ShoppingBag,
   Star,
+  Store,
   Truck,
 } from 'lucide-react'
 import { formatCurrency } from '../../lib/utils'
 
-function getStatusBadge(statusRaw = '') {
-  const status = statusRaw.toLowerCase()
-  if (status === 'concluido' || status === 'entregue') {
+function getStatusBadge(statusRaw = '', deliveryMethod = 'delivery') {
+  const status = String(statusRaw || 'aceito').toLowerCase().trim()
+  const isPickup = deliveryMethod === 'pickup'
+
+  if (status === 'concluido' || status === 'concluído' || status === 'entregue') {
     return {
-      label: 'Entregue',
+      label: isPickup ? 'Retirado' : 'Entregue',
+      icon: CheckCircle2,
       className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     }
   }
-  if (status === 'entrega' || status === 'saiu para entrega') {
+  if (status === 'entrega' || status === 'saiu para entrega' || status === 'pronto') {
     return {
-      label: 'Saiu p/ Entrega',
+      label: isPickup ? 'Pronto p/ Retirada' : 'Saiu p/ Entrega',
+      icon: isPickup ? Store : Truck,
       className: 'bg-blue-50 text-blue-700 border-blue-200',
     }
   }
-  if (status === 'preparando' || status === 'em preparo') {
+  if (status === 'preparo' || status === 'preparando' || status === 'em preparo') {
     return {
       label: 'Em Preparo',
+      icon: ChefHat,
       className: 'bg-amber-50 text-amber-700 border-amber-200',
     }
   }
-  if (status === 'cancelado') {
+  if (status === 'cancelado' || status === 'recusado') {
     return {
       label: 'Cancelado',
+      icon: Ban,
       className: 'bg-rose-50 text-rose-700 border-rose-200',
     }
   }
   return {
     label: 'Aceito',
+    icon: CheckCircle2,
     className: 'bg-orange-50 text-[#FF5E1E] border-orange-200',
   }
 }
@@ -107,7 +118,8 @@ export function DesktopOrdersScreen({
         ) : (
           <div className="space-y-4">
             {orders.map((ord) => {
-              const badge = getStatusBadge(ord.status)
+              const badge = getStatusBadge(ord.status, ord.deliveryMethod)
+              const BadgeIcon = badge.icon
               const hasReview = Boolean(ord.review)
 
               return (
@@ -127,9 +139,10 @@ export function DesktopOrdersScreen({
                             Pedido #{ord.orderId}
                           </h3>
                           <span
-                            className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge.className}`}
+                            className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 ${badge.className}`}
                           >
-                            {badge.label}
+                            <BadgeIcon className="w-3 h-3 shrink-0" />
+                            <span>{badge.label}</span>
                           </span>
                         </div>
                         <p className="text-[11px] text-[#6C757D] flex items-center gap-1.5 mt-0.5">

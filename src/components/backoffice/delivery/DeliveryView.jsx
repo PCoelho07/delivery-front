@@ -15,7 +15,7 @@ import {
   RotateCcw,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useStoreAdmin, DEFAULT_NEIGHBORHOODS } from '../../../store/useStoreAdmin'
+import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { formatCurrency } from '../../../lib/utils'
 import { NeighborhoodModal } from './NeighborhoodModal'
 import { ConfirmModal } from '../common/ConfirmModal'
@@ -29,7 +29,6 @@ export function DeliveryView() {
     updateNeighborhood,
     toggleNeighborhoodActive,
     deleteNeighborhood,
-    setFullNeighborhoods,
   } = useStoreAdmin()
 
   // Estado local para configurações gerais de entrega e tempos estimados
@@ -37,7 +36,7 @@ export function DeliveryView() {
     deliveryConfig?.pricingMode || 'by_neighborhood'
   )
   const [fixedFee, setFixedFee] = useState(
-    String(deliveryConfig?.fixedFee ?? '5.00')
+    String(deliveryConfig?.fixedFee ?? '0')
   )
   const [estimatedDelivery, setEstimatedDelivery] = useState(
     deliveryConfig?.estimatedDelivery || '40 - 50 min'
@@ -49,7 +48,7 @@ export function DeliveryView() {
     deliveryConfig?.allowPickup ?? true
   )
   const [minOrder, setMinOrder] = useState(
-    String(deliveryConfig?.minOrder ?? '15.00')
+    String(deliveryConfig?.minOrder ?? '0')
   )
 
   // Verifica se há alterações pendentes no rascunho em relação ao estado salvo
@@ -58,11 +57,11 @@ export function DeliveryView() {
     const parsedMin = Math.max(0, parseFloat(String(minOrder).replace(',', '.')) || 0)
     return (
       pricingMode !== (deliveryConfig?.pricingMode || 'by_neighborhood') ||
-      parsedFixed !== Number(deliveryConfig?.fixedFee ?? 5.0) ||
+      parsedFixed !== Number(deliveryConfig?.fixedFee ?? 0) ||
       estimatedDelivery.trim() !== (deliveryConfig?.estimatedDelivery || '40 - 50 min') ||
       estimatedPickup.trim() !== (deliveryConfig?.estimatedPickup || '20 - 30 min') ||
       allowPickup !== (deliveryConfig?.allowPickup ?? true) ||
-      parsedMin !== Number(deliveryConfig?.minOrder ?? 15.0)
+      parsedMin !== Number(deliveryConfig?.minOrder ?? 0)
     )
   }, [
     pricingMode,
@@ -116,11 +115,11 @@ export function DeliveryView() {
   // Descartar alterações e restaurar valores salvos
   const handleDiscard = () => {
     setPricingMode(deliveryConfig?.pricingMode || 'by_neighborhood')
-    setFixedFee(String(deliveryConfig?.fixedFee ?? '5.00'))
+    setFixedFee(String(deliveryConfig?.fixedFee ?? '0'))
     setEstimatedDelivery(deliveryConfig?.estimatedDelivery || '40 - 50 min')
     setEstimatedPickup(deliveryConfig?.estimatedPickup || '20 - 30 min')
     setAllowPickup(deliveryConfig?.allowPickup ?? true)
-    setMinOrder(String(deliveryConfig?.minOrder ?? '15.00'))
+    setMinOrder(String(deliveryConfig?.minOrder ?? '0'))
     toast.info('Alterações descartadas.')
   }
 
@@ -150,12 +149,6 @@ export function DeliveryView() {
       toast.success(`Localidade "${neighborhoodToDelete.name}" excluída com sucesso!`)
       setNeighborhoodToDelete(null)
     }
-  }
-
-  // Restaurar lista padrão de bairros de exemplo
-  const handleRestoreDefaultNeighborhoods = () => {
-    setFullNeighborhoods(DEFAULT_NEIGHBORHOODS)
-    toast.success('Bairros padrão restaurados com sucesso!')
   }
 
   return (
@@ -337,7 +330,7 @@ export function DeliveryView() {
                   min="0"
                   value={fixedFee}
                   onChange={(e) => setFixedFee(e.target.value)}
-                  placeholder="5.00"
+                  placeholder="0.00"
                   className="w-20 text-xs font-black text-[#1A1D20] outline-none"
                 />
               </div>
@@ -389,13 +382,13 @@ export function DeliveryView() {
               min="0"
               value={minOrder}
               onChange={(e) => setMinOrder(e.target.value)}
-              placeholder="15.00"
+              placeholder="0.00"
               className="w-full bg-white border border-[#E9ECEF] focus:border-[#FF5E1E] rounded-xl px-3 py-2 text-xs font-bold text-[#1A1D20] outline-none"
             />
           </div>
         </div>
 
-        {/* Switch Retirada no Balcão + Botão Salvar Prazos */}
+        {/* Switch Retirada no Balcão */}
         <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
@@ -476,17 +469,6 @@ export function DeliveryView() {
           </div>
 
           <div className="flex items-center gap-2">
-            {neighborhoods.length === 0 && (
-              <button
-                type="button"
-                onClick={handleRestoreDefaultNeighborhoods}
-                className="px-3 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Restaurar Padrão</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={() => {
@@ -507,23 +489,13 @@ export function DeliveryView() {
             <div className="py-12 px-4 text-center space-y-2 bg-[#F8F9FA]/50">
               <MapPin className="w-8 h-8 text-slate-300 mx-auto" />
               <p className="text-xs font-bold text-[#1A1D20]">
-                Nenhuma localidade encontrada
+                Nenhuma localidade cadastrada
               </p>
               <p className="text-[11px] text-[#6C757D]">
                 {searchQuery
                   ? `Nenhum resultado para "${searchQuery}".`
-                  : 'Cadastre os bairros atendidos pelo seu estabelecimento.'}
+                  : 'Cadastre os bairros atendidos pelo seu estabelecimento clicando em "Adicionar Bairro".'}
               </p>
-              {!searchQuery && (
-                <button
-                  type="button"
-                  onClick={handleRestoreDefaultNeighborhoods}
-                  className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-orange-100 hover:bg-[#FF5E1E] text-[#FF5E1E] hover:text-white font-bold text-xs transition-all cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Carregar Bairros de Exemplo</span>
-                </button>
-              )}
             </div>
           ) : (
             filteredNeighborhoods.map((nb) => {
@@ -681,4 +653,3 @@ export function DeliveryView() {
     </div>
   )
 }
-

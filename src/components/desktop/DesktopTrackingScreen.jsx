@@ -1,16 +1,22 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   ArrowLeft,
-  CheckCircle2,
-  Clock,
-  Copy,
+  Ban,
+  Bike,
   Check,
+  CheckCircle2,
+  ChefHat,
+  Copy,
   MessageCircle,
-  Star,
   ShoppingBag,
+  Star,
+  Store,
+  Truck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatPhoneMask } from '../../lib/utils'
+import { calculateTimeEstimate } from '../../utils/timeEstimate'
+import { useCustomerStore } from '../../store/useCustomerStore'
 
 function InstagramIcon({ className = 'w-4 h-4' }) {
   return (
@@ -30,14 +36,68 @@ function InstagramIcon({ className = 'w-4 h-4' }) {
   )
 }
 
+const ORDER_STATUS_STEPS = [
+  { id: 'aceito', label: 'Aceito', icon: CheckCircle2 },
+  { id: 'preparo', label: 'Em preparo', icon: ChefHat },
+  { id: 'entrega', label: 'Saiu p/ entrega', icon: Truck },
+]
+
+function normalizeOrderStatus(rawStatus = 'aceito') {
+  const s = String(rawStatus || 'aceito').toLowerCase().trim()
+  if (s === 'preparo' || s === 'preparando' || s === 'em preparo') {
+    return 'preparo'
+  }
+  if (s === 'entrega' || s === 'saiu para entrega' || s === 'pronto') {
+    return 'entrega'
+  }
+  if (s === 'concluido' || s === 'concluído' || s === 'entregue') {
+    return 'concluido'
+  }
+  if (s === 'cancelado' || s === 'recusado') {
+    return 'cancelado'
+  }
+  return 'aceito'
+}
+
 export function DesktopTrackingScreen({
-  order,
+  order: orderProp,
   store,
   onBackToMenu,
   onOpenCustomerHub,
   onOpenReview,
 }) {
   const [copiedPix, setCopiedPix] = useState(false)
+  const orders = useCustomerStore((state) => state.orders)
+
+  // Garante leitura em tempo real diretamente da store quando o Kanban atualizar
+  const order = useMemo(() => {
+    if (orderProp?.orderId) {
+      return orders.find((o) => o.orderId === orderProp.orderId) || orderProp
+    }
+    const activeExistingOrder = orders.find(
+      (o) =>
+        o.status !== 'concluido' &&
+        o.status !== 'entregue' &&
+        o.status !== 'cancelado'
+    )
+    return orderProp || activeExistingOrder || orders[0] || null
+  }, [orderProp, orders])
+
+  const isPickup = order?.deliveryMethod === 'pickup'
+  const rawEstimate =
+    order?.estimatedTime ||
+    (isPickup
+      ? store?.estimatedPickup || '15 - 25 min'
+      : store?.estimatedDelivery || '35 - 50 min')
+
+  const timeEstimate = useMemo(() => {
+    if (!order) return null
+    return calculateTimeEstimate(
+      rawEstimate,
+      order.createdAtTimestamp || order.createdAt,
+      order.deliveryMethod || 'delivery'
+    )
+  }, [order, rawEstimate])
 
   if (!order) {
     return (
@@ -76,17 +136,23 @@ export function DesktopTrackingScreen({
     ? `https://wa.me/55${cleanPhone.startsWith('55') ? cleanPhone.slice(2) : cleanPhone}?text=${encodeURIComponent(
         `Olá! Gostaria de acompanhar o meu pedido #${order.orderId}.`
       )}`
-    : 'https://wa.me/5500000000000'
+    : ''
 
-  const instagramRaw = store?.instagram || store?.instagramUrl || '@brasaburger'
-  const instagramUrl = instagramRaw.startsWith('http')
-    ? instagramRaw
-    : `https://instagram.com/${instagramRaw.replace(/^@/, '')}`
+  const instagramRaw = (store?.instagram || store?.instagramUrl || '').trim()
+  const instagramUrl = instagramRaw
+    ? instagramRaw.startsWith('http')
+      ? instagramRaw
+      : `https://instagram.com/${instagramRaw.replace(/^@/, '')}`
+    : ''
 
   const pixKey =
-    store?.pix?.key || store?.cnpj || '00.000.000/0001-00'
+    order?.pix?.key || store?.pix?.key || store?.cnpj || '00.000.000/0001-00'
   const pixBeneficiary =
-    store?.corporateName || store?.name || 'Brasa Burger LTDA'
+    order?.pix?.beneficiary ||
+    store?.pix?.beneficiary ||
+    store?.corporateName ||
+    store?.name ||
+    'Brasa Burger'
 
   const handleCopyPix = () => {
     navigator.clipboard?.writeText?.(pixKey)
@@ -95,20 +161,7 @@ export function DesktopTrackingScreen({
     setTimeout(() => setCopiedPix(false), 2500)
   }
 
-  const status = (order.status || 'aceito').toLowerCase()
-  const isAccepted = true // Sempre aceito de largada
-  const isPreparing =
-    status === 'preparando' ||
-    status === 'em preparo' ||
-    status === 'entrega' ||
-    status === 'saiu para entrega' ||
-    status === 'concluido' ||
-    status === 'entregue'
-  const isDelivering =
-    status === 'entrega' ||
-    status === 'saiu para entrega' ||
-    status === 'concluido' ||
-    status === 'entregue'
+  const currentStatusId = normalizeOrderStatus(order.status)
 
   return (
     <div className="w-full min-h-screen bg-[#F4F6F8] py-8 antialiased">
@@ -116,16 +169,33 @@ export function DesktopTrackingScreen({
         {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                currentStatusId === 'cancelado'
+                  ? 'bg-rose-100 text-rose-600'
+                  : 'bg-emerald-100 text-emerald-600'
+              }`}
+            >
+              {currentStatusId === 'cancelado' ? (
+                <Ban className="w-6 h-6 stroke-[2.5]" />
+              ) : (
+                <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+              )}
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-[#1A1D20] tracking-tight">
-                Pedido Recebido com Sucesso!
+                {currentStatusId === 'cancelado'
+                  ? 'Pedido Cancelado'
+                  : currentStatusId === 'concluido'
+                  ? isPickup
+                    ? 'Pedido Retirado com Sucesso!'
+                    : 'Pedido Entregue com Sucesso!'
+                  : 'Pedido Recebido com Sucesso!'}
               </h1>
               <p className="text-xs text-[#6C757D]">
                 Pedido #{order.orderId} · {store?.name || 'Brasa Burger'} ·{' '}
-                {order.dateFormatted || 'Hoje'} às {order.timeFormatted || '16:15'}
+                {order.createdAt ||
+                  `${order.dateFormatted || 'Hoje'} às ${order.timeFormatted || '16:15'}`}
               </p>
             </div>
           </div>
@@ -150,55 +220,148 @@ export function DesktopTrackingScreen({
                 <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#6C757D]">
                   Status do seu Pedido
                 </h2>
-                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                   Atualizado em tempo real
                 </span>
               </div>
 
-              {/* Etapas Visuais */}
+              {/* Alerta se o pedido foi cancelado */}
+              {currentStatusId === 'cancelado' && (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+                    <Ban className="w-5 h-5 stroke-[2.2]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-sm text-rose-950">
+                      Pedido Cancelado pelo Restaurante
+                    </h4>
+                    <p className="text-xs text-rose-800">
+                      Motivo:{' '}
+                      <span className="font-bold">
+                        {order.cancellationReason ||
+                          'Inviabilidade de atendimento no momento.'}
+                      </span>
+                    </p>
+                    {order.cancellationNote && (
+                      <p className="text-xs text-rose-700 italic">
+                        &ldquo;{order.cancellationNote}&rdquo;
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Etapas Visuais com Lucide Icons */}
               <div className="grid grid-cols-3 gap-2 select-none">
-                <div
-                  className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-colors ${
-                    isAccepted
-                      ? 'bg-[#FF5E1E] text-white shadow-xs'
-                      : 'bg-gray-100 text-gray-400 font-semibold'
-                  }`}
-                >
-                  ✓ Aceito
-                </div>
+                {ORDER_STATUS_STEPS.map((step, idx) => {
+                  const currentIdx = ORDER_STATUS_STEPS.findIndex(
+                    (s) => s.id === currentStatusId
+                  )
+                  const isFinished = currentStatusId === 'concluido'
+                  const isCurrent = currentStatusId === step.id
+                  const isPast =
+                    isFinished || (currentIdx !== -1 && idx < currentIdx)
 
-                <div
-                  className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-colors ${
-                    isPreparing
-                      ? 'bg-orange-50 border border-orange-200 text-[#FF5E1E]'
-                      : 'bg-gray-100 text-gray-400 font-semibold'
-                  }`}
-                >
-                  👨‍🍳 Em preparo
-                </div>
+                  let stepLabel = step.label
+                  let StepIcon = step.icon
 
-                <div
-                  className={`py-2.5 px-2 rounded-xl text-center text-xs font-bold transition-colors ${
-                    isDelivering
-                      ? 'bg-emerald-500 text-white shadow-xs'
-                      : 'bg-gray-100 text-gray-400 font-semibold'
-                  }`}
-                >
-                  🛵 Saiu p/ entrega
-                </div>
+                  if (step.id === 'entrega' && isPickup) {
+                    stepLabel = 'Pronto p/ retirada'
+                    StepIcon = Store
+                  }
+
+                  if (isPast && !isCurrent) {
+                    StepIcon = CheckCircle2
+                  }
+
+                  return (
+                    <div
+                      key={step.id}
+                      className={`py-2.5 px-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                        isCurrent
+                          ? 'bg-[#FF5E1E] text-white shadow-xs'
+                          : isPast
+                          ? 'bg-orange-50 border border-orange-200 text-[#FF5E1E]'
+                          : 'bg-gray-100 text-gray-400 font-semibold'
+                      }`}
+                    >
+                      <StepIcon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{stepLabel}</span>
+                    </div>
+                  )
+                })}
               </div>
 
-              {/* Previsão de Entrega */}
+              {/* Aviso contextual quando o status for "entrega" ou "concluido" */}
+              {currentStatusId === 'entrega' && (
+                <div
+                  className={`border rounded-2xl px-3.5 py-2.5 text-center text-xs font-bold flex items-center justify-center gap-2 ${
+                    isPickup
+                      ? 'bg-blue-50 text-blue-900 border-blue-200'
+                      : 'bg-purple-50 text-purple-900 border-purple-200'
+                  }`}
+                >
+                  {isPickup ? (
+                    <>
+                      <Store className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span>
+                        Seu pedido está pronto! Já pode vir retirar no balcão.
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Truck className="w-4 h-4 text-purple-600 shrink-0" />
+                      <span>
+                        Seu pedido saiu para entrega! Fique atento ao entregador.
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {currentStatusId === 'concluido' && (
+                <div className="bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-2xl px-3.5 py-2.5 text-center text-xs font-bold flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    {isPickup
+                      ? 'Pedido retirado no balcão e concluído com sucesso!'
+                      : 'Pedido entregue e concluído com sucesso!'}
+                  </span>
+                </div>
+              )}
+
+              {/* Previsão de Entrega ou Retirada */}
               <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 text-[#6C757D]">
-                  <Clock className="w-4 h-4 text-[#FF5E1E]" />
-                  <span>Previsão estimada:</span>
+                  {isPickup ? (
+                    <Store className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+                  ) : (
+                    <Bike className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+                  )}
+                  <span>
+                    {isPickup
+                      ? 'Previsão para ficar pronto:'
+                      : 'Previsão estimada:'}
+                  </span>
                 </div>
-                <span className="font-extrabold text-sm text-[#1A1D20]">
-                  {order.deliveryMethod === 'pickup'
-                    ? '15 - 25 min (Retirada)'
-                    : store?.estimatedDelivery || '35 - 50 min'}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {timeEstimate ? (
+                    <>
+                      <span className="font-extrabold text-sm text-[#1A1D20]">
+                        {timeEstimate.timeWindow}
+                      </span>
+                      <span className="text-xs text-[#6C757D]">
+                        ({rawEstimate})
+                      </span>
+                    </>
+                  ) : (
+                    <span className="font-extrabold text-sm text-[#1A1D20]">
+                      {isPickup
+                        ? `${rawEstimate} (Retirada)`
+                        : rawEstimate}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -207,7 +370,7 @@ export function DesktopTrackingScreen({
               <div className="bg-[#FFF3EE]/70 rounded-3xl p-5 border border-orange-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#FF5E1E]">
-                    Pagamento via PIX (CNPJ)
+                    Pagamento via PIX ({order?.pix?.keyType || store?.pix?.keyType || 'CNPJ'})
                   </span>
                   <span className="text-xs font-bold text-[#1A1D20]">
                     Valor: {formatCurrency(order.total)}
@@ -245,27 +408,33 @@ export function DesktopTrackingScreen({
             )}
 
             {/* Botões de Ação: WhatsApp & Instagram */}
-            <div className="space-y-3">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
-              >
-                <MessageCircle className="w-4 h-4 fill-white" />
-                <span>Acompanhar ou tirar dúvidas no WhatsApp</span>
-              </a>
+            {(whatsappUrl || instagramUrl) && (
+              <div className="space-y-3">
+                {whatsappUrl && (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-white" />
+                    <span>Acompanhar ou tirar dúvidas no WhatsApp</span>
+                  </a>
+                )}
 
-              <a
-                href={instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.99] text-[#1A1D20] font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs"
-              >
-                <InstagramIcon className="w-4 h-4 text-[#FF5E1E]" />
-                <span>Siga o {store?.name || 'Brasa Burger'} no Instagram</span>
-              </a>
-            </div>
+                {instagramUrl && (
+                  <a
+                    href={instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.99] text-[#1A1D20] font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs"
+                  >
+                    <InstagramIcon className="w-4 h-4 text-[#FF5E1E]" />
+                    <span>Siga o {store?.name || 'Brasa Burger'} no Instagram</span>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Coluna da Direita: Resumo do Pedido & Endereço (5 Colunas) */}

@@ -26,8 +26,12 @@ import { DesktopOrdersScreen } from '../../components/desktop/DesktopOrdersScree
 import { DEFAULT_STORE_PREVIEW } from '../../data/storeTemplateData'
 import { useBusinessStore } from '../../store/useBusinessStore'
 import { useCartStore } from '../../store/useCartStore'
-import { useCustomerStore } from '../../store/useCustomerStore'
-import { useStoreAdmin, calculateStoreLiveStatus } from '../../store/useStoreAdmin'
+import { useCustomerStore, CUSTOMER_STORAGE_KEY } from '../../store/useCustomerStore'
+import {
+  useStoreAdmin,
+  calculateStoreLiveStatus,
+  STORAGE_KEY,
+} from '../../store/useStoreAdmin'
 import { useCustomerOrdersRealtime } from '../../hooks/useCustomerOrdersRealtime'
 
 export function CardapioPage() {
@@ -79,7 +83,7 @@ export function CardapioPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategoryId, setActiveCategoryId] = useState(
-    DEFAULT_STORE_PREVIEW.categories[0]?.id || ''
+    adminCategories?.[0]?.id || DEFAULT_STORE_PREVIEW.categories[0]?.id || ''
   )
   const [selectedProduct, setSelectedProduct] = useState(null)
 
@@ -114,18 +118,45 @@ export function CardapioPage() {
     [cartItems]
   )
 
-  // Sincronização multi-abas em tempo real (quando admin atualiza status em outra aba)
+  // Sincronização multi-abas e multi-dispositivos em tempo real (quando admin adiciona/exclui produtos ou atualiza status)
   useEffect(() => {
+    useStoreAdmin.getState().reloadFromStorage?.()
+    useStoreAdmin.getState().syncFromServer?.()
+
     const handleStorageChange = (e) => {
-      if (e.key === 'delivery-customer-cache-v1') {
+      if (!e.key || e.key === CUSTOMER_STORAGE_KEY) {
         useCustomerStore.persist?.rehydrate?.()
       }
-      if (e.key === 'delivery_admin_store_v3') {
+      if (!e.key || e.key === STORAGE_KEY) {
         useStoreAdmin.getState().reloadFromStorage?.()
       }
     }
+
+    const handleWindowFocus = () => {
+      useStoreAdmin.getState().reloadFromStorage?.()
+      useStoreAdmin.getState().syncFromServer?.()
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleWindowFocus()
+      }
+    }
+
+    const syncInterval = setInterval(() => {
+      useStoreAdmin.getState().syncFromServer?.()
+    }, 2000)
+
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    window.addEventListener('focus', handleWindowFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      clearInterval(syncInterval)
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('focus', handleWindowFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [])
 
   // Se houver parâmetro de loja na URL (/:businessName), sincroniza com o estado da API
@@ -159,7 +190,7 @@ export function CardapioPage() {
           minOrder: adminStoreInfo?.minOrder ?? DEFAULT_STORE_PREVIEW.minOrder,
           whatsapp: adminStoreInfo?.whatsapp || DEFAULT_STORE_PREVIEW.whatsapp,
           phone: adminStoreInfo?.phone || DEFAULT_STORE_PREVIEW.phone,
-          instagram: adminStoreInfo?.instagram || '@brasaburger',
+          instagram: adminStoreInfo?.instagram || '',
           instagramUrl: adminStoreInfo?.instagram
             ? (adminStoreInfo.instagram.startsWith('http')
                 ? adminStoreInfo.instagram
@@ -172,79 +203,72 @@ export function CardapioPage() {
         }
 
     // Categorias dinâmicas alimentadas pelo Backoffice com produtos e complementos
-    let categoriesList = base.categories || []
-    if (adminCategories?.length > 0 && adminProducts?.length > 0) {
-      const activeAdminCats = adminCategories
-        .filter((c) => c.status !== 'inactive')
+    const activeAdminCats = (adminCategories || [])
+      .filter((c) => c.status !== 'inactive')
+      .sort((a, b) => a.order - b.order)
+
+    const categoriesList = activeAdminCats.map((cat) => {
+      const catItems = (adminProducts || [])
+        .filter((p) => String(p.categoryId) === String(cat.id))
         .sort((a, b) => a.order - b.order)
+        .map((p) => {
+          const tmpl = adminTemplates?.find((t) => String(t.id) === String(p.templateId))
+          const addons = []
+          const preferences = []
 
-      const mapped = activeAdminCats.map((cat) => {
-        const catItems = adminProducts
-          .filter((p) => p.categoryId === cat.id)
-          .sort((a, b) => a.order - b.order)
-          .map((p) => {
-            const tmpl = adminTemplates?.find((t) => t.id === p.templateId)
-            const addons = []
-            const preferences = []
-
-            if (tmpl && Array.isArray(tmpl.groups)) {
-              tmpl.groups.forEach((grp) => {
-                if (grp.required) {
-                  grp.items?.forEach((it) => {
-                    preferences.push({
-                      id: it.id,
-                      name: it.name,
-                      groupName: grp.name,
-                      price: it.price || 0,
-                    })
+          if (tmpl && Array.isArray(tmpl.groups)) {
+            tmpl.groups.forEach((grp) => {
+              if (grp.required) {
+                grp.items?.forEach((it) => {
+                  preferences.push({
+                    id: it.id,
+                    name: it.name,
+                    groupName: grp.name,
+                    price: it.price || 0,
                   })
-                } else {
-                  grp.items?.forEach((it) => {
-                    addons.push({
-                      id: it.id,
-                      name: it.name,
-                      price: it.price || 0,
-                    })
+                })
+              } else {
+                grp.items?.forEach((it) => {
+                  addons.push({
+                    id: it.id,
+                    name: it.name,
+                    price: it.price || 0,
                   })
-                }
-              })
-            }
+                })
+              }
+            })
+          }
 
-            return {
-              id: p.id,
-              name: p.name,
-              categoryId: cat.id,
-              description: p.desc || '',
-              price: Number(p.price) || 0,
-              imageUrl: p.image,
-              badge: p.badge || null,
-              available: p.available !== false,
-              order: p.order || 0,
-              addons,
-              preferences,
-              maxAddons: 5,
-            }
-          })
-          // Padrão iFood: produtos disponíveis no topo, esgotados no fim da categoria
-          .sort((a, b) => {
-            const aAvail = a.available !== false ? 0 : 1
-            const bAvail = b.available !== false ? 0 : 1
-            if (aAvail !== bAvail) return aAvail - bAvail
-            return (a.order || 0) - (b.order || 0)
-          })
+          return {
+            id: p.id,
+            name: p.name,
+            categoryId: cat.id,
+            description: p.desc || '',
+            price: Number(p.price) || 0,
+            imageUrl: p.image,
+            badge: p.badge || null,
+            available: p.available !== false,
+            order: p.order || 0,
+            addons,
+            preferences,
+            maxAddons: 5,
+          }
+        })
+        // Padrão iFood: produtos disponíveis no topo, esgotados no fim da categoria
+        .sort((a, b) => {
+          const aAvail = a.available !== false ? 0 : 1
+          const bAvail = b.available !== false ? 0 : 1
+          if (aAvail !== bAvail) return aAvail - bAvail
+          return (a.order || 0) - (b.order || 0)
+        })
 
-        return {
-          id: cat.id,
-          tabLabel: cat.name,
-          sectionTitle: cat.name,
-          items: catItems,
-        }
-      })
-
-      if (mapped.length > 0) {
-        categoriesList = mapped
+      return {
+        id: cat.id,
+        tabLabel: cat.name,
+        sectionTitle: cat.name,
+        items: catItems,
       }
-    }
+    })
 
     return {
       ...base,
@@ -279,14 +303,14 @@ export function CardapioPage() {
       isOpen: liveStatus.isOpen,
       statusMode: liveStatus.mode,
       statusBadge: liveStatus.badge,
-      todayHours: liveStatus.todayHours || '18:00 às 23:30',
+      todayHours: liveStatus.todayHours || 'Consulte horários',
       deliveryConfig: adminDeliveryConfig,
       deliveryPricingMode: adminDeliveryConfig?.pricingMode || 'by_neighborhood',
-      fixedDeliveryFee: adminDeliveryConfig?.fixedFee ?? 5.0,
+      fixedDeliveryFee: adminDeliveryConfig?.fixedFee ?? 0,
       estimatedDelivery: adminDeliveryConfig?.estimatedDelivery || '40 - 50 min',
       estimatedPickup: adminDeliveryConfig?.estimatedPickup || '20 - 30 min',
       allowPickup: adminDeliveryConfig?.allowPickup ?? true,
-      minOrder: adminDeliveryConfig?.minOrder ?? base.minOrder ?? 15.0,
+      minOrder: adminDeliveryConfig?.minOrder ?? base.minOrder ?? 0,
       neighborhoods: adminNeighborhoods || [],
       paymentConfig: adminPaymentConfig,
       acceptedPaymentMethods: adminPaymentConfig?.methods || {
@@ -300,10 +324,10 @@ export function CardapioPage() {
         adminStoreInfo?.address ||
         currentBusiness?.address ||
         base.address ||
-        'Praça Antônio Basílio de Melo, 32, Nova Cruz / RN',
+        '',
       schedule: adminSchedule,
       reviews: [...(customerReviews || []), ...(base.reviews || [])],
-      reviewsCount: (base.reviewsCount || 248) + (customerReviews?.length || 0),
+      reviewsCount: (base.reviewsCount || 0) + (customerReviews?.length || 0),
       timezone: adminTimezone,
     }
   }, [
@@ -526,6 +550,8 @@ export function CardapioPage() {
     setIsCheckoutOpen(false)
     setConfirmedOrder(newOrder)
     setIsCustomerHubOpen(true)
+    setActiveDesktopOrder(newOrder)
+    setDesktopView('tracking')
     toast.success(`Pedido #${newOrder.orderId} confirmado com sucesso!`)
   }
 
@@ -611,7 +637,9 @@ export function CardapioPage() {
           <main className="px-4 pb-8 pt-1">
             {filteredCategories.length === 0 ? (
               <div className="py-12 text-center text-[13px] text-[#6C757D]">
-                Nenhum item encontrado para &ldquo;{searchQuery}&rdquo;.
+                {searchQuery
+                  ? `Nenhum item encontrado para "${searchQuery}".`
+                  : 'Nenhum produto disponível no cardápio no momento.'}
               </div>
             ) : (
               filteredCategories.map((category) => (
@@ -780,10 +808,14 @@ export function CardapioPage() {
                   {filteredCategories.length === 0 ? (
                     <div className="bg-white rounded-3xl p-12 text-center border border-gray-200/80 shadow-2xs space-y-3">
                       <p className="text-base font-bold text-[#1A1D20]">
-                        Nenhum item encontrado
+                        {searchQuery
+                          ? 'Nenhum item encontrado'
+                          : 'Cardápio sem produtos cadastrados'}
                       </p>
                       <p className="text-xs text-[#6C757D]">
-                        Não encontramos produtos para &ldquo;{searchQuery}&rdquo;. Tente buscar por outro termo.
+                        {searchQuery
+                          ? `Não encontramos produtos para "${searchQuery}". Tente buscar por outro termo.`
+                          : 'Os produtos cadastrados pelo estabelecimento aparecerão aqui.'}
                       </p>
                     </div>
                   ) : (
@@ -853,6 +885,7 @@ export function CardapioPage() {
             onOrderConfirmed={(newOrder) => {
               setActiveDesktopOrder(newOrder)
               setDesktopView('tracking')
+              setConfirmedOrder(newOrder)
             }}
           />
         )}
@@ -860,7 +893,14 @@ export function CardapioPage() {
         {/* VIEW 4: TELA DEDICADA DE ACOMPANHAMENTO DO PEDIDO (NÃO MODAL) */}
         {desktopView === 'tracking' && (
           <DesktopTrackingScreen
-            order={activeDesktopOrder || orders[0] || null}
+            order={
+              (activeDesktopOrder?.orderId
+                ? orders.find((o) => o.orderId === activeDesktopOrder.orderId)
+                : null) ||
+              activeDesktopOrder ||
+              orders[0] ||
+              null
+            }
             store={storeData}
             onBackToMenu={() => setDesktopView('menu')}
             onOpenCustomerHub={() => setDesktopView('orders')}

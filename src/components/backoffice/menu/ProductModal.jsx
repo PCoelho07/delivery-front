@@ -11,6 +11,7 @@ import {
   Plus,
   Pencil,
   Sliders,
+  Images,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -18,6 +19,7 @@ import { compressImage } from '../../../utils/imageCompressor'
 import { CustomSelect } from '../common/CustomSelect'
 import { formatTitleCase } from '../../../utils/textUtils'
 import { ProductConfigModal } from './ProductConfigModal'
+import { StockImagePickerModal } from './StockImagePickerModal'
 
 export function ProductModal({
   isOpen,
@@ -77,6 +79,7 @@ export function ProductModal({
   const [compressionInfo, setCompressionInfo] = useState(null)
   const [isCompressing, setIsCompressing] = useState(false)
   const [isUrlInputOpen, setIsUrlInputOpen] = useState(false)
+  const [isStockModalOpen, setIsStockModalOpen] = useState(false)
   const [urlInput, setUrlInput] = useState('')
   const fileInputRef = useRef(null)
 
@@ -272,7 +275,7 @@ export function ProductModal({
               {/* Seção 1: Foto do Produto */}
               <div>
                 <label className="block text-xs font-bold text-[#1A1D20] mb-1.5">
-                  Foto do Produto (Otimização Automática)
+                  Foto do Produto (Otimização Automática ou Banco de Fotos)
                 </label>
                 <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl bg-[#F8F9FA] border border-[#E9ECEF]">
                   <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-[#E9ECEF] bg-white overflow-hidden relative shrink-0 flex items-center justify-center group shadow-xs">
@@ -321,9 +324,18 @@ export function ProductModal({
                         <span>
                           {isCompressing
                             ? 'Compactando...'
-                            : 'Carregar Foto do Computador'}
+                            : 'Enviar Foto'}
                         </span>
                       </label>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsStockModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-xs font-bold text-[#FF5E1E] transition-all shadow-2xs cursor-pointer"
+                      >
+                        <Images className="w-4 h-4 text-[#FF5E1E]" />
+                        <span>Banco de Fotos</span>
+                      </button>
 
                       <button
                         type="button"
@@ -344,6 +356,10 @@ export function ProductModal({
                         </button>
                       )}
                     </div>
+
+                    <p className="text-[11px] text-[#6C757D]">
+                      Tire foto dos seus lanches ou escolha fotos prontas de sucos, refrigerantes e porções no <strong>Banco de Fotos</strong>.
+                    </p>
 
                     {compressionInfo && (
                       <div className="flex items-center gap-2 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl">
@@ -386,7 +402,7 @@ export function ProductModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  placeholder="Ex: Brasa Burger Especial, Pizza Margherita, Açaí 500ml"
+                  placeholder="Ex: Brasa Burger Especial, Suco de Laranja 500ml, Coca-Cola Lata"
                   className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-semibold placeholder:font-normal placeholder:text-slate-400 outline-none transition-all"
                 />
               </div>
@@ -632,6 +648,18 @@ export function ProductModal({
           onSaveSuccess={handleConfigSaved}
         />
       )}
+
+      {/* Submodal Banco de Fotos Gratuitas (Sem Copyright) */}
+      <StockImagePickerModal
+        isOpen={isStockModalOpen}
+        onClose={() => setIsStockModalOpen(false)}
+        currentImageUrl={imagePreview}
+        onSelectImage={(stockImg) => {
+          setImagePreview(stockImg.url)
+          setCompressionInfo(null)
+          toast.success(`Foto "${stockImg.name}" selecionada!`)
+        }}
+      />
     </>
   )
 }

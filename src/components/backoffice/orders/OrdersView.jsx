@@ -5,26 +5,23 @@ import {
   DollarSign,
   Timer,
   Receipt,
-  Plus,
   Volume2,
   VolumeX,
   Sparkles,
   ChefHat,
   Bike,
   CheckCircle2,
-  RotateCcw,
   Search,
   X,
   LayoutGrid,
   List,
   Store,
-  Trash2,
   Radio,
   RefreshCw,
   Ban,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useCustomerStore } from '../../../store/useCustomerStore'
+import { useCustomerStore, CUSTOMER_STORAGE_KEY } from '../../../store/useCustomerStore'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { formatCurrency } from '../../../lib/utils'
 import { playOrderChime } from '../../../utils/audio'
@@ -34,150 +31,14 @@ import { OrdersTableView } from './OrdersTableView'
 import { ThermalReceiptModal } from './ThermalReceiptModal'
 import { CancelOrderModal } from './CancelOrderModal'
 
-// Pedidos demonstrativos para alimentar o Kanban caso ainda não haja pedidos no store
-const DEFAULT_DEMO_ORDERS = [
-  {
-    orderId: '#1042',
-    status: 'aceito',
-    createdAt: 'Hoje às 21:42',
-    elapsedTime: 'há 4 min',
-    deliveryMethod: 'delivery',
-    customer: {
-      name: 'Lucas Silva',
-      phone: '(84) 99876-5432',
-    },
-    address: {
-      street: 'Rua das Flores',
-      number: '142',
-      neighborhoodName: 'Centro',
-      complement: 'Apt 201',
-    },
-    items: [
-      {
-        cartItemId: 'item-demo-1',
-        name: 'Brasa Master Picanha',
-        product: { name: 'Brasa Master Picanha' },
-        quantity: 1,
-        price: 38.9,
-        totalPrice: 42.9,
-        options: [
-          { name: 'Ponto da carne', value: 'Ao ponto' },
-          { name: 'Bacon Extra', value: '+R$ 4,00' },
-        ],
-        notes: 'Sem cebola crua por favor',
-      },
-    ],
-    deliveryFee: 6.0,
-    subtotal: 42.9,
-    total: 48.9,
-    paymentMethod: 'pix',
-    pix: {
-      key: '12.345.678/0001-90',
-      beneficiary: 'Brasa Burger',
-    },
-  },
-  {
-    orderId: '#1041',
-    status: 'preparo',
-    createdAt: 'Hoje às 21:32',
-    elapsedTime: 'há 14 min',
-    deliveryMethod: 'pickup',
-    customer: {
-      name: 'Mariana Costa',
-      phone: '(84) 99123-4567',
-    },
-    address: null,
-    items: [
-      {
-        cartItemId: 'item-demo-2',
-        name: 'Smash Bacon Duplo',
-        product: { name: 'Smash Bacon Duplo' },
-        quantity: 2,
-        price: 28.9,
-        totalPrice: 57.8,
-        options: [{ name: 'Molho extra', value: 'Maionese da casa' }],
-      },
-    ],
-    deliveryFee: 0,
-    subtotal: 57.8,
-    total: 57.8,
-    paymentMethod: 'credit',
-  },
-  {
-    orderId: '#1040',
-    status: 'entrega',
-    createdAt: 'Hoje às 21:15',
-    elapsedTime: 'há 28 min',
-    deliveryMethod: 'delivery',
-    customer: {
-      name: 'Carlos Eduardo',
-      phone: '(84) 98765-4321',
-    },
-    address: {
-      street: 'Av. Brasil',
-      number: '500',
-      neighborhoodName: 'Jardim América',
-      complement: 'Bloco B',
-    },
-    items: [
-      {
-        cartItemId: 'item-demo-3',
-        name: 'Combo Casal Smash',
-        product: { name: 'Combo Casal Smash' },
-        quantity: 1,
-        price: 64.9,
-        totalPrice: 64.9,
-        options: [{ name: 'Refrigerante', value: 'Coca-Cola 1.5L' }],
-      },
-    ],
-    deliveryFee: 7.5,
-    subtotal: 64.9,
-    total: 72.4,
-    paymentMethod: 'money',
-    changeFor: 100,
-  },
-  {
-    orderId: '#1039',
-    status: 'concluido',
-    createdAt: 'Hoje às 20:45',
-    elapsedTime: 'concluído',
-    deliveryMethod: 'delivery',
-    customer: {
-      name: 'Fernanda Lima',
-      phone: '(84) 99444-2211',
-    },
-    address: {
-      street: 'Rua da Paz',
-      number: '88',
-      neighborhoodName: 'Centro',
-    },
-    items: [
-      {
-        cartItemId: 'item-demo-4',
-        name: 'Smash Salada Burger',
-        product: { name: 'Smash Salada Burger' },
-        quantity: 1,
-        price: 26.9,
-        totalPrice: 26.9,
-      },
-    ],
-    deliveryFee: 5.0,
-    subtotal: 26.9,
-    total: 31.9,
-    paymentMethod: 'pix',
-  },
-]
-
 export function OrdersView() {
   const storeOrders = useCustomerStore((state) => state.orders)
   const updateStoreOrderStatus = useCustomerStore((state) => state.updateOrderStatus)
-  const setStoreOrders = useCustomerStore((state) => state.setOrders)
-  const clearStoreOrders = useCustomerStore((state) => state.clearOrders)
 
   // Sincronização multi-abas em tempo real via storage event
   useEffect(() => {
     const handleStorage = (e) => {
-      if (e.key === 'delivery-customer-cache-v1') {
+      if (e.key === CUSTOMER_STORAGE_KEY) {
         useCustomerStore.persist.rehydrate()
       }
     }
@@ -213,7 +74,6 @@ export function OrdersView() {
     isReconnecting: isWsReconnecting,
     reconnect: reconnectWs,
     updateOrderStatus: sendWsStatusUpdate,
-    simulateIncomingMessage,
   } = useOrdersWebSocket()
 
   // Todos os pedidos registrados
@@ -221,15 +81,21 @@ export function OrdersView() {
 
   // Métricas do Topo (sempre calculadas sobre o total do dia)
   const metrics = useMemo(() => {
-    const totalCount = allOrders.length
-    const totalRevenue = allOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0)
+    const validOrders = allOrders.filter(
+      (o) => o.status !== 'cancelado' && o.status !== 'recusado'
+    )
+    const totalCount = validOrders.length
+    const totalRevenue = validOrders.reduce(
+      (acc, o) => acc + (Number(o.total) || 0),
+      0
+    )
     const ticketMedio = totalCount > 0 ? totalRevenue / totalCount : 0
 
     return {
       count: totalCount,
       revenue: totalRevenue,
       ticket: ticketMedio,
-      kitchenTime: '18 min',
+      kitchenTime: totalCount > 0 ? '20 min' : '--',
     }
   }, [allOrders])
 
@@ -248,8 +114,12 @@ export function OrdersView() {
       const matchId = (o.orderId || '').toLowerCase().includes(query)
       const matchName = (o.customer?.name || '').toLowerCase().includes(query)
       const matchPhone = (o.customer?.phone || '').includes(query)
-      const matchItem = (o.items || []).some((it) => (it.name || it.product?.name || '').toLowerCase().includes(query))
-      const matchNeighborhood = (o.address?.neighborhoodName || '').toLowerCase().includes(query)
+      const matchItem = (o.items || []).some((it) =>
+        (it.name || it.product?.name || '').toLowerCase().includes(query)
+      )
+      const matchNeighborhood = (o.address?.neighborhoodName || '')
+        .toLowerCase()
+        .includes(query)
 
       return matchId || matchName || matchPhone || matchItem || matchNeighborhood
     })
@@ -303,70 +173,11 @@ export function OrdersView() {
   const handleToggleSound = () => {
     toggleSound()
     if (!soundEnabled) {
-
       playOrderChime()
       toast.info('Alerta sonoro ativado (som de teste reproduzido).')
     } else {
       toast.info('Alerta sonoro silenciado.')
     }
-  }
-
-  // Simular Novo Pedido (Dispara via pipeline do WebSocket)
-  const handleSimulateOrder = () => {
-    const randomId = `#${Math.floor(1000 + Math.random() * 9000)}`
-    const now = new Date()
-    const dateStr = now.toLocaleDateString('pt-BR')
-    const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    const simulated = {
-      orderId: randomId,
-      status: 'aceito',
-      createdAt: `${dateStr} às ${timeStr}`,
-      elapsedTime: `${dateStr} às ${timeStr}`,
-      deliveryMethod: Math.random() > 0.3 ? 'delivery' : 'pickup',
-      customer: {
-        name: 'Cliente ' + randomId,
-        phone: '(84) 99999-8888',
-      },
-      address: {
-        street: 'Rua Principal',
-        number: '10',
-        neighborhoodName: 'Centro',
-      },
-      items: [
-        {
-          cartItemId: `sim-${Date.now()}`,
-          name: 'Brasa Master Picanha',
-          product: { name: 'Brasa Master Picanha' },
-          quantity: 1,
-          price: 34.9,
-          totalPrice: 34.9,
-          options: [{ name: 'Bacon', value: 'Extra (+R$ 4,00)' }],
-        },
-      ],
-      deliveryFee: 5.0,
-      subtotal: 38.9,
-      total: 43.9,
-      paymentMethod: 'pix',
-      pix: {
-        key: '12.345.678/0001-90',
-        beneficiary: 'Brasa Burger',
-      },
-    }
-
-    // Processa pelo simulador de mensagem do WebSocket
-    simulateIncomingMessage('ORDER_CREATED', simulated)
-  }
-
-  // Restaurar Pedidos de Demonstração
-  const handleResetDemo = () => {
-    setStoreOrders(DEFAULT_DEMO_ORDERS)
-    toast.info('Kanban restaurado com os pedidos de demonstração.')
-  }
-
-  // Limpar Todos os Pedidos (Zerar fila e testes)
-  const handleClearOrders = () => {
-    clearStoreOrders()
-    toast.success('Todos os pedidos de teste foram removidos!')
   }
 
   return (
@@ -460,38 +271,6 @@ export function OrdersView() {
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             <span className="hidden md:inline">{soundEnabled ? 'Alerta Ativo' : 'Mudo'}</span>
           </button>
-
-          {/* Zerar Pedidos */}
-          <button
-            type="button"
-            onClick={handleClearOrders}
-            className="p-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Apagar todos os pedidos de teste"
-          >
-            <Trash2 className="w-4 h-4 text-rose-600" />
-            <span className="hidden md:inline">Zerar Pedidos</span>
-          </button>
-
-          {/* Restaurar Demonstração */}
-          <button
-            type="button"
-            onClick={handleResetDemo}
-            className="p-2.5 rounded-xl border border-[#E9ECEF] bg-white hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Recarregar exemplos"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span className="hidden md:inline">Resetar</span>
-          </button>
-
-          {/* Simular Pedido */}
-          <button
-            type="button"
-            onClick={handleSimulateOrder}
-            className="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center gap-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Simular Pedido</span>
-          </button>
         </div>
       </div>
 
@@ -550,7 +329,7 @@ export function OrdersView() {
         </div>
       </div>
 
-      {/* Barra de Filtros e Busca Rápida (Essencial para dias com 50+ pedidos) */}
+      {/* Barra de Filtros e Busca Rápida */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-3 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Campo de Busca Rápida */}
         <div className="relative flex-1 max-w-md">

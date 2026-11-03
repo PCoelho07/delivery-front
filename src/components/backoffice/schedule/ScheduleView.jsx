@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Save,
-  RotateCcw,
   PauseCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -66,8 +65,8 @@ export function ScheduleView() {
   const liveStatus = calculateStoreLiveStatus(schedule, timezone, storeStatusMode)
 
   // Estado local para os inputs do atalho de replicação em massa
-  const [bulkStart, setBulkStart] = useState('18:00')
-  const [bulkEnd, setBulkEnd] = useState('23:30')
+  const [bulkStart, setBulkStart] = useState('')
+  const [bulkEnd, setBulkEnd] = useState('')
 
   // Atualiza um dia no rascunho
   const updateDraftDay = (dayId, partial) => {
@@ -79,7 +78,7 @@ export function ScheduleView() {
   // Aplica para todos os dias no rascunho (Dom a Dom)
   const handleApplyToAllDays = () => {
     const startNorm = normalizeTime24h(bulkStart, '18:00')
-    const endNorm = normalizeTime24h(bulkEnd, '23:30')
+    const endNorm = normalizeTime24h(bulkEnd, '23:00')
     setBulkStart(startNorm)
     setBulkEnd(endNorm)
     setDraftSchedule((prev) =>
@@ -98,7 +97,7 @@ export function ScheduleView() {
   // Aplica de Segunda a Sexta no rascunho
   const handleApplyWeekdays = () => {
     const startNorm = normalizeTime24h(bulkStart, '18:00')
-    const endNorm = normalizeTime24h(bulkEnd, '23:30')
+    const endNorm = normalizeTime24h(bulkEnd, '23:00')
     setBulkStart(startNorm)
     setBulkEnd(endNorm)
     setDraftSchedule((prev) =>
@@ -116,7 +115,7 @@ export function ScheduleView() {
   // Aplica Sábado e Domingo no rascunho
   const handleApplyWeekend = () => {
     const startNorm = normalizeTime24h(bulkStart, '18:00')
-    const endNorm = normalizeTime24h(bulkEnd, '23:30')
+    const endNorm = normalizeTime24h(bulkEnd, '23:00')
     setBulkStart(startNorm)
     setBulkEnd(endNorm)
     setDraftSchedule((prev) =>
@@ -147,23 +146,7 @@ export function ScheduleView() {
   const handleDiscardChanges = () => {
     setDraftSchedule(JSON.parse(JSON.stringify(schedule)))
     setDraftTimezone(timezone || 'America/Sao_Paulo')
-    toast.info('Alterações descartadas. Restaurado para os horários ativos.')
-  }
-
-  // Preenche valores padrão de Brasília no rascunho
-  const handleResetDefault = () => {
-    const defaultSchedule = [
-      { id: 'seg', name: 'Segunda-feira', shortName: 'Seg', open: true, start: '18:00', end: '23:30' },
-      { id: 'ter', name: 'Terça-feira', shortName: 'Ter', open: true, start: '18:00', end: '23:30' },
-      { id: 'qua', name: 'Quarta-feira', shortName: 'Qua', open: true, start: '18:00', end: '23:30' },
-      { id: 'qui', name: 'Quinta-feira', shortName: 'Qui', open: true, start: '18:00', end: '23:30' },
-      { id: 'sex', name: 'Sexta-feira', shortName: 'Sex', open: true, start: '18:00', end: '00:00' },
-      { id: 'sab', name: 'Sábado', shortName: 'Sáb', open: true, start: '18:00', end: '00:30' },
-      { id: 'dom', name: 'Domingo', shortName: 'Dom', open: true, start: '18:00', end: '23:30' },
-    ]
-    setDraftSchedule(defaultSchedule)
-    setDraftTimezone('America/Sao_Paulo')
-    toast.info('Horários padrão carregados no rascunho. Clique em "Salvar Horários" para confirmar.')
+    toast.info('Alterações descartadas.')
   }
 
   // Obtém o dia atual da semana
@@ -178,7 +161,7 @@ export function ScheduleView() {
       {/* Top Header */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-base font-extrabold text-[#1A1D20] flex items-center gap-2">
+          <h2 className="text-base font-extrabold text-[#1A1D20] flex flex-wrap items-center gap-2">
             <Clock className="w-5 h-5 text-[#FF5E1E]" />
             <span>Horários da Semana</span>
             <span
@@ -219,16 +202,6 @@ export function ScheduleView() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleResetDefault}
-            title="Carregar horários padrão no rascunho"
-            className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Restaurar Padrão</span>
-          </button>
-
           {isDirty && (
             <button
               type="button"
@@ -252,7 +225,6 @@ export function ScheduleView() {
 
       {/* Bloco Unificado: Fuso Horário & Configuração Rápida */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-4 sm:p-5 shadow-xs space-y-4">
-        {/* Cabeçalho do Bloco: Título + Seletor de Fuso Horário integrado */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F1F3F5]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center shrink-0">
@@ -263,7 +235,7 @@ export function ScheduleView() {
                 Configuração Rápida & Fuso Horário
               </h3>
               <p className="text-[11px] text-[#6C757D]">
-                Ajuste o fuso e preencha o expediente padrão nos dias desejados
+                Ajuste o fuso e preencha o expediente nos dias desejados
               </p>
             </div>
           </div>
@@ -286,17 +258,17 @@ export function ScheduleView() {
           </div>
         </div>
 
-        {/* Linha de Horários e Ações com Lucide Icons */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Inputs De / Até */}
           <div className="flex items-center gap-1.5 bg-[#F8F9FA] px-3 py-1.5 rounded-xl border border-[#E9ECEF] focus-within:border-[#FF5E1E] focus-within:bg-white transition-all shadow-xs">
             <span className="text-xs font-semibold text-[#6C757D]">De:</span>
             <input
               type="text"
               value={bulkStart}
               onChange={(e) => setBulkStart(e.target.value)}
-              onBlur={(e) => setBulkStart(normalizeTime24h(e.target.value, '18:00'))}
-              placeholder="18:00"
+              onBlur={(e) =>
+                bulkStart && setBulkStart(normalizeTime24h(e.target.value, '18:00'))
+              }
+              placeholder="00:00"
               maxLength={6}
               className="w-14 text-xs font-black text-[#1A1D20] outline-none text-center bg-transparent"
             />
@@ -308,14 +280,15 @@ export function ScheduleView() {
               type="text"
               value={bulkEnd}
               onChange={(e) => setBulkEnd(e.target.value)}
-              onBlur={(e) => setBulkEnd(normalizeTime24h(e.target.value, '23:30'))}
-              placeholder="23:30"
+              onBlur={(e) =>
+                bulkEnd && setBulkEnd(normalizeTime24h(e.target.value, '23:00'))
+              }
+              placeholder="00:00"
               maxLength={6}
               className="w-14 text-xs font-black text-[#1A1D20] outline-none text-center bg-transparent"
             />
           </div>
 
-          {/* Botão Principal: Todos os Dias (Dom a Dom) */}
           <button
             type="button"
             onClick={handleApplyToAllDays}
@@ -325,7 +298,6 @@ export function ScheduleView() {
             <span>Todos os dias (Dom a Dom)</span>
           </button>
 
-          {/* Botão Seg a Sex com Lucide Calendar */}
           <button
             type="button"
             onClick={handleApplyWeekdays}
@@ -335,7 +307,6 @@ export function ScheduleView() {
             <span>Seg a Sex (Dias úteis)</span>
           </button>
 
-          {/* Botão Sáb e Dom com Lucide CalendarDays */}
           <button
             type="button"
             onClick={handleApplyWeekend}
@@ -347,7 +318,7 @@ export function ScheduleView() {
         </div>
       </div>
 
-      {/* Grade Semanal Limpa com Border Laranja Sutil no Hoje */}
+      {/* Grade Semanal Limpa */}
       <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[#F1F3F5]">
           <div>
@@ -355,14 +326,14 @@ export function ScheduleView() {
               Grade Semanal de Funcionamento
             </h3>
             <p className="text-xs text-[#6C757D]">
-              Horário padrão brasileiro de 24 horas (ex: 19:00 ou 19h).
+              Horário padrão brasileiro de 24 horas (ex: 19:00).
             </p>
           </div>
 
           {todaySchedule && (
             <div className="text-right hidden sm:block">
               <span className="text-[11px] font-bold text-[#6C757D] block">
-                Hoje ({todaySchedule.name}):
+                Hoje ({todaySchedule.name || todaySchedule.day}):
               </span>
               <span
                 className={`text-xs font-black ${
@@ -391,6 +362,7 @@ export function ScheduleView() {
         <div className="divide-y divide-[#F1F3F5] space-y-1">
           {draftSchedule.map((day) => {
             const isToday = day.id === todayId
+            const dayName = day.name || day.day
 
             return (
               <div
@@ -401,9 +373,7 @@ export function ScheduleView() {
                     : 'border border-transparent hover:bg-slate-50/60'
                 }`}
               >
-                {/* Nome do Dia + Switch Aberto/Fechado */}
                 <div className="flex items-center gap-3 w-48">
-                  {/* Switch Aberto/Fechado */}
                   <button
                     type="button"
                     role="switch"
@@ -411,8 +381,8 @@ export function ScheduleView() {
                     onClick={() => handleToggleDayOpen(day)}
                     title={
                       day.open
-                        ? `Clique para marcar ${day.name} como fechado no rascunho`
-                        : `Clique para abrir ${day.name} no rascunho`
+                        ? `Clique para marcar ${dayName} como fechado`
+                        : `Clique para abrir ${dayName}`
                     }
                     className="cursor-pointer"
                   >
@@ -436,7 +406,7 @@ export function ScheduleView() {
                           day.open ? 'text-[#1A1D20]' : 'text-[#6C757D] line-through'
                         }`}
                       >
-                        {day.name}
+                        {dayName}
                       </span>
                       {isToday && (
                         <span className="text-[9px] font-black uppercase tracking-wider bg-[#FF5E1E] text-white px-1.5 py-0.2 rounded-sm shadow-xs">
@@ -454,7 +424,6 @@ export function ScheduleView() {
                   </div>
                 </div>
 
-                {/* Campos de Horário Brasileiro (24h) ou Aviso de Fechado */}
                 {day.open ? (
                   <div className="flex items-center gap-2.5">
                     <div className="flex items-center gap-1.5 bg-[#F8F9FA] border border-[#E9ECEF] rounded-xl px-3 py-1.5 focus-within:border-[#FF5E1E] focus-within:bg-white transition-all shadow-xs">
@@ -470,7 +439,7 @@ export function ScheduleView() {
                             start: normalizeTime24h(e.target.value, '18:00'),
                           })
                         }
-                        placeholder="18:00"
+                        placeholder="00:00"
                         maxLength={6}
                         className="w-14 text-xs font-black text-[#1A1D20] outline-none bg-transparent text-center"
                       />
@@ -487,10 +456,10 @@ export function ScheduleView() {
                         }
                         onBlur={(e) =>
                           updateDraftDay(day.id, {
-                            end: normalizeTime24h(e.target.value, '23:30'),
+                            end: normalizeTime24h(e.target.value, '23:00'),
                           })
                         }
-                        placeholder="23:30"
+                        placeholder="00:00"
                         maxLength={6}
                         className="w-14 text-xs font-black text-[#1A1D20] outline-none bg-transparent text-center"
                       />
@@ -516,7 +485,6 @@ export function ScheduleView() {
           })}
         </div>
 
-        {/* Rodapé com Feedback de Sincronização */}
         <div className="pt-4 border-t border-[#F1F3F5] flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isDirty ? (

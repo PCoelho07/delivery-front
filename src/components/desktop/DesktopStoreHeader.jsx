@@ -59,7 +59,7 @@ export function DesktopStoreHeader({
     : null
 
   const todayHoursFormatted =
-    store.todayHours || store.openingHours || '18:00 às 23:30'
+    store.todayHours || store.openingHours || 'Consulte horários'
 
   return (
     <header className="relative w-full">
@@ -135,11 +135,10 @@ export function DesktopStoreHeader({
                       <span className="font-bold text-[#1A1D20] group-hover:text-[#FF5E1E]">
                         {store.rating}
                       </span>
-                      {store.reviewsCount && (
-                        <span className="text-[#6C757D] underline decoration-gray-300 underline-offset-2 group-hover:text-[#FF5E1E] group-hover:decoration-[#FF5E1E]">
-                          ({store.reviewsCount} avaliações)
-                        </span>
-                      )}
+                      <span className="text-[#6C757D] underline decoration-gray-300 underline-offset-2 group-hover:text-[#FF5E1E] group-hover:decoration-[#FF5E1E]">
+                        ({store.reviewsCount || 0}{' '}
+                        {store.reviewsCount === 1 ? 'avaliação' : 'avaliações'})
+                      </span>
                       <ChevronRight className="w-3.5 h-3.5 text-[#FF5E1E] group-hover:translate-x-0.5 transition-transform" />
                     </button>
                   )}
@@ -158,7 +157,7 @@ export function DesktopStoreHeader({
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-[#1A1D20]">
                 <ShoppingBag className="w-4 h-4 text-[#FF5E1E]" />
                 <span>
-                  Ped. mín. <strong>{formatCurrency(store.minOrder ?? 10)}</strong>
+                  Ped. mín. <strong>{formatCurrency(store.minOrder ?? 0)}</strong>
                 </span>
               </div>
 
