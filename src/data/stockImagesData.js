@@ -377,8 +377,8 @@ export const STOCK_IMAGES_CATALOG = [
     id: 'stock-pudim-leite-condensado',
     name: 'Pudim de Leite Condensado com Calda de Caramelo',
     category: 'sobremesas',
-    tags: ['pudim', 'leite', 'caramelo', 'sobremesa', 'doce', 'tradicional'],
-    url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80',
+    tags: ['pudim', 'leite', 'caramelo', 'flan', 'sobremesa', 'doce', 'tradicional'],
+    url: 'https://images.unsplash.com/photo-1592981749207-bdbb9b981cb5?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'stock-churros-doce-leite',
@@ -444,8 +444,15 @@ export const STOCK_IMAGES_CATALOG = [
     id: 'stock-cerveja-lata-gotas',
     name: 'Cerveja em Lata Trincando de Gelada',
     category: 'bebidas',
-    tags: ['cerveja', 'lata', 'gelada', '350ml', 'gotas'],
-    url: 'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?auto=format&fit=crop&w=600&q=80',
+    tags: ['cerveja', 'lata', 'gelada', '350ml', 'gotas', 'gelo', 'heineken'],
+    url: 'https://images.unsplash.com/photo-1704403107153-681627549b9f?auto=format&fit=crop&w=600&q=80',
+  },
+  {
+    id: 'stock-cerveja-lata-pilsen',
+    name: 'Cerveja em Lata no Gelo 350ml',
+    category: 'bebidas',
+    tags: ['cerveja', 'lata', 'pilsen', '350ml', 'gelada'],
+    url: 'https://images.unsplash.com/photo-1543308922-6b60a73f48a1?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'stock-caipirinha-tradicional',
