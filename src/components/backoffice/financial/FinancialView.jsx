@@ -17,42 +17,110 @@ import {
 import { toast } from 'sonner'
 import { formatCurrency } from '../../../lib/utils'
 import { CustomSelect } from '../../common/CustomSelect'
+import { useStoreAdmin } from '../../../store/useStoreAdmin'
 
-// Opções organizadas do seletor customizado de períodos
-const MONTH_SELECT_OPTIONS = [
-  { value: 'last_6_months', label: '📊 Últimos 6 Meses (Consolidado)' },
-  {
-    group: 'Filtrar Mês a Mês',
-    items: [
-      { value: 'month', label: 'Outubro / 2026 (Mês Atual)' },
-      { value: 'm-09', label: 'Setembro / 2026' },
-      { value: 'm-08', label: 'Agosto / 2026' },
-      { value: 'm-07', label: 'Julho / 2026' },
-      { value: 'm-06', label: 'Junho / 2026' },
-      { value: 'm-05', label: 'Maio / 2026' },
-      { value: 'm-04', label: 'Abril / 2026' },
-      { value: 'm-03', label: 'Março / 2026' },
-      { value: 'm-02', label: 'Fevereiro / 2026' },
-      { value: 'm-01', label: 'Janeiro / 2026' },
-    ],
-  },
+const MONTH_NAMES = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ]
 
-// Rótulos amigáveis para feedback de seleção
-const PERIOD_LABELS = {
-  today: 'Hoje',
-  week: 'Últimos 7 dias',
-  month: 'Outubro / 2026 (Mês Atual)',
-  last_6_months: 'Últimos 6 Meses (Consolidado)',
-  'm-09': 'Setembro / 2026',
-  'm-08': 'Agosto / 2026',
-  'm-07': 'Julho / 2026',
-  'm-06': 'Junho / 2026',
-  'm-05': 'Maio / 2026',
-  'm-04': 'Abril / 2026',
-  'm-03': 'Março / 2026',
-  'm-02': 'Fevereiro / 2026',
-  'm-01': 'Janeiro / 2026',
+/**
+ * Converte qualquer formato de data de cadastro em um objeto Date válido.
+ * Fallback: Janeiro do ano corrente se a data for inválida ou não informada.
+ */
+function parseStoreStartDate(rawDate) {
+  if (!rawDate) {
+    const fallback = new Date()
+    return new Date(fallback.getFullYear(), 0, 1)
+  }
+  if (rawDate instanceof Date && !isNaN(rawDate)) {
+    return rawDate
+  }
+  if (typeof rawDate === 'number') {
+    const d = new Date(rawDate)
+    return isNaN(d) ? new Date(new Date().getFullYear(), 0, 1) : d
+  }
+  if (typeof rawDate === 'string') {
+    const brMatch = rawDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+    if (brMatch) {
+      const [, d, m, y] = brMatch
+      return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10))
+    }
+    const parsed = new Date(rawDate)
+    if (!isNaN(parsed.getTime())) {
+      return parsed
+    }
+  }
+  return new Date(new Date().getFullYear(), 0, 1)
+}
+
+/**
+ * Gera dinamicamente a lista de meses disponíveis desde a data de cadastro
+ * até o mês corrente (new Date()). Garante que novos meses sejam liberados
+ * automaticamente na virada do mês, e meses anteriores ao cadastro nunca apareçam.
+ */
+function generateAvailableMonths(startDate, currentDate = new Date()) {
+  const start = parseStoreStartDate(startDate)
+  const current =
+    currentDate instanceof Date && !isNaN(currentDate) ? currentDate : new Date()
+
+  const startYear = start.getFullYear()
+  const startMonth = start.getMonth()
+
+  const currentYear = current.getFullYear()
+  const currentMonth = current.getMonth()
+
+  const months = []
+  let y = currentYear
+  let m = currentMonth
+
+  while (y > startYear || (y === startYear && m >= startMonth)) {
+    const isCurrent = y === currentYear && m === currentMonth
+    const monthName = MONTH_NAMES[m]
+    // Identificador 'month' preservado para o mês atual garantindo retrocompatibilidade
+    const key = isCurrent ? 'month' : `m-${y}-${String(m + 1).padStart(2, '0')}`
+    const label = isCurrent
+      ? `${monthName} / ${y} (Mês Atual)`
+      : `${monthName} / ${y}`
+
+    months.push({
+      value: key,
+      label,
+      year: y,
+      monthIndex: m,
+      monthName,
+      isCurrent,
+    })
+
+    m--
+    if (m < 0) {
+      m = 11
+      y--
+    }
+  }
+
+  if (months.length === 0) {
+    months.push({
+      value: 'month',
+      label: `${MONTH_NAMES[currentMonth]} / ${currentYear} (Mês Atual)`,
+      year: currentYear,
+      monthIndex: currentMonth,
+      monthName: MONTH_NAMES[currentMonth],
+      isCurrent: true,
+    })
+  }
+
+  return months
 }
 
 const ZERO_PAYMENTS = {
@@ -81,31 +149,59 @@ function createZeroDataset(periodLabel, tableDaysBadge) {
   }
 }
 
-// Dados zerados por período e mês a mês
-const FINANCIAL_DATASETS = {
-  today: createZeroDataset('hoje', 'Hoje'),
-  week: createZeroDataset('nos últimos 7 dias', 'Últimos 7 dias'),
-  month: createZeroDataset('neste mês (Outubro)', 'Mês de Outubro / 2026'),
-  last_6_months: createZeroDataset(
-    'nos últimos 6 meses (Maio a Outubro)',
-    'Consolidado Últimos 6 Meses (Maio a Outubro / 2026)'
-  ),
-  'm-09': createZeroDataset('em Setembro / 2026', 'Mês de Setembro / 2026'),
-  'm-08': createZeroDataset('em Agosto / 2026', 'Mês de Agosto / 2026'),
-  'm-07': createZeroDataset('em Julho / 2026', 'Mês de Julho / 2026'),
-  'm-06': createZeroDataset('em Junho / 2026', 'Mês de Junho / 2026'),
-  'm-05': createZeroDataset('em Maio / 2026', 'Mês de Maio / 2026'),
-  'm-04': createZeroDataset('em Abril / 2026', 'Mês de Abril / 2026'),
-  'm-03': createZeroDataset('em Março / 2026', 'Mês de Março / 2026'),
-  'm-02': createZeroDataset('em Fevereiro / 2026', 'Mês de Fevereiro / 2026'),
-  'm-01': createZeroDataset('em Janeiro / 2026', 'Mês de Janeiro / 2026'),
-}
-
 export function FinancialView() {
+  const storeInfo = useStoreAdmin((state) => state.storeInfo)
   const [selectedPeriod, setSelectedPeriod] = useState('month')
   const [dateBr, setDateBr] = useState('')
   const [isoDate, setIsoDate] = useState('')
   const hiddenDateRef = useRef(null)
+
+  // Meses dinâmicos baseados no cadastro do lojista e na data atual
+  const availableMonths = useMemo(() => {
+    return generateAvailableMonths(storeInfo?.createdAt || storeInfo?.created_at)
+  }, [storeInfo?.createdAt, storeInfo?.created_at])
+
+  // Total de meses disponíveis no histórico do lojista
+  const totalMonths = availableMonths.length
+  const consolidatedCount = Math.min(6, totalMonths)
+
+  // Rótulo da predefinição sem ícone de gráfico
+  const consolidatedLabel =
+    consolidatedCount < 6
+      ? consolidatedCount === 1
+        ? 'Mês Atual (Consolidado)'
+        : `Últimos ${consolidatedCount} Meses (Consolidado)`
+      : 'Últimos 6 Meses (Consolidado)'
+
+  // Opções para o CustomSelect (sem ícone de gráfico)
+  const monthSelectOptions = useMemo(() => {
+    return [
+      {
+        value: 'last_6_months',
+        label: consolidatedLabel,
+      },
+      {
+        group: 'Filtrar Mês a Mês',
+        items: availableMonths.map((m) => ({
+          value: m.value,
+          label: m.label,
+        })),
+      },
+    ]
+  }, [consolidatedLabel, availableMonths])
+
+  // Rótulos amigáveis para mensagens informativas e toasts
+  const periodLabelsMap = useMemo(() => {
+    const map = {
+      today: 'Hoje',
+      week: 'Últimos 7 dias',
+      last_6_months: consolidatedLabel,
+    }
+    availableMonths.forEach((m) => {
+      map[m.value] = m.label
+    })
+    return map
+  }, [consolidatedLabel, availableMonths])
 
   // Alterna o período rápido (Hoje, 7 dias)
   const handlePeriodChange = (periodKey) => {
@@ -117,7 +213,7 @@ export function FinancialView() {
     } else if (periodKey === 'week') {
       toast.info('Exibindo faturamento dos Últimos 7 dias')
     } else {
-      toast.info('Exibindo faturamento do Mês Atual')
+      toast.info(`Exibindo faturamento de ${availableMonths[0]?.label || 'Mês Atual'}`)
     }
   }
 
@@ -131,7 +227,7 @@ export function FinancialView() {
     setSelectedPeriod(val)
     setDateBr('')
     setIsoDate('')
-    const label = PERIOD_LABELS[val] || val
+    const label = periodLabelsMap[val] || val
     toast.info(`Exibindo fechamento de ${label}`)
   }
 
@@ -200,8 +296,49 @@ export function FinancialView() {
     if (dateBr && dateBr.length === 10) {
       return createZeroDataset(`em ${dateBr}`, `Filtrado por: ${dateBr}`)
     }
-    return FINANCIAL_DATASETS[selectedPeriod] || FINANCIAL_DATASETS.month
-  }, [selectedPeriod, dateBr])
+
+    if (selectedPeriod === 'today') {
+      return createZeroDataset('hoje', 'Hoje')
+    }
+
+    if (selectedPeriod === 'week') {
+      return createZeroDataset('nos últimos 7 dias', 'Últimos 7 dias')
+    }
+
+    if (selectedPeriod === 'last_6_months') {
+      const oldest = availableMonths[consolidatedCount - 1] || availableMonths[0]
+      const newest = availableMonths[0]
+      const rangeDesc =
+        consolidatedCount === 1
+          ? `no mês atual (${newest?.monthName || 'Mês Atual'})`
+          : `nos últimos ${consolidatedCount} meses (${oldest?.monthName || ''} a ${newest?.monthName || ''})`
+
+      const badgeDesc =
+        consolidatedCount === 1
+          ? `Consolidado Mês Atual (${newest?.monthName || ''} / ${newest?.year || ''})`
+          : `Consolidado Últimos ${consolidatedCount} Meses (${oldest?.monthName || ''} a ${newest?.monthName || ''} / ${newest?.year || ''})`
+
+      return createZeroDataset(rangeDesc, badgeDesc)
+    }
+
+    const monthObj = availableMonths.find((m) => m.value === selectedPeriod)
+    if (monthObj) {
+      const periodDesc = monthObj.isCurrent
+        ? `neste mês (${monthObj.monthName})`
+        : `em ${monthObj.monthName} / ${monthObj.year}`
+
+      return createZeroDataset(
+        periodDesc,
+        `Mês de ${monthObj.monthName} / ${monthObj.year}`
+      )
+    }
+
+    const fallbackMonth = availableMonths[0]
+    return createZeroDataset(
+      `neste mês (${fallbackMonth?.monthName || 'Mês Atual'})`,
+      `Mês de ${fallbackMonth?.monthName || ''} / ${fallbackMonth?.year || ''}`
+    )
+  }, [dateBr, selectedPeriod, availableMonths, consolidatedCount])
 
   const isMonthDropdownActive =
     !dateBr && !['today', 'week'].includes(selectedPeriod)
@@ -258,7 +395,7 @@ export function FinancialView() {
             <CustomSelect
               value={isMonthDropdownActive ? selectedPeriod : ''}
               onChange={handleDropdownChange}
-              options={MONTH_SELECT_OPTIONS}
+              options={monthSelectOptions}
               placeholder="Filtrar por Mês / 6 Meses"
               icon={<CalendarDays className="w-4 h-4 text-[#FF5E1E]" />}
               variant={isMonthDropdownActive ? 'orange' : 'default'}

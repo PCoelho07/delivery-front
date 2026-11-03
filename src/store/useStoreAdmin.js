@@ -90,6 +90,7 @@ export const DEFAULT_DELIVERY_CONFIG = {
   minOrder: 0,
   estimatedDelivery: '40 - 50 min',
   estimatedPickup: '20 - 30 min',
+      createdAt: '2026-01-01T00:00:00.000Z',
   allowPickup: true,
 }
 

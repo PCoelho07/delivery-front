@@ -15,6 +15,7 @@ import {
   Search,
   CheckSquare,
   Square,
+  AlertCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -121,6 +122,10 @@ export function CouponsView() {
 
     let targetCategoryName = ''
     if (targetType === 'category') {
+      if (categories.length === 0) {
+        toast.error('Nenhuma categoria encontrada. Cadastre uma categoria antes de vincular ao cupom.')
+        return
+      }
       if (!targetCategoryId) {
         toast.error('Selecione uma categoria para o cupom.')
         return
@@ -530,21 +535,52 @@ export function CouponsView() {
 
               {/* Seletor quando 'category' */}
               {targetType === 'category' && (
-                <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/80 space-y-2">
+                <div className="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200/80 space-y-2.5">
                   <label className="block text-xs font-bold text-amber-900">
                     Selecione a Categoria Participante:
                   </label>
-                  <CustomSelect
-                    value={targetCategoryId}
-                    onChange={(val) => setTargetCategoryId(val)}
-                    options={categoryOptions}
-                    variant="amber"
-                    placeholder="Selecione a categoria..."
-                    icon={<Layers className="w-4 h-4 text-amber-600" />}
-                  />
-                  <p className="text-[11px] text-amber-800">
-                    O desconto será calculado unicamente sobre os itens desta categoria que estiverem na sacola.
-                  </p>
+
+                  {categories.length === 0 ? (
+                    <div className="p-3 bg-white rounded-xl border border-amber-300 shadow-2xs space-y-2.5">
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                          <AlertCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h5 className="text-xs font-bold text-amber-950">
+                            Nenhuma categoria encontrada
+                          </h5>
+                          <p className="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                            Cadastre uma categoria antes de vincular ao cupom promocional.
+                          </p>
+                        </div>
+                      </div>
+
+                      <CustomSelect
+                        value=""
+                        onChange={() => {}}
+                        options={[]}
+                        variant="amber"
+                        placeholder="Nenhuma categoria disponível para seleção"
+                        disabled={true}
+                        icon={<Layers className="w-4 h-4 text-amber-400" />}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <CustomSelect
+                        value={targetCategoryId}
+                        onChange={(val) => setTargetCategoryId(val)}
+                        options={categoryOptions}
+                        variant="amber"
+                        placeholder="Selecione a categoria..."
+                        icon={<Layers className="w-4 h-4 text-amber-600" />}
+                      />
+                      <p className="text-[11px] text-amber-800">
+                        O desconto será calculado unicamente sobre os itens desta categoria que estiverem na sacola.
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -655,7 +691,12 @@ export function CouponsView() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 cursor-pointer"
+                  disabled={targetType === 'category' && categories.length === 0}
+                  className={`px-5 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-md ${
+                    targetType === 'category' && categories.length === 0
+                      ? 'bg-slate-300 cursor-not-allowed opacity-60 shadow-none'
+                      : 'bg-[#FF5E1E] hover:bg-[#E64E12] shadow-[#FF5E1E]/20 cursor-pointer'
+                  }`}
                 >
                   Salvar Cupom
                 </button>

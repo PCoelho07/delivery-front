@@ -138,7 +138,9 @@ export function CustomSelect({
                         </div>
 
                         {isSelected && (
-                          <Check className="w-4 h-4 text-[#FF5E1E] shrink-0 stroke-[2.5]" />
+                          <div className="w-5 h-5 rounded-full bg-[#FF5E1E]/10 flex items-center justify-center shrink-0">
+                            <Check className="w-3.5 h-3.5 text-[#FF5E1E] stroke-[2.5]" />
+                          </div>
                         )}
                       </div>
                     )
@@ -164,7 +166,9 @@ export function CustomSelect({
                 </div>
 
                 {isSelected && (
-                  <Check className="w-4 h-4 text-[#FF5E1E] shrink-0 stroke-[2.5]" />
+                  <div className="w-5 h-5 rounded-full bg-[#FF5E1E]/10 flex items-center justify-center shrink-0">
+                    <Check className="w-3.5 h-3.5 text-[#FF5E1E] stroke-[2.5]" />
+                  </div>
                 )}
               </div>
             )
