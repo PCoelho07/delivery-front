@@ -163,10 +163,14 @@ export function CardapioPage() {
   useEffect(() => {
     const syncTenant = async () => {
       if (businessName) {
-        if (businesses.length === 0) {
-          await fetchBusinesses()
+        // 1. Tenta buscar direto pelo contrato GET /api/v1/store/{slug}
+        const remote = await fetchStoreBySlug(businessName)
+        if (!remote) {
+          if (businesses.length === 0) {
+            await fetchBusinesses()
+          }
+          selectBusinessByName(businessName)
         }
-        selectBusinessByName(businessName)
       }
     }
     syncTenant()

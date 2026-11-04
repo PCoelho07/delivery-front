@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { superadminService } from '../services/superadminService'
 
 export const INITIAL_PLANS = [
   {
@@ -121,10 +122,34 @@ export const useSuperAdminStore = create(
           activeTab: 'empresas',
         }),
 
-      addCompany: (newCompany) =>
+      addCompany: (newCompany) => {
         set((state) => ({
           companies: [newCompany, ...state.companies],
-        })),
+        }))
+        superadminService
+          .createCompany({
+            name: newCompany.name,
+            phone: newCompany.phone,
+            email: newCompany.email,
+            cnpj: newCompany.cnpj,
+          })
+          .catch(() => {})
+      },
+
+      fetchCompaniesFromApi: async () => {
+        try {
+          const list = await superadminService.listCompanies()
+          if (Array.isArray(list) && list.length > 0) {
+            set((state) => {
+              const existingIds = new Set(list.map((comp) => String(comp.id)))
+              const localsNotRemote = state.companies.filter((comp) => !existingIds.has(String(comp.id)))
+              return { companies: [...list, ...localsNotRemote] }
+            })
+          }
+        } catch (e) {
+          console.warn('Erro ao carregar empresas do Go backend:', e)
+        }
+      },
 
       setCompanies: (companiesList) =>
         set({

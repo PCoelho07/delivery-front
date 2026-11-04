@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { formatTitleCase } from '../utils/textUtils'
 import { ordersWebSocket } from '../services/ordersWebSocket'
+import { storeService } from '../services/storeService'
+import { menuService } from '../services/menuService'
+import { operationService } from '../services/operationService'
+import { couponService } from '../services/couponService'
 
 export const STORAGE_KEY = 'delivery_admin_store_v4'
 
@@ -1234,6 +1238,120 @@ export const useStoreAdmin = create((set, get) => ({
       }
     } catch {
       // Ignora silenciosamente
+    }
+  },
+
+
+  syncWithBackendApi: async (businessId = 1) => {
+    try {
+      const [
+        profileRes,
+        categoriesRes,
+        productsRes,
+        templatesRes,
+        scheduleRes,
+        deliveryRes,
+        paymentsRes,
+        couponsRes,
+      ] = await Promise.allSettled([
+        storeService.getBusinessProfile(businessId),
+        menuService.listCategories(businessId),
+        menuService.listProducts(businessId),
+        menuService.listTemplates(businessId),
+        operationService.getSchedule(businessId),
+        operationService.getDeliveryConfig(businessId),
+        operationService.getPaymentConfig(businessId),
+        couponService.listCoupons(businessId),
+      ])
+
+      const updates = {}
+
+      if (profileRes.status === 'fulfilled' && profileRes.value) {
+        updates.storeInfo = {
+          ...get().storeInfo,
+          ...profileRes.value,
+        }
+      }
+
+      if (
+        categoriesRes.status === 'fulfilled' &&
+        Array.isArray(categoriesRes.value) &&
+        categoriesRes.value.length > 0
+      ) {
+        updates.categories = categoriesRes.value.map((c) => ({
+          ...c,
+          status: c.active !== false ? 'active' : 'inactive',
+        }))
+      }
+
+      if (
+        productsRes.status === 'fulfilled' &&
+        Array.isArray(productsRes.value) &&
+        productsRes.value.length > 0
+      ) {
+        updates.products = productsRes.value.map((p) => ({
+          ...p,
+          desc: p.description || p.desc || '',
+          image: p.imageUrl || p.image || '',
+          oldPrice: p.promotionalPrice || p.oldPrice || null,
+        }))
+      }
+
+      if (
+        templatesRes.status === 'fulfilled' &&
+        Array.isArray(templatesRes.value) &&
+        templatesRes.value.length > 0
+      ) {
+        updates.templates = templatesRes.value
+      }
+
+      if (scheduleRes.status === 'fulfilled' && scheduleRes.value) {
+        if (scheduleRes.value.days) {
+          updates.schedule = scheduleRes.value.days
+        }
+        if (scheduleRes.value.timezone) {
+          updates.timezone = scheduleRes.value.timezone
+        }
+        if (scheduleRes.value.statusMode) {
+          updates.storeStatusMode = scheduleRes.value.statusMode
+        }
+      }
+
+      if (deliveryRes.status === 'fulfilled' && deliveryRes.value) {
+        updates.deliveryConfig = {
+          ...get().deliveryConfig,
+          pricingMode: deliveryRes.value.pricingMode || get().deliveryConfig.pricingMode,
+          fixedFee: deliveryRes.value.fixedFee ?? get().deliveryConfig.fixedFee,
+          estimatedDelivery: deliveryRes.value.estimatedDelivery || get().deliveryConfig.estimatedDelivery,
+          estimatedPickup: deliveryRes.value.estimatedPickup || get().deliveryConfig.estimatedPickup,
+          allowPickup: deliveryRes.value.allowPickup ?? get().deliveryConfig.allowPickup,
+        }
+        if (Array.isArray(deliveryRes.value.neighborhoods) && deliveryRes.value.neighborhoods.length > 0) {
+          updates.neighborhoods = deliveryRes.value.neighborhoods
+        }
+      }
+
+      if (paymentsRes.status === 'fulfilled' && paymentsRes.value) {
+        updates.paymentConfig = {
+          ...get().paymentConfig,
+          ...paymentsRes.value,
+        }
+      }
+
+      if (
+        couponsRes.status === 'fulfilled' &&
+        Array.isArray(couponsRes.value) &&
+        couponsRes.value.length > 0
+      ) {
+        updates.coupons = couponsRes.value
+      }
+
+      if (Object.keys(updates).length > 0) {
+        set((state) => ({ ...state, ...updates }))
+        get().persist()
+      }
+    } catch (err) {
+      console.warn('Erro ao sincronizar com backend Go:', err)
     }
   },
 

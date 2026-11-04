@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Building2,
   Plus,
@@ -12,11 +12,15 @@ import { useSuperAdminStore } from '../../../store/useSuperAdminStore'
 import { CompanyRegisterModal } from '../CompanyRegisterModal'
 
 export function CompaniesView() {
-  const { companies, toggleCompanyStatus, startSupportMode } = useSuperAdminStore()
+  const { companies, toggleCompanyStatus, startSupportMode, fetchCompaniesFromApi } = useSuperAdminStore()
 
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
+
+  useEffect(() => {
+    fetchCompaniesFromApi?.()
+  }, [fetchCompaniesFromApi])
 
   const totalCount = companies.length
   const activeCount = companies.filter((c) => c.status === 'active').length

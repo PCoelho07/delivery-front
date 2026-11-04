@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { ordersWebSocket } from '../services/ordersWebSocket'
+import { orderService } from '../services/orderService'
 
 /**
  * Hook React para gerenciar conexão WebSocket nativa com o backend Go
@@ -68,6 +69,7 @@ export function useOrdersWebSocket(options = {}) {
   }, [])
 
   const updateOrderStatus = useCallback((orderId, nextStatus) => {
+    orderService.updateOrderStatus(orderId, nextStatus).catch(() => {})
     return ordersWebSocket.updateOrderStatus(orderId, nextStatus)
   }, [])
 

@@ -60,7 +60,14 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/health': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/business': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
       },
       '/ws': {
         target: 'ws://localhost:8080',
@@ -69,4 +76,3 @@ export default defineConfig({
     },
   },
 })
-

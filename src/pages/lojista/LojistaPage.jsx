@@ -26,6 +26,8 @@ export function LojistaPage() {
     } else {
       state.syncFromServer?.()
     }
+    // Sincroniza em segundo plano com o backend Go caso esteja online
+    state.syncWithBackendApi?.()
   }, [])
 
   return (

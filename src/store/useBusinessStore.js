@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { businessService } from '../services/businessService'
 import { productService } from '../services/productService'
+import { storeService } from '../services/storeService'
 
 export const useBusinessStore = create((set, get) => ({
   businesses: [],
@@ -138,7 +139,29 @@ export const useBusinessStore = create((set, get) => ({
   /**
    * Seleciona o estabelecimento atual com base nos dados carregados
    */
-  selectBusinessByName: (nameParam) => {
+  /**
+   * Busca estabelecimento por slug (GET /api/v1/store/{slug}) conforme contratos.md
+   */
+  fetchStoreBySlug: async (slug) => {
+    if (!slug) return null
+    set({ isLoading: true, error: null })
+    try {
+      const data = await storeService.getBySlug(slug)
+      if (data) {
+        set({
+          currentBusiness: data,
+          isLoading: false,
+        })
+        return data
+      }
+    } catch {
+      // fallback
+    }
+    set({ isLoading: false })
+    return null
+  },
+
+    selectBusinessByName: (nameParam) => {
     const { businesses } = get()
     if (!nameParam) {
       set({ currentBusiness: null, products: [] })

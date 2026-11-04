@@ -26,6 +26,7 @@ import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { formatCurrency } from '../../../lib/utils'
 import { playOrderChime } from '../../../utils/audio'
 import { useOrdersWebSocket } from '../../../hooks/useOrdersWebSocket'
+import { orderService } from '../../../services/orderService'
 import { OrderCard } from './OrderCard'
 import { OrdersTableView } from './OrdersTableView'
 import { ThermalReceiptModal } from './ThermalReceiptModal'
@@ -44,6 +45,26 @@ export function OrdersView() {
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  // Sincronização com o backend Go (GET /api/v1/business/{id}/orders conforme contratos.md)
+  useEffect(() => {
+    let mounted = true
+    orderService.listOrdersByBusiness(1).then((remoteOrders) => {
+      if (mounted && Array.isArray(remoteOrders) && remoteOrders.length > 0) {
+        remoteOrders.forEach((ro) => {
+          const exists = useCustomerStore.getState().orders.some(
+            (o) => o.orderId === ro.orderId || o.id === ro.id
+          )
+          if (!exists) {
+            useCustomerStore.getState().addOrder(ro)
+          }
+        })
+      }
+    }).catch(() => {})
+    return () => {
+      mounted = false
+    }
   }, [])
 
   // Modos de visualização: 'kanban' | 'list'
