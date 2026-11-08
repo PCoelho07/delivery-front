@@ -1,6 +1,6 @@
-# Delivery Front
+# NumInstante Delivery
 
-Frontend de cardápio digital e sistema de pedidos delivery.
+Frontend da plataforma de cardápio digital, gestão de pedidos em tempo real e backoffice multi-inquilino para restaurantes e lanchonetes.
 
 ## 🚀 Tecnologias
 

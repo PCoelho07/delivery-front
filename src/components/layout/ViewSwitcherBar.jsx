@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Smartphone, Building2, ShieldCheck } from 'lucide-react'
+import { NumInstanteIcon } from '../common/NumInstanteLogo'
 
 export function ViewSwitcherBar() {
   const { pathname } = useLocation()
@@ -18,9 +19,11 @@ export function ViewSwitcherBar() {
 
   return (
     <div className="w-full bg-[#1A1D20] text-white px-3 py-1.5 flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-[12px] z-50 shrink-0 border-b border-white/10 overflow-x-auto">
-      <span className="text-white/60 hidden md:inline font-medium mr-1 shrink-0">
-        Modo de Visualização:
-      </span>
+      <div className="flex items-center gap-1.5 mr-2 shrink-0">
+        <NumInstanteIcon className="w-4 h-4" />
+        <span className="font-extrabold text-xs tracking-tight text-white hidden md:inline">Num<span className="text-[#FF5E1E]">Instante</span></span>
+      </div>
+      <span className="text-white/40 hidden lg:inline font-medium mr-1 shrink-0">|</span>
 
       {/* 1. Painel Backoffice Lojista */}
       <Link

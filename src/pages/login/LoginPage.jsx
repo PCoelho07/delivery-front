@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useStoreAdmin } from '../../store/useStoreAdmin'
+import { NumInstanteLogo } from '../../components/common/NumInstanteLogo'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -68,7 +69,7 @@ export function LoginPage() {
   const handleQuickLoginAs = (role) => {
     setSelectedRole(role)
     if (role === 'superadmin') {
-      setEmail('admin@plataforma.com')
+      setEmail('admin@numinstante.com')
       setPassword('admin123')
     } else {
       setEmail('lojista@brasaburger.com.br')
@@ -80,16 +81,11 @@ export function LoginPage() {
     <div className="min-h-screen w-full flex flex-col justify-between bg-gradient-to-br from-[#F8F9FA] via-white to-[#FFF5F0] p-4 sm:p-6">
       {/* Top Header / Branding */}
       <header className="max-w-6xl w-full mx-auto flex items-center justify-between py-2">
-        <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-[#FF5E1E] text-white flex items-center justify-center shadow-md shadow-[#FF5E1E]/20">
-            <UtensilsCrossed className="w-5 h-5 stroke-[2.2]" />
-          </div>
-          <div>
-            <h1 className="text-base font-black text-[#1A1D20] tracking-tight leading-none">
-              DELIVERY<span className="text-[#FF5E1E]">PRO</span>
-            </h1>
-            <p className="text-[10px] text-[#6C757D] font-bold uppercase tracking-wider mt-0.5">
-              Portal de Gestão & Backoffice
+        <div className="flex items-center gap-3">
+          <NumInstanteLogo size="md" />
+          <div className="hidden sm:block border-l border-[#E9ECEF] pl-3">
+            <p className="text-[10px] text-[#6C757D] font-bold uppercase tracking-wider">
+              Portal de Gestão &amp; Backoffice
             </p>
           </div>
         </div>
@@ -108,16 +104,19 @@ export function LoginPage() {
       <main className="w-full max-w-md mx-auto my-auto py-6">
         <div className="bg-white rounded-3xl border border-[#E9ECEF] p-6 sm:p-8 shadow-xl shadow-slate-200/50 space-y-5">
           {/* Header do Card */}
-          <div className="text-center space-y-1.5">
+          <div className="text-center space-y-2">
+            <div className="flex justify-center mb-1">
+              <NumInstanteLogo size="lg" />
+            </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200/80 text-[11px] font-bold text-[#FF5E1E]">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Acesso Seguro ao Estabelecimento</span>
+              <span>Acesso ao Sistema NumInstante</span>
             </div>
             <h2 className="text-2xl font-black text-[#1A1D20] tracking-tight">
-              Entrar no Backoffice
+              Entrar no Painel
             </h2>
             <p className="text-xs text-[#6C757D]">
-              Gerencie pedidos, vitrine, entregas e faturamento em tempo real.
+              Gerencie pedidos, cardápio, entregas e faturamento em tempo real.
             </p>
           </div>
 
@@ -261,7 +260,7 @@ export function LoginPage() {
           <span>Sessão protegida por criptografia de ponta a ponta</span>
         </p>
         <p className="text-[10px] text-slate-400">
-          DELIVERY-FRONT • Arquitetura multi-inquilino pronta para API REST
+          NumInstante Delivery &copy; 2026 &bull; Plataforma Multi-inquilino de Cardápio Digital &amp; Gestão
         </p>
       </footer>
     </div>
