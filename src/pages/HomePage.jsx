@@ -1,1 +1,1 @@
-export { AdminPage as HomePage, AdminPage } from './admin/AdminPage'
+export { HomePage } from './home/HomePage'

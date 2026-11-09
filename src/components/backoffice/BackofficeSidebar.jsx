@@ -10,7 +10,6 @@ import {
   TicketPercent,
 } from 'lucide-react'
 import { useStoreAdmin } from '../../store/useStoreAdmin'
-import { NumInstanteIcon } from '../common/NumInstanteLogo'
 
 export function BackofficeSidebar() {
   const {
@@ -151,11 +150,14 @@ export function BackofficeSidebar() {
 
         {/* Rodapé da Marca NumInstante */}
         <div className="p-3.5 border-t border-[#E9ECEF] flex items-center justify-between text-[11px] text-[#6C757D]">
-          <div className="flex items-center gap-2 min-w-0">
-            <NumInstanteIcon className="w-4 h-4 shrink-0" />
-            <span className="font-bold text-[#1A1D20] truncate">NumInstante</span>
+          <div className="flex items-center min-w-0">
+            <img
+              src="/brand/numinstante-logo.png"
+              alt="NumInstante Delivery"
+              className="h-5.5 w-auto object-contain select-none"
+            />
           </div>
-          <span className="text-[10px] text-slate-400 font-medium">v1.0</span>
+          <span className="text-[10px] text-slate-400 font-semibold">v1.0</span>
         </div>
       </aside>
     </>

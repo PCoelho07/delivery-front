@@ -14,7 +14,6 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { useSuperAdminStore } from '../../store/useSuperAdminStore'
-import { NumInstanteIcon } from '../common/NumInstanteLogo'
 
 export function SuperAdminSidebar({ onOpenPrivacyModal }) {
   const {
@@ -98,23 +97,15 @@ export function SuperAdminSidebar({ onOpenPrivacyModal }) {
         {/* Topo: Logo & Identidade Visual do Backoffice */}
         <div>
           <div className="p-4 border-b border-[#E9ECEF] flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-[#FFF4EE] border border-[#FFE2D1] flex items-center justify-center shrink-0">
-                <NumInstanteIcon className="w-6 h-6" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="font-extrabold text-sm text-[#1A1D20] truncate">
-                    NumInstante
-                  </h2>
-                  <span className="text-[9.5px] font-black uppercase px-1.5 py-0.2 rounded bg-slate-900 text-white">
-                    Admin
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-[#6C757D] block truncate">
-                  {supportMode ? `Suporte: ${impersonatedCompany?.name}` : 'Painel Super Admin'}
-                </span>
-              </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <img
+                src="/brand/numinstante-logo.png"
+                alt="NumInstante"
+                className="h-7 sm:h-8 w-auto object-contain select-none shrink-0"
+              />
+              <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-slate-900 text-white shrink-0">
+                {supportMode ? `Suporte: ${impersonatedCompany?.name || 'Loja'}` : 'Admin'}
+              </span>
             </div>
 
             <button

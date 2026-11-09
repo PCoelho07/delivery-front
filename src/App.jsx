@@ -4,6 +4,7 @@ import { CardapioPage } from './pages/cardapio/CardapioPage'
 import { LojistaPage } from './pages/lojista/LojistaPage'
 import { AdminPage } from './pages/admin/AdminPage'
 import { LoginPage } from './pages/login/LoginPage'
+import { HomePage } from './pages/home/HomePage'
 import { ProtectedRoute } from './components/common/ProtectedRoute'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 
@@ -17,8 +18,11 @@ function App() {
             {/* Autenticação & Acesso ao Sistema */}
             <Route path="/login" element={<LoginPage />} />
 
-            {/* 1. Cardápio Digital (Cliente final - Rotas Públicas) */}
-            <Route path="/" element={<CardapioPage />} />
+            {/* 1. Home / Landing Page Comercial do NumInstante */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
+
+            {/* 2. Cardápio Digital (Cliente final - Rota Pública do Estabelecimento) */}
             <Route path="/:businessName" element={<CardapioPage />} />
 
             {/* 2. Backoffice do Estabelecimento (Lojista - Rotas Protegidas) */}

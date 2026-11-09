@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -21,6 +22,12 @@
     color: #1A1D20;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  button,
+  [role="button"] {
+    font-family: 'Poppins', sans-serif;
   }
 
   button:not(:disabled),
@@ -110,3 +117,72 @@
   animation: barSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
+
+/* Animações e Hovers da Landing Page / Home */
+.btn-hover-zoom {
+  box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.05), 0 1px 3px -1px rgba(15, 23, 42, 0.03);
+  transition-property: transform, background-color, border-color, color, box-shadow;
+  transition-duration: 0.55s, 0.4s, 0.4s, 0.4s, 0.55s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0s;
+}
+
+@media (min-width: 768px) {
+  .btn-hover-zoom:hover {
+    transform: scale(1.02) translateY(-1.5px);
+    box-shadow: 0 8px 18px -4px rgba(15, 23, 42, 0.11), 0 3px 6px -2px rgba(15, 23, 42, 0.06);
+  }
+  .btn-hover-zoom:active {
+    transform: scale(0.992) translateY(0);
+    box-shadow: 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+    transition-duration: 0.15s;
+  }
+}
+
+.feature-card {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.65s ease, transform 0.65s ease;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+}
+
+.animate-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatSlow 4.5s ease-in-out 1.5s infinite;
+}
+
+@keyframes pulseRing {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+  70% { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+.whatsapp-pulse {
+  animation: pulseRing 2.2s infinite;
+}
+
+/* Animação Scroll Reveal (Elementos surgindo suavemente ao rolar para baixo) */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.25, 0.8, 0.25, 1),
+              transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.revealed {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.reveal-delay-1 { transition-delay: 100ms !important; }
+.reveal-delay-2 { transition-delay: 200ms !important; }
+.reveal-delay-3 { transition-delay: 300ms !important; }
+.reveal-delay-4 { transition-delay: 400ms !important; }
+
+
