@@ -49,17 +49,17 @@ export function WhatsAppIcon({ className = 'w-4 h-4 shrink-0' }) {
 
 const HERO_SLIDES = [
   {
-    image: '/images/hero/burger.webp',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=640&auto=format&fit=crop&q=75',
     tag: 'Hamburguerias & Lanchonetes',
     title: 'Combos, adicionais e ponto da carne: seu cliente escolhe tudo sozinho sem errar.',
   },
   {
-    image: '/images/hero/pizza.webp',
+    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=640&auto=format&fit=crop&q=75',
     tag: 'Pizzarias & Restaurantes',
     title: 'Sabores meio a meio e bordas recheadas direto na impressora da sua cozinha.',
   },
   {
-    image: '/images/hero/acai.webp',
+    image: 'https://images.unsplash.com/photo-1627308594190-a057cd4bfac8?w=640&auto=format&fit=crop&q=75',
     tag: 'Açaíterias, Sushis & Docerias',
     title: 'Montagem de complementos passo a passo com total controle das etapas do pedido.',
   },
