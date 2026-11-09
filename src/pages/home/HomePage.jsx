@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   CheckCircle2,
@@ -69,7 +68,6 @@ const HERO_SLIDES = [
 const CURRENT_YEAR = new Date().getFullYear()
 
 export function HomePage() {
-  const navigate = useNavigate()
   const scrollContainerRef = useRef(null)
 
   const [activeNav, setActiveNav] = useState('inicio')
@@ -240,13 +238,15 @@ export function HomePage() {
               <span>Falar no WhatsApp</span>
             </a>
 
-            <button
-              onClick={() => navigate('/login')}
+            <a
+              href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20NumInstante%20para%20minha%20loja."
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-hover-zoom inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/25"
             >
               <LogIn className="w-4 h-4" />
               <span>Login</span>
-            </button>
+            </a>
 
             {/* Botão Menu Hamburger Mobile */}
             <button
@@ -1197,13 +1197,15 @@ export function HomePage() {
                   </button>
                 </li>
                 <li>
-                  <Link
-                    to="/login"
+                  <a
+                    href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20NumInstante%20para%20minha%20loja."
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2 py-0.5"
                   >
                     <LogIn className="w-4 h-4 text-[#FF5E1E] shrink-0" />
                     <span>Acessar Painel (Login)</span>
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
