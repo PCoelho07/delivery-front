@@ -351,6 +351,17 @@ export function CardapioPage() {
     customerReviews,
   ])
 
+  // Atualiza dinamicamente o título da página para a loja aberta (SEO & Identificação no navegador)
+  useEffect(() => {
+    const storeName = storeData?.name
+    if (storeName) {
+      document.title = `Cardápio Digital - ${storeName} | NumInstante`
+    }
+    return () => {
+      document.title = 'NumInstante Delivery | Cardápio Digital & Gestão de Pedidos para Restaurantes'
+    }
+  }, [storeData?.name])
+
   // Filtra categorias e produtos conforme o texto digitado na busca
   const filteredCategories = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()

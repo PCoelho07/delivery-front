@@ -12,12 +12,12 @@ import {
   Menu,
   X,
   ChevronRight,
-  ChevronDown,
   FileText,
   ShieldCheck,
   LogIn,
   BellRing,
 } from 'lucide-react'
+import { LegalModal } from '../../components/common/LegalModal'
 
 // Ícone Oficial do Instagram em SVG
 export function InstagramIcon({ className = 'w-4 h-4' }) {
@@ -52,19 +52,21 @@ const HERO_SLIDES = [
   {
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&auto=format&fit=crop&q=80',
     tag: 'Hamburguerias & Lanchonetes',
-    title: 'Adicionais, ponto da carne e combos configurados num instante.',
+    title: 'Combos, adicionais e ponto da carne: seu cliente escolhe tudo sozinho sem errar.',
   },
   {
     image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=900&auto=format&fit=crop&q=80',
     tag: 'Pizzarias & Restaurantes',
-    title: 'Painel de pedidos em tempo real do forno até o motoboy.',
+    title: 'Sabores meio a meio e bordas recheadas direto na impressora da sua cozinha.',
   },
   {
     image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=900&auto=format&fit=crop&q=80',
-    tag: 'Açaíterias, Marmitarias & Sushi',
-    title: 'O cliente monta no cardápio e recebe o comprovante e status no WhatsApp.',
+    tag: 'Açaíterias, Sushis & Docerias',
+    title: 'Montagem de complementos passo a passo com total controle das etapas do pedido.',
   },
 ]
+
+const CURRENT_YEAR = new Date().getFullYear()
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -196,7 +198,7 @@ export function HomePage() {
             <img
               src="/brand/numinstante-logo.png"
               alt="NumInstante"
-              className="h-8 sm:h-11 lg:h-12 w-auto object-contain select-none transition-transform duration-300 md:group-hover:scale-[1.015]"
+              className="h-10 sm:h-11 lg:h-12 w-auto object-contain select-none transition-transform duration-300 md:group-hover:scale-[1.015]"
             />
           </a>
 
@@ -298,9 +300,9 @@ export function HomePage() {
                 href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20NumInstante%20no%20celular%20e%20quero%20falar%20com%20um%20consultor."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-[#25D366] text-white text-xs font-black flex items-center justify-center gap-2 shadow-md"
+                className="w-full py-4 px-5 rounded-2xl bg-[#25D366] text-white text-sm font-black flex items-center justify-center gap-2.5 shadow-md"
               >
-                <WhatsAppIcon className="w-4 h-4" />
+                <WhatsAppIcon className="w-5 h-5" />
                 <span>Falar com Consultor no WhatsApp</span>
               </a>
             </div>
@@ -322,35 +324,36 @@ export function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             {/* Coluna Esquerda: Copywriting e CTA Principal */}
             <div className="reveal lg:col-span-7 space-y-5 sm:space-y-6 text-center lg:text-left">
-              <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-[#1A1D20] tracking-tight leading-[1.13]">
-                Venda mais no seu Delivery. <span className="text-[#FF5E1E]">Comece 100% grátis</span>.
+              {/* Tag Superior (Kicker) */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-[#FF5E1E] text-xs font-extrabold tracking-wide uppercase shadow-2xs">
+                <span>🚀 CARDÁPIO DIGITAL & GESTÃO DE PEDIDOS</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl lg:text-[50px] font-black text-[#1A1D20] tracking-tight leading-[1.15]">
+                A experiência de delivery que o seu restaurante merece.{' '}
+                <span className="text-[#FF5E1E]">Moderna para o cliente, simples para a sua equipe.</span>
               </h1>
 
-              <p className="text-sm sm:text-lg text-[#6C757D] font-medium max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                O sistema completo para seu delivery vender online com cardápio digital próprio. O cliente faz o pedido no sistema, os dados caem direto no PDV com alerta sonoro e o WhatsApp recebe o resumo com acompanhamento automático até a entrega.
+              <p className="text-base sm:text-lg text-[#4A5568] font-medium max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                Um cardápio digital elegante que converte mais pedidos pelo celular, integrado a um painel de pedidos prático com alerta sonoro e impressão rápida. Tecnologia ágil com suporte humano e dedicado perto de você.
               </p>
 
-              {/* CTAs Principais com Hover Zoom e Ícone Oficial do WhatsApp */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
+              {/* CTA Principal com Hover Zoom e Ícone Oficial do WhatsApp */}
+              <div className="pt-2 flex flex-col items-center lg:items-start gap-2.5">
                 <a
-                  href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vim%20pela%20p%C3%A1gina%20principal%20do%20NumInstante%20e%20quero%20falar%20com%20um%20consultor%20sobre%20como%20implantar%20na%20minha%20loja."
+                  href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vim%20pela%20p%C3%A1gina%20principal%20do%20NumInstante%20e%20quero%20falar%20com%20um%20especialista%20sobre%20como%20implantar%20na%20minha%20loja."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-hover-zoom w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-base font-black shadow-xl shadow-[#FF5E1E]/30 flex items-center justify-center gap-2.5 group"
                 >
                   <WhatsAppIcon className="w-5 h-5" />
-                  <span>Falar com um Consultor</span>
+                  <span>Falar com um Especialista</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </a>
 
-                <a
-                  href="#planos"
-                  onClick={(e) => scrollToSection(e, 'planos')}
-                  className="btn-hover-zoom w-full sm:w-auto px-6 py-4 rounded-2xl bg-white hover:bg-[#FFF4EE] text-[#1A1D20] hover:text-[#FF5E1E] border border-[#E9ECEF] hover:border-[#FF5E1E]/40 text-sm sm:text-base font-bold flex items-center justify-center gap-2"
-                >
-                  <span>Ver Faixas de Preço</span>
-                  <ChevronDown className="w-4 h-4" />
-                </a>
+                <p className="text-xs sm:text-sm text-[#6C757D] font-medium text-center lg:text-left">
+                  * Comece 100% Grátis (Fature até R$ 2.500 sem pagar nada)
+                </p>
               </div>
             </div>
 
@@ -369,6 +372,9 @@ export function HomePage() {
                       <img
                         src={slide.image}
                         alt={slide.tag}
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6">
@@ -417,7 +423,7 @@ export function HomePage() {
               </div>
 
               {/* Card Flutuante 2: Notificação de Pedido no Painel do Sistema (Visível no Mobile e Desktop) */}
-              <div className="flex animate-float-delayed absolute -right-2 sm:-right-6 bottom-24 sm:bottom-36 bg-white rounded-2xl p-2.5 sm:p-3.5 shadow-xl border border-[#E9ECEF] items-center gap-2 sm:gap-3 z-20">
+              <div className="flex animate-float-delayed absolute -right-2 sm:-right-6 bottom-36 sm:bottom-36 bg-white rounded-2xl p-2.5 sm:p-3.5 shadow-xl border border-[#E9ECEF] items-center gap-2 sm:gap-3 z-20">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#FF5E1E] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#FF5E1E]/30">
                   <KanbanSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
@@ -439,12 +445,15 @@ export function HomePage() {
       <section id="sobre-nos" className="py-12 sm:py-16 bg-white border-b border-[#E9ECEF] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
           {/* Cabeçalho da Seção */}
-          <div className="reveal text-center max-w-3xl mx-auto space-y-2">
+          <div className="reveal text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-[#FF5E1E] text-xs font-extrabold tracking-wide uppercase shadow-2xs">
+              <span>🤝 SUPORTE HUMANO & PRESENÇA LOCAL</span>
+            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1A1D20] tracking-tight">
-              Sobre Nós
+              Por Que o NumInstante?
             </h2>
-            <p className="text-xs sm:text-sm text-[#6C757D]">
-              Conheça a história e o propósito do NumInstante ao lado dos empreendedores potiguares.
+            <p className="text-sm sm:text-base text-[#4A5568] leading-relaxed">
+              A tecnologia de delivery mais moderna do mercado, com o suporte humano e próximo da nossa terra.
             </p>
           </div>
 
@@ -454,17 +463,11 @@ export function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center relative z-10">
               <div className="lg:col-span-7 space-y-5 sm:space-y-6">
                 <h3 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-                  Nascido no coração do Agreste para impulsionar os negócios de todo o RN.
+                  Nascido no RN para libertar os restaurantes das taxas abusivas e do suporte demorado.
                 </h3>
 
                 <blockquote className="p-5 sm:p-6 rounded-2xl bg-white/5 border-l-4 border-[#FF5E1E] text-white/90 text-sm sm:text-base leading-relaxed font-medium">
-                  &ldquo;Olá! Somos o mais novo sistema PDV de delivery. Nascemos em{' '}
-                  <strong className="text-white font-extrabold">Nova Cruz</strong> com a missão de
-                  ajudar os empreendedores de toda a região do{' '}
-                  <strong className="text-white font-extrabold">RN</strong> a venderem mais e melhor.
-                  Sabemos o quanto cada pedido importa e o quanto as taxas altas machucam quem
-                  trabalha duro todos os dias. Por isso criamos uma plataforma rápida, justa e com
-                  suporte próximo de verdade.&rdquo;
+                  &ldquo;Criamos o NumInstante com um objetivo claro: entregar uma plataforma de delivery bonita, rápida e acessível para os negócios da nossa região. Conhecemos a rotina do comércio local: sabemos que cada pedido conta e que, se acontecer qualquer problema ou imprevisto na hora do pico, você não pode ficar horas esperando a resposta de um robô. Aqui, você tem tecnologia de ponta para vender mais e gente de verdade do seu lado para resolver na hora.&rdquo;
                 </blockquote>
 
                 <div className="pt-1">
@@ -472,10 +475,10 @@ export function HomePage() {
                     href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Sou%20empreendedor%20no%20RN%20e%20quero%20conhecer%20a%20parceria%20do%20NumInstante%20para%20o%20meu%20neg%C3%B3cio."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-hover-zoom w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/30"
+                    className="btn-hover-zoom w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/30"
                   >
-                    <WhatsAppIcon className="w-4 h-4" />
-                    <span>Falar com Nossa Equipe do RN</span>
+                    <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span>Falar com Nossa Equipe</span>
                   </a>
                 </div>
               </div>
@@ -486,9 +489,9 @@ export function HomePage() {
                   <div className="w-10 h-10 rounded-xl bg-[#FF5E1E] text-white flex items-center justify-center">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <h3 className="font-black text-base">Origem em Nova Cruz</h3>
-                  <p className="text-xs text-white/75 leading-relaxed">
-                    Desenvolvido lado a lado com comerciantes reais do Agreste Potiguar.
+                  <h3 className="font-black text-base">Raízes no Agreste Potiguar</h3>
+                  <p className="text-[13px] sm:text-xs text-white/90 leading-relaxed">
+                    Criado e aprimorado lado a lado com os comerciantes de Nova Cruz e região.
                   </p>
                 </div>
 
@@ -496,9 +499,9 @@ export function HomePage() {
                   <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center">
                     <Compass className="w-5 h-5" />
                   </div>
-                  <h3 className="font-black text-base">Expansão em Todo o RN</h3>
-                  <p className="text-xs text-white/75 leading-relaxed">
-                    Atendemos do Agreste ao Litoral, Grande Natal, Seridó, Trairi e Oeste.
+                  <h3 className="font-black text-base">Presente em Todo o RN</h3>
+                  <p className="text-[13px] sm:text-xs text-white/90 leading-relaxed">
+                    Levando inovação sem complicação do litoral ao interior do estado.
                   </p>
                 </div>
 
@@ -508,10 +511,10 @@ export function HomePage() {
                       <Headset className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-black text-base">Atendimento Humanizado pelo WhatsApp</h3>
-                      <p className="text-xs text-white/75 leading-relaxed">
-                        Nada de esperar dias por um chamado. Você fala direto com especialistas que
-                        configuram e acompanham sua loja.
+                      <h3 className="font-black text-base">Suporte Humanizado no WhatsApp</h3>
+                      <p className="text-[13px] sm:text-xs text-white/90 leading-relaxed">
+                        Sem filas de espera nem chamados demorados. Se der qualquer dúvida ou problema,
+                        você fala direto com quem resolve na hora.
                       </p>
                     </div>
                   </div>
@@ -528,12 +531,15 @@ export function HomePage() {
       <section id="funcionalidades" className="py-8 sm:py-12 bg-[#F8F9FA] border-b border-[#E9ECEF] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
           {/* Cabeçalho da Seção */}
-          <div className="reveal text-center max-w-3xl mx-auto space-y-2">
+          <div className="reveal text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-[#FF5E1E] text-xs font-extrabold tracking-wide uppercase shadow-2xs">
+              <span>⚡ RECURSOS COMPLETOS & SEM LIMITES</span>
+            </div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#1A1D20] tracking-tight">
-              Funcionalidades para Vender Mais
+              Tudo o que seu Delivery Precisa para Rodar com Tranquilidade
             </h2>
-            <p className="text-xs sm:text-sm text-[#6C757D]">
-              Ferramentas importantes para automatizar sua loja, agilizar a cozinha e fidelizar clientes.
+            <p className="text-sm sm:text-base text-[#4A5568] leading-relaxed">
+              Uma plataforma completa pensada para quem prepara com carinho e entrega com agilidade.
             </p>
           </div>
 
@@ -548,11 +554,11 @@ export function HomePage() {
                     <Smartphone className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF5E1E]">
-                      Cardápio Próprio
+                    <span className="text-xs sm:text-[10px] font-extrabold uppercase tracking-wider text-[#FF5E1E]">
+                      Vitrine Própria
                     </span>
-                    <h3 className="text-base sm:text-lg font-black text-[#1A1D20]">
-                      Cardápio &amp; Vendas Online
+                    <h3 className="text-lg sm:text-lg font-black text-[#1A1D20]">
+                      Cardápio Moderno e Intuitivo
                     </h3>
                   </div>
                 </div>
@@ -564,11 +570,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Cardápio Próprio sem Baixar App
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Seu Cardápio sem Baixar Aplicativo
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Link exclusivo (<code className="text-[#FF5E1E] font-bold">numinstante.com.br/sua-loja</code>) direto no navegador do celular.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Link exclusivo (<code className="text-[#FF5E1E] font-bold">numinstante.com.br/sua-loja</code>) direto no navegador do celular, rápido e sem barreiras.
                       </p>
                     </div>
                   </li>
@@ -578,11 +584,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
                         Banco de Imagens Profissionais
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Centenas de fotos prontas de alta qualidade para cadastrar seus itens sem complicação.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Centenas de fotos prontas e apetitosas para deixar seus itens com apresentação de alto nível.
                       </p>
                     </div>
                   </li>
@@ -592,11 +598,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Sua Marca: Logo &amp; Banner
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Sua Marca em Destaque
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Identidade visual própria com logotipo e banner de destaque da sua loja.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Cadastre o logotipo e banner da sua loja, além dos links oficiais de WhatsApp e Instagram para fortalecer seu negócio.
                       </p>
                     </div>
                   </li>
@@ -606,11 +612,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
                         Pausa Rápida de Itens com 1 Clique
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Acabou um ingrediente na cozinha? Pause produtos ou adicionais instantaneamente.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Acabou um ingrediente na cozinha? Pause produtos ou adicionais instantaneamente pelo painel.
                       </p>
                     </div>
                   </li>
@@ -618,7 +624,7 @@ export function HomePage() {
               </div>
             </div>
 
-            {/* Pilar 2: Cozinha, PDV & Operação */}
+            {/* Pilar 2: Cozinha, Pedidos & Operação */}
             <div className="reveal reveal-delay-2 bg-white rounded-3xl p-5 sm:p-7 border border-[#E9ECEF] shadow-xs hover:shadow-xl hover:border-blue-500/40 transition-all flex flex-col justify-between space-y-6">
               <div className="space-y-5">
                 {/* Header do Card */}
@@ -627,11 +633,11 @@ export function HomePage() {
                     <KanbanSquare className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
-                      Operação Rápida
+                    <span className="text-xs sm:text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
+                      Operação Ágil
                     </span>
-                    <h3 className="text-base sm:text-lg font-black text-[#1A1D20]">
-                      Cozinha, PDV &amp; Pedidos
+                    <h3 className="text-lg sm:text-lg font-black text-[#1A1D20]">
+                      Gestão de Cozinha &amp; Balcão
                     </h3>
                   </div>
                 </div>
@@ -643,11 +649,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Painel de Pedidos com Alerta Sonoro
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Painel Visual com Alerta Sonoro
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Tela visual que apita a cada novo pedido e organiza as etapas: Pendente, Preparo e Pronto.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        A tela apita a cada novo pedido e organiza as etapas: Recebido, Em Preparo e Pronto.
                       </p>
                     </div>
                   </li>
@@ -657,11 +663,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Impressão na Maquininha / Térmica
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Impressão Térmica em 1 Clique
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Comanda em 80mm impressa direto para a cozinha e entregador com apenas 1 clique.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Comanda organizada direto para a chapa, forno e entregador (formato padrão 80mm).
                       </p>
                     </div>
                   </li>
@@ -671,11 +677,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Formas de Pagamento da Sua Loja
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        PIX Direto e Formas de Pagamento
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        PIX com chave e copia-e-cola, cartões na maquininha na entrega e troco calculado.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        PIX copia-e-cola na hora, maquininha na entrega e troco calculado sem confusão.
                       </p>
                     </div>
                   </li>
@@ -685,11 +691,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Horários Automáticos da Loja
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Abertura e Fechamento Automáticos
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Configure os dias e turnos de atendimento para o cardápio abrir e fechar sozinho.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Configure seus dias e turnos de atendimento para o cardápio abrir e fechar pontualmente no sistema.
                       </p>
                     </div>
                   </li>
@@ -706,10 +712,10 @@ export function HomePage() {
                     <BarChart3 className="w-6 h-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600">
+                    <span className="text-xs sm:text-[10px] font-extrabold uppercase tracking-wider text-emerald-600">
                       Controle &amp; Gestão
                     </span>
-                    <h3 className="text-base sm:text-lg font-black text-[#1A1D20]">
+                    <h3 className="text-lg sm:text-lg font-black text-[#1A1D20]">
                       Entregas, Clientes &amp; Finanças
                     </h3>
                   </div>
@@ -722,11 +728,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Taxa Fixa, por Bairro ou Balcão
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Taxas Flexíveis: Bairro, Fixa ou Balcão
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Taxa única fixa, valores por bairro e opção de Retirada no Balcão para buscar na loja.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Defina valores justos por região e permita retirada no balcão sem taxa de entrega.
                       </p>
                     </div>
                   </li>
@@ -736,10 +742,10 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Disparos e Avisos no WhatsApp
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Avisos Automáticos no WhatsApp
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
                         Notificações de status para o cliente acompanhar do preparo até a saída para entrega.
                       </p>
                     </div>
@@ -750,11 +756,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
                         Avaliações com Notas em Estrelas
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Feedback dos clientes com 3 critérios (Entrega, Qualidade e Atendimento) no topo da vitrine.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Feedback dos clientes em 3 critérios (Entrega, Qualidade e Atendimento) no topo da vitrine para gerar confiança.
                       </p>
                     </div>
                   </li>
@@ -764,11 +770,11 @@ export function HomePage() {
                       <CheckCircle2 className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-black text-[#1A1D20]">
-                        Cupons de Desconto &amp; Finanças
+                      <h4 className="text-sm sm:text-sm font-black text-[#1A1D20]">
+                        Cupons de Desconto &amp; Métricas
                       </h4>
-                      <p className="text-[11px] sm:text-xs text-[#6C757D]">
-                        Cupons para datas especiais (% ou R$) e faturamento do dia, semana e mês.
+                      <p className="text-[13px] sm:text-xs text-[#4A5568] leading-relaxed">
+                        Crie códigos promocionais (% ou R$) e acompanhe o faturamento do dia, semana e mês sem complicação.
                       </p>
                     </div>
                   </li>
@@ -782,21 +788,21 @@ export function HomePage() {
             id="funcionalidades-cta"
             className="reveal bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-[#E9ECEF] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4"
           >
-            <div className="space-y-1 text-center md:text-left">
-              <h3 className="text-base sm:text-lg font-black text-[#1A1D20]">
-                Quer ver o sistema funcionando na prática?
+            <div className="space-y-1.5 text-center md:text-left">
+              <h3 className="text-lg sm:text-xl font-black text-[#1A1D20]">
+                Quer ver a plataforma funcionando na prática?
               </h3>
-              <p className="text-xs sm:text-sm text-[#6C757D]">
-                Nosso consultor mostra o cardápio digital, o painel de pedidos e a impressão na maquininha ao vivo.
+              <p className="text-sm sm:text-sm text-[#4A5568] leading-relaxed">
+                Nossa equipe mostra o cardápio digital, o painel de pedidos e a comanda impressa ao vivo pelo WhatsApp.
               </p>
             </div>
             <a
               href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vi%20as%20funcionalidades%20do%20NumInstante%20no%20site%20e%20gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o."
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-hover-zoom w-full md:w-auto px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs sm:text-sm font-black shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 shrink-0"
+              className="btn-hover-zoom w-full md:w-auto px-6 py-4 sm:py-3 rounded-2xl sm:rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-sm sm:text-sm font-black shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2.5 shrink-0"
             >
-              <WhatsAppIcon className="w-4 h-4" />
+              <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
               <span>Solicitar Demonstração no WhatsApp</span>
             </a>
           </div>
@@ -808,13 +814,15 @@ export function HomePage() {
           ========================================================================= */}
       <section id="planos" className="py-14 sm:py-20 bg-white border-b border-[#E9ECEF] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="reveal text-center max-w-3xl mx-auto space-y-2.5">
+          <div className="reveal text-center max-w-3xl mx-auto space-y-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-[#FF5E1E] text-xs font-extrabold tracking-wide uppercase shadow-2xs">
+              <span>💰 PREÇOS JUSTOS & SEM PEGADINHAS</span>
+            </div>
             <h2 className="text-2xl sm:text-4xl font-black text-[#1A1D20] tracking-tight">
-              O mesmo sistema 100% completo para todos. Você só paga conforme cresce!
+              O mesmo sistema 100% liberado para todos. Você só paga quando faturar mais.
             </h2>
-            <p className="text-sm sm:text-base text-[#6C757D]">
-              Sem travas de funcionalidades e sem limite de produtos. Todas as faixas contam com o
-              sistema completo liberado — o valor acompanha apenas o faturamento mensal da sua loja.
+            <p className="text-base sm:text-lg text-[#4A5568] font-medium leading-relaxed">
+              Sem limite de produtos, sem travas de funções e com zero comissões sobre as suas vendas. Escolha a faixa que acompanha a realidade da sua loja.
             </p>
           </div>
 
@@ -823,13 +831,13 @@ export function HomePage() {
             <div className="reveal reveal-delay-1 rounded-3xl border-2 border-emerald-500/40 bg-[#F8F9FA] p-6 sm:p-7 flex flex-col justify-between space-y-6 relative shadow-sm hover:shadow-xl transition-all duration-300">
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                  <span className="text-[13px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3.5 py-1.5 rounded-full">
                     Faixa 1 • Impulso Inicial
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-white border border-[#E9ECEF]">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#6C757D]">
+                  <p className="text-xs sm:text-[11px] font-bold uppercase tracking-wider text-[#6C757D]">
                     Faturamento Mensal
                   </p>
                   <p className="text-base sm:text-lg font-black text-[#1A1D20]">
@@ -839,21 +847,20 @@ export function HomePage() {
 
                 <div className="pt-1">
                   <span className="text-3xl sm:text-4xl font-black text-emerald-600">Grátis</span>
-                  <span className="text-xs text-[#6C757D] font-bold block mt-0.5">
+                  <span className="text-sm sm:text-xs text-[#4A5568] font-bold block mt-0.5">
                     R$ 0,00 de mensalidade
                   </span>
                 </div>
 
-                <p className="text-xs text-[#6C757D] leading-relaxed">
-                  Ideal para quem está começando ou tirando seu delivery do papel sem nenhum custo
-                  fixo para pesar no caixa.
+                <p className="text-sm sm:text-xs text-[#4A5568] leading-relaxed">
+                  Tire seu delivery do papel ou teste na sua loja sem nenhum custo fixo para pesar no seu caixa.
                 </p>
 
                 <div className="pt-2 border-t border-[#E9ECEF]">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#1A1D20] mb-3">
+                  <p className="text-xs sm:text-[11px] font-extrabold uppercase tracking-wider text-[#1A1D20] mb-3">
                     Tudo 100% liberado:
                   </p>
-                  <ul className="space-y-2.5 text-xs font-semibold text-[#1A1D20]">
+                  <ul className="space-y-2.5 text-[13px] sm:text-xs font-semibold text-[#1A1D20]">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Cardápio Digital
                       completo e ilimitado
@@ -872,11 +879,11 @@ export function HomePage() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Taxas por bairro,
-                      cupons e financeiro
+                      cupons e métricas
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Zero comissão
-                      sobre pedidos
+                      sobre as suas vendas
                     </li>
                   </ul>
                 </div>
@@ -886,28 +893,28 @@ export function HomePage() {
                 href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20come%C3%A7ar%20no%20NumInstante%20na%20Faixa%20Gr%C3%A1tis%20(faturamento%20at%C3%A9%20R%24%202.500%2Fm%C3%AAs)."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-hover-zoom w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-black shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
+                className="btn-hover-zoom w-full py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-sm font-black shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2.5"
               >
-                <WhatsAppIcon className="w-4 h-4" />
-                <span>Começar Grátis Agora</span>
+                <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
+                <span>Começar 100% Grátis</span>
               </a>
             </div>
 
             {/* Faixa 2: De R$ 2.501 até R$ 6.000 de Faturamento */}
             <div className="reveal reveal-delay-2 rounded-3xl border-2 border-[#FF5E1E] bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl shadow-[#FF5E1E]/15 relative">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#FF5E1E] text-white text-[10px] font-black uppercase tracking-wider shadow-sm whitespace-nowrap">
-                ⭐ Faixa Mais Comum no RN
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#FF5E1E] text-white text-[11px] sm:text-[10px] font-black uppercase tracking-wider shadow-sm whitespace-nowrap">
+                ⭐ Faixa Mais Escolhida
               </div>
 
               <div className="space-y-4 pt-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-[#FF5E1E] bg-[#FFF4EE] px-3 py-1 rounded-full">
+                  <span className="text-[13px] sm:text-xs font-extrabold uppercase tracking-wider text-[#FF5E1E] bg-[#FFF4EE] px-3.5 py-1.5 rounded-full">
                     Faixa 2 • Crescimento
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-[#FFF8F5] border border-orange-200/80">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#6C757D]">
+                  <p className="text-xs sm:text-[11px] font-bold uppercase tracking-wider text-[#6C757D]">
                     Faturamento Mensal
                   </p>
                   <p className="text-base sm:text-lg font-black text-[#1A1D20]">
@@ -917,22 +924,21 @@ export function HomePage() {
 
                 <div className="pt-1">
                   <span className="text-3xl sm:text-4xl font-black text-[#FF5E1E]">R$ 49,90</span>
-                  <span className="text-xs text-[#6C757D] font-bold"> / mês</span>
-                  <span className="text-xs text-[#6C757D] font-medium block mt-0.5">
+                  <span className="text-sm sm:text-xs text-[#6C757D] font-bold"> / mês</span>
+                  <span className="text-sm sm:text-xs text-[#4A5568] font-medium block mt-0.5">
                     Valor fixo mensal, sem surpresas
                   </span>
                 </div>
 
-                <p className="text-xs text-[#6C757D] leading-relaxed">
-                  Para negócios em ritmo de crescimento que já vendem todos os dias e querem manter
-                  100% do lucro em casa.
+                <p className="text-sm sm:text-xs text-[#4A5568] leading-relaxed">
+                  Para lojas em ritmo de crescimento que já vendem todos os dias e precisam de uma operação ágil.
                 </p>
 
                 <div className="pt-2 border-t border-[#E9ECEF]">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#1A1D20] mb-3">
+                  <p className="text-xs sm:text-[11px] font-extrabold uppercase tracking-wider text-[#1A1D20] mb-3">
                     Tudo 100% liberado:
                   </p>
-                  <ul className="space-y-2.5 text-xs font-semibold text-[#1A1D20]">
+                  <ul className="space-y-2.5 text-[13px] sm:text-xs font-semibold text-[#1A1D20]">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Cardápio Digital
                       completo e ilimitado
@@ -951,11 +957,11 @@ export function HomePage() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Taxas por bairro,
-                      cupons e financeiro
+                      cupons e métricas
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Suporte ágil via
-                      WhatsApp
+                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Suporte ágil e
+                      humano via WhatsApp
                     </li>
                   </ul>
                 </div>
@@ -965,10 +971,10 @@ export function HomePage() {
                 href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20falar%20com%20um%20consultor%20sobre%20a%20Faixa%20de%20R%24%202.501%20a%20R%24%206.000%20(R%24%2049%2C90%2Fm%C3%AAs)%20do%20NumInstante!"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-hover-zoom w-full py-3.5 rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/25 flex items-center justify-center gap-2"
+                className="btn-hover-zoom w-full py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/25 flex items-center justify-center gap-2.5"
               >
-                <WhatsAppIcon className="w-4 h-4" />
-                <span>Falar com Consultor Agora</span>
+                <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
+                <span>Escolher Faixa Crescimento</span>
               </a>
             </div>
 
@@ -976,13 +982,13 @@ export function HomePage() {
             <div className="reveal reveal-delay-3 rounded-3xl border border-[#E9ECEF] bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-sm hover:shadow-xl transition-all duration-300">
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 bg-slate-100 px-3 py-1 rounded-full">
+                  <span className="text-[13px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-900 bg-slate-100 px-3.5 py-1.5 rounded-full">
                     Faixa 3 • Alta Escala
                   </span>
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-[#F8F9FA] border border-[#E9ECEF]">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#6C757D]">
+                  <p className="text-xs sm:text-[11px] font-bold uppercase tracking-wider text-[#6C757D]">
                     Faturamento Mensal
                   </p>
                   <p className="text-base sm:text-lg font-black text-[#1A1D20]">
@@ -992,22 +998,21 @@ export function HomePage() {
 
                 <div className="pt-1">
                   <span className="text-3xl sm:text-4xl font-black text-[#1A1D20]">R$ 89,90</span>
-                  <span className="text-xs text-[#6C757D] font-bold"> / mês</span>
-                  <span className="text-xs text-[#6C757D] font-medium block mt-0.5">
-                    Teto máximo fixo — venda sem limites
+                  <span className="text-sm sm:text-xs text-[#6C757D] font-bold"> / mês</span>
+                  <span className="text-sm sm:text-xs text-[#4A5568] font-medium block mt-0.5">
+                    Teto máximo fixo, venda sem limites
                   </span>
                 </div>
 
-                <p className="text-xs text-[#6C757D] leading-relaxed">
-                  Para operações consolidadas. Fature R$ 10 mil, R$ 20 mil ou mais pagando apenas
-                  uma mensalidade fixa enxuta.
+                <p className="text-sm sm:text-xs text-[#4A5568] leading-relaxed">
+                  Para operações consolidadas. Fature R$ 10 mil, R$ 30 mil ou mais com previsibilidade e custo fixo enxuto.
                 </p>
 
                 <div className="pt-2 border-t border-[#E9ECEF]">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#1A1D20] mb-3">
+                  <p className="text-xs sm:text-[11px] font-extrabold uppercase tracking-wider text-[#1A1D20] mb-3">
                     Tudo 100% liberado:
                   </p>
-                  <ul className="space-y-2.5 text-xs font-semibold text-[#1A1D20]">
+                  <ul className="space-y-2.5 text-[13px] sm:text-xs font-semibold text-[#1A1D20]">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Cardápio Digital
                       completo e ilimitado
@@ -1026,7 +1031,7 @@ export function HomePage() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Taxas por bairro,
-                      cupons e financeiro
+                      cupons e métricas
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Atendimento
@@ -1040,10 +1045,10 @@ export function HomePage() {
                 href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Meu%20delivery%20fatura%20acima%20de%20R%24%206.000%20e%20quero%20implantar%20o%20NumInstante%20(R%24%2089%2C90%2Fm%C3%AAs)."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-hover-zoom w-full py-3.5 rounded-xl bg-[#1A1D20] hover:bg-[#FF5E1E] text-white text-xs sm:text-sm font-black flex items-center justify-center gap-2"
+                className="btn-hover-zoom w-full py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-[#1A1D20] hover:bg-[#FF5E1E] text-white text-sm sm:text-sm font-black flex items-center justify-center gap-2.5"
               >
-                <WhatsAppIcon className="w-4 h-4" />
-                <span>Ativar Minha Loja Agora</span>
+                <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
+                <span>Escolher Faixa Alta Escala</span>
               </a>
             </div>
           </div>
@@ -1056,15 +1061,15 @@ export function HomePage() {
               </div>
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                  <h3 className="text-base sm:text-lg font-black text-[#1A1D20]">
-                    Não sabe como configurar? Nós fazemos tudo para você!
+                  <h3 className="text-lg sm:text-lg font-black text-[#1A1D20]">
+                    Sem tempo para cadastrar? Nossa equipe configura tudo para você!
                   </h3>
-                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-[#FF5E1E] text-white tracking-wider">
+                  <span className="text-xs sm:text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-[#FF5E1E] text-white tracking-wider">
                     Taxa Fixa Única
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#6C757D] leading-relaxed max-w-2xl">
-                  Realizamos a <strong>configuração completa da sua loja online ou presencial</strong>: nossa equipe cadastra seu cardápio, fotos dos produtos, taxas por bairro e formas de pagamento. Você recebe o sistema 100% pronto para vender!
+                <p className="text-sm sm:text-sm text-[#4A5568] leading-relaxed max-w-2xl">
+                  Realizamos a <strong>configuração completa da sua loja online ou presencial</strong>: nossa equipe cadastra seu cardápio, fotos dos produtos, adicionais, taxas por bairro e formas de pagamento. Você recebe o sistema 100% pronto para vender!
                 </p>
               </div>
             </div>
@@ -1073,9 +1078,9 @@ export function HomePage() {
               href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20saber%20o%20valor%20da%20taxa%20fixa%20para%20voc%C3%AAs%20configurarem%20o%20meu%20card%C3%A1pio%20(online%20ou%20presencial)."
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-hover-zoom w-full lg:w-auto px-6 py-3.5 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/20 flex items-center justify-center gap-2 shrink-0 whitespace-nowrap"
+              className="btn-hover-zoom w-full lg:w-auto px-6 py-4 sm:py-3.5 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/20 flex items-center justify-center gap-2.5 shrink-0 whitespace-nowrap"
             >
-              <WhatsAppIcon className="w-4 h-4" />
+              <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
               <span>Contratar Configuração</span>
             </a>
           </div>
@@ -1087,96 +1092,156 @@ export function HomePage() {
           ========================================================================= */}
       <footer className="bg-[#1A1D20] text-white pt-14 pb-10 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-          <div className="reveal grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10">
-            {/* Coluna 1: Marca e Frase de Impacto */}
-            <div className="md:col-span-5 space-y-4">
-              <div className="bg-white inline-block px-3.5 py-2 rounded-2xl">
+          <div className="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10">
+            {/* Coluna 1: Marca e Posicionamento Regional */}
+            <div className="lg:col-span-4 space-y-4">
+              <div className="bg-white inline-block px-4 py-2.5 rounded-2xl">
                 <img
                   src="/brand/numinstante-logo.png"
                   alt="NumInstante"
-                  className="h-8 sm:h-9 w-auto object-contain select-none"
+                  className="h-9 sm:h-9 w-auto object-contain select-none"
                 />
               </div>
               <p className="text-sm sm:text-base font-extrabold text-white max-w-sm leading-snug">
                 &ldquo;Transformando a velocidade do seu atendimento em lucro real num instante.&rdquo;
               </p>
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF5E1E] bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                <span>Desenvolvido em Nova Cruz • Para todo o RN</span>
+              </div>
               <p className="text-xs text-white/60 leading-relaxed max-w-sm">
-                Criado em Nova Cruz para apoiar restaurantes, lanchonetes, pizzarias e deliverys em
-                todo o Rio Grande do Norte.
+                Tecnologia ágil para restaurantes, pizzarias, hamburguerias e deliverys venderem com cardápio próprio e zero comissões.
               </p>
             </div>
 
-            {/* Coluna 2: Links Rápidos e Suporte */}
-            <div className="md:col-span-4 space-y-3">
+            {/* Coluna 2: Navegação Rápida */}
+            <div className="lg:col-span-2 space-y-3.5">
               <h4 className="text-xs font-black uppercase tracking-wider text-[#FF5E1E]">
-                Suporte &amp; Institucional
+                Navegação
               </h4>
-              <ul className="space-y-2.5 text-xs font-semibold text-white/80">
+              <ul className="space-y-2.5 text-sm sm:text-xs font-semibold text-white/80">
+                <li>
+                  <a
+                    href="#inicio"
+                    onClick={(e) => scrollToSection(e, 'inicio')}
+                    className="hover:text-[#FF5E1E] transition-colors inline-block py-0.5"
+                  >
+                    Início
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#sobre-nos"
+                    onClick={(e) => scrollToSection(e, 'sobre-nos')}
+                    className="hover:text-[#FF5E1E] transition-colors inline-block py-0.5"
+                  >
+                    Sobre Nós
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#funcionalidades"
+                    onClick={(e) => scrollToSection(e, 'funcionalidades')}
+                    className="hover:text-[#FF5E1E] transition-colors inline-block py-0.5"
+                  >
+                    Funcionalidades
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#planos"
+                    onClick={(e) => scrollToSection(e, 'planos')}
+                    className="hover:text-[#FF5E1E] transition-colors inline-block py-0.5"
+                  >
+                    Planos &amp; Preços
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Coluna 3: Suporte & Institucional */}
+            <div className="lg:col-span-3 space-y-3.5">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#FF5E1E]">
+                Suporte &amp; Legal
+              </h4>
+              <ul className="space-y-2.5 text-sm sm:text-xs font-semibold text-white/80">
                 <li>
                   <a
                     href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Preciso%20de%20suporte%20com%20o%20sistema%20NumInstante."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2"
+                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2 py-0.5"
                   >
-                    <WhatsAppIcon className="w-3.5 h-3.5 text-[#25D366]" />
-                    <span>Central de Suporte via WhatsApp</span>
+                    <WhatsAppIcon className="w-4 h-4 text-[#25D366] shrink-0" />
+                    <span>Central de Suporte</span>
                   </a>
                 </li>
                 <li>
                   <button
+                    type="button"
                     onClick={() => setLegalModal('terms')}
-                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2"
+                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2 py-0.5 text-left cursor-pointer"
                   >
-                    <FileText className="w-3.5 h-3.5 text-[#FF5E1E]" />
+                    <FileText className="w-4 h-4 text-[#FF5E1E] shrink-0" />
                     <span>Termos de Uso</span>
                   </button>
                 </li>
                 <li>
                   <button
+                    type="button"
                     onClick={() => setLegalModal('privacy')}
-                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2"
+                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2 py-0.5 text-left cursor-pointer"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#FF5E1E]" />
-                    <span>Políticas de Privacidade (LGPD)</span>
+                    <ShieldCheck className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+                    <span>Privacidade (LGPD)</span>
                   </button>
                 </li>
                 <li>
                   <Link
                     to="/login"
-                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2"
+                    className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2 py-0.5"
                   >
-                    <LogIn className="w-3.5 h-3.5 text-[#FF5E1E]" />
-                    <span>Acessar Painel de Login</span>
+                    <LogIn className="w-4 h-4 text-[#FF5E1E] shrink-0" />
+                    <span>Acessar Painel (Login)</span>
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Coluna 3: Redes Sociais e Contato */}
-            <div className="md:col-span-3 space-y-4">
+            {/* Coluna 4: Redes Sociais e Atendimento */}
+            <div className="lg:col-span-3 space-y-4">
               <h4 className="text-xs font-black uppercase tracking-wider text-[#FF5E1E]">
                 Conecte-se Conosco
               </h4>
-              <p className="text-xs text-white/70 leading-relaxed">
-                Acompanhe novidades, dicas de gestão para delivery e histórias de clientes no
-                Instagram:
+              <p className="text-sm sm:text-xs text-white/70 leading-relaxed">
+                Acompanhe dicas práticas de gestão, novidades do sistema e casos de sucesso:
               </p>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-hover-zoom inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 via-rose-500 to-orange-500 text-white text-xs font-extrabold shadow-md"
-              >
-                <InstagramIcon className="w-4 h-4" />
-                <span>Seguir @numinstante</span>
-              </a>
+              <div>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-hover-zoom inline-flex items-center gap-2.5 px-4 py-3 sm:py-2.5 rounded-xl bg-gradient-to-r from-pink-600 via-rose-500 to-orange-500 text-white text-sm sm:text-xs font-extrabold shadow-md"
+                >
+                  <InstagramIcon className="w-4 h-4 shrink-0" />
+                  <span>Seguir no Instagram</span>
+                </a>
+              </div>
+              <div className="pt-1 flex items-center gap-2 text-xs text-white/60">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                <span>Atendimento humano ativo no WhatsApp</span>
+              </div>
             </div>
           </div>
 
           {/* Linha Final de Copyright */}
           <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/60 text-center sm:text-left">
-            <p className="font-semibold">© NumInstante - Todos os direitos reservados</p>
+            <p className="font-semibold">
+              © {CURRENT_YEAR} NumInstante Delivery • Todos os direitos reservados.
+            </p>
+            <p className="text-white/50 text-[11px] sm:text-xs">
+              Tecnologia potiguar feita para impulsionar negócios locais.
+            </p>
           </div>
         </div>
       </footer>
@@ -1195,70 +1260,13 @@ export function HomePage() {
       </a>
 
       {/* =========================================================================
-          8. MODAL: TERMOS DE USO / PRIVACIDADE (LGPD)
+          8. MODAL COMPLETO: TERMOS DE USO / PRIVACIDADE (LGPD)
           ========================================================================= */}
-      {legalModal && (
-        <div
-          onClick={() => setLegalModal(null)}
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs z-[70] flex items-center justify-center p-4 animate-modal-up"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl border border-[#E9ECEF] max-w-md w-full p-6 shadow-2xl space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-[#1A1D20]">
-                {legalModal === 'terms'
-                  ? 'Termos de Uso — NumInstante'
-                  : 'Política de Privacidade (LGPD)'}
-              </h3>
-              <button
-                onClick={() => setLegalModal(null)}
-                className="p-1.5 rounded-lg text-[#6C757D] hover:bg-[#F8F9FA]"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="text-xs text-[#6C757D] leading-relaxed space-y-3">
-              {legalModal === 'terms' ? (
-                <>
-                  <p>
-                    O <strong>NumInstante</strong> fornece infraestrutura de software como serviço
-                    (SaaS) para cardápio digital e ponto de venda (PDV) de estabelecimentos
-                    alimentícios.
-                  </p>
-                  <p>
-                    Cada estabelecimento parceiro é responsável pelas informações de produtos,
-                    preços, cumprimento de entregas e atendimento aos seus consumidores finais.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p>
-                    Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), os
-                    dados operacionais e financeiros de cada estabelecimento são estritamente
-                    isolados.
-                  </p>
-                  <p>
-                    Não compartilhamos nem comercializamos dados de vendas ou de clientes com
-                    terceiros.
-                  </p>
-                </>
-              )}
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setLegalModal(null)}
-                className="btn-hover-zoom px-5 py-2.5 rounded-xl bg-[#1A1D20] hover:bg-[#FF5E1E] text-white text-xs font-bold"
-              >
-                Entendi
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LegalModal
+        activeTab={legalModal}
+        onTabChange={setLegalModal}
+        onClose={() => setLegalModal(null)}
+      />
     </div>
   )
 }

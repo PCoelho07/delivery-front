@@ -1,0 +1,16 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Allow: /home
+
+# Bloqueio de painéis administrativos e telas de autenticação
+Disallow: /admin
+Disallow: /lojista
+Disallow: /backoffice
+Disallow: /superadmin
+Disallow: /admin-saas
+Disallow: /empresas
+Disallow: /login
+
+# Sitemap oficial
+Sitemap: https://numinstante.delivery/sitemap.xml
