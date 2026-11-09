@@ -196,6 +196,8 @@
           <img
             src="brand/numinstante-logo.png"
             alt="NumInstante"
+            width="648"
+            height="133"
             class="h-8 sm:h-11 lg:h-12 w-auto object-contain select-none transition-transform duration-300 md:group-hover:scale-[1.015]"
           />
         </a>
@@ -366,59 +368,66 @@
               <!-- Slide 1: Hambúrguer Artesanal -->
               <div class="hero-slide absolute inset-0 transition-opacity duration-700 opacity-100" data-index="0">
                 <img
-                  src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&auto=format&fit=crop&q=80"
+                  src="images/hero/burger.webp"
                   alt="Hamburguerias e Lanchonetes"
+                  width="600"
+                  height="570"
                   class="w-full h-full object-cover"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6">
                   <span class="inline-block w-fit px-2.5 py-1 rounded-lg bg-[#FF5E1E] text-white text-[10px] font-black uppercase tracking-wider mb-2">
                     Hamburguerias & Lanchonetes
                   </span>
-                  <h3 class="text-white text-base sm:text-xl font-black leading-snug">
+                  <p class="text-white text-base sm:text-xl font-black leading-snug">
                     Adicionais, ponto da carne e combos configurados num instante.
-                  </h3>
+                  </p>
                 </div>
               </div>
 
               <!-- Slide 2: Pizzarias & Restaurantes -->
               <div class="hero-slide absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none" data-index="1">
                 <img
-                  src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=900&auto=format&fit=crop&q=80"
+                  src="images/hero/pizza.webp"
                   alt="Pizzarias e Restaurantes"
+                  width="600"
+                  height="570"
                   class="w-full h-full object-cover"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6">
                   <span class="inline-block w-fit px-2.5 py-1 rounded-lg bg-[#FF5E1E] text-white text-[10px] font-black uppercase tracking-wider mb-2">
                     Pizzarias & Restaurantes
                   </span>
-                  <h3 class="text-white text-base sm:text-xl font-black leading-snug">
+                  <p class="text-white text-base sm:text-xl font-black leading-snug">
                     Painel de pedidos em tempo real do forno até o motoboy.
-                  </h3>
+                  </p>
                 </div>
               </div>
 
               <!-- Slide 3: Açaí, Docerias & Bebidas -->
               <div class="hero-slide absolute inset-0 transition-opacity duration-700 opacity-0 pointer-events-none" data-index="2">
                 <img
-                  src="https://images.unsplash.com/photo-1590301157890-4810ed352733?w=900&auto=format&fit=crop&q=80"
+                  src="images/hero/acai.webp"
                   alt="Açaíterias e Sobremesas"
+                  width="600"
+                  height="570"
                   class="w-full h-full object-cover"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6">
                   <span class="inline-block w-fit px-2.5 py-1 rounded-lg bg-[#FF5E1E] text-white text-[10px] font-black uppercase tracking-wider mb-2">
                     Açaíterias, Marmitarias &amp; Sushi
                   </span>
-                  <h3 class="text-white text-base sm:text-xl font-black leading-snug">
+                  <p class="text-white text-base sm:text-xl font-black leading-snug">
                     O cliente monta no cardápio e recebe o comprovante e status no WhatsApp.
-                  </h3>
+                  </p>
                 </div>
               </div>
 
               <!-- Indicadores do Carrossel -->
-              <div class="absolute top-4 right-4 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1.5 rounded-full z-20">
-                <button onclick="setHeroSlide(0)" aria-label="Slide 1" class="hero-dot w-6 h-2 rounded-full bg-[#FF5E1E] transition-all"></button>
-                <button onclick="setHeroSlide(1)" aria-label="Slide 2" class="hero-dot w-2 h-2 rounded-full bg-white/60 hover:bg-white transition-all"></button>
-                <button onclick="setHeroSlide(2)" aria-label="Slide 3" class="hero-dot w-2 h-2 rounded-full bg-white/60 hover:bg-white transition-all"></button>
+              <!-- Indicadores do Carrossel (Touch Target >= 24px) -->
+              <div class="absolute top-4 right-4 flex items-center bg-black/40 backdrop-blur-md px-1.5 py-1 rounded-full z-20">
+                <button onclick="setHeroSlide(0)" aria-label="Slide 1" class="p-2 inline-flex items-center justify-center focus:outline-hidden"><span class="hero-dot block w-6 h-2 rounded-full bg-[#FF5E1E] transition-all"></span></button>
+                <button onclick="setHeroSlide(1)" aria-label="Slide 2" class="p-2 inline-flex items-center justify-center focus:outline-hidden"><span class="hero-dot block w-2 h-2 rounded-full bg-white/60 hover:bg-white transition-all"></span></button>
+                <button onclick="setHeroSlide(2)" aria-label="Slide 3" class="p-2 inline-flex items-center justify-center focus:outline-hidden"><span class="hero-dot block w-2 h-2 rounded-full bg-white/60 hover:bg-white transition-all"></span></button>
               </div>
             </div>
 

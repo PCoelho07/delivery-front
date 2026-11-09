@@ -29,11 +29,19 @@
     <meta name="twitter:description" content="Plataforma de cardápio digital e gestão de pedidos em tempo real. Zero comissão sobre vendas e suporte humano no WhatsApp." />
     <meta name="twitter:image" content="https://numinstante.delivery/brand/numinstante-og.png" />
 
-    <!-- Otimização de Conexões Externas (Fontes & Imagens) -->
+    <!-- Otimização de Conexões Externas (Fontes) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://images.unsplash.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Preload da Imagem Hero Principal Local para acelerar LCP -->
+    <link rel="preload" as="image" href="/images/hero/burger.webp" type="image/webp" fetchpriority="high" />
+
+    <!-- Google Fonts Assíncrono (Elimina bloqueio de renderização / FCP) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@600;700;800;900&amp;display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@600;700;800;900&amp;display=swap" media="print" onload="this.media='all'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@600;700;800;900&amp;display=swap" />
+    </noscript>
 
     <!-- Dados Estruturados Schema.org (JSON-LD) para Busca do Google -->
     <script type="application/ld+json">

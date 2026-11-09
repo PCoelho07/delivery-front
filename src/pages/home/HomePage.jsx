@@ -49,17 +49,17 @@ export function WhatsAppIcon({ className = 'w-4 h-4 shrink-0' }) {
 
 const HERO_SLIDES = [
   {
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&auto=format&fit=crop&q=80',
+    image: '/images/hero/burger.webp',
     tag: 'Hamburguerias & Lanchonetes',
     title: 'Combos, adicionais e ponto da carne: seu cliente escolhe tudo sozinho sem errar.',
   },
   {
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=900&auto=format&fit=crop&q=80',
+    image: '/images/hero/pizza.webp',
     tag: 'Pizzarias & Restaurantes',
     title: 'Sabores meio a meio e bordas recheadas direto na impressora da sua cozinha.',
   },
   {
-    image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?w=900&auto=format&fit=crop&q=80',
+    image: '/images/hero/acai.webp',
     tag: 'Açaíterias, Sushis & Docerias',
     title: 'Montagem de complementos passo a passo com total controle das etapas do pedido.',
   },
@@ -196,6 +196,8 @@ export function HomePage() {
             <img
               src="/brand/numinstante-logo.png"
               alt="NumInstante"
+              width="648"
+              height="133"
               className="h-10 sm:h-11 lg:h-12 w-auto object-contain select-none transition-transform duration-300 md:group-hover:scale-[1.015]"
             />
           </a>
@@ -311,133 +313,143 @@ export function HomePage() {
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION (DESTAQUE PRINCIPAL + CARROSSEL)
+          CONTEÚDO PRINCIPAL (LANDMARK MAIN ACESSIBILIDADE WCAG)
           ========================================================================= */}
-      <section
-        id="inicio"
-        className="relative overflow-hidden bg-gradient-to-br from-[#FFF8F5] via-white to-[#F8F9FA] pt-8 pb-16 sm:pt-12 sm:pb-20 lg:py-24 border-b border-[#E9ECEF]"
-      >
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#FF5E1E]/5 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 -left-24 w-80 h-80 rounded-full bg-orange-400/10 blur-3xl pointer-events-none" />
+      <main id="main-content">
+        {/* =========================================================================
+            2. HERO SECTION (DESTAQUE PRINCIPAL + CARROSSEL)
+            ========================================================================= */}
+        <section
+          id="inicio"
+          className="relative overflow-hidden bg-gradient-to-br from-[#FFF8F5] via-white to-[#F8F9FA] pt-8 pb-16 sm:pt-12 sm:pb-20 lg:py-24 border-b border-[#E9ECEF]"
+        >
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#FF5E1E]/5 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 -left-24 w-80 h-80 rounded-full bg-orange-400/10 blur-3xl pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-            {/* Coluna Esquerda: Copywriting e CTA Principal */}
-            <div className="reveal lg:col-span-7 space-y-5 sm:space-y-6 text-center lg:text-left">
-              {/* Tag Superior (Kicker) */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-[#FF5E1E] text-xs font-extrabold tracking-wide uppercase shadow-2xs">
-                <span>🚀 CARDÁPIO DIGITAL & GESTÃO DE PEDIDOS</span>
-              </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+              {/* Coluna Esquerda: Copywriting e CTA Principal */}
+              <div className="reveal lg:col-span-7 space-y-5 sm:space-y-6 text-center lg:text-left">
+                {/* Tag Superior (Kicker) */}
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200/80 text-[#FF5E1E] text-xs font-extrabold tracking-wide uppercase shadow-2xs">
+                  <span>🚀 CARDÁPIO DIGITAL & GESTÃO DE PEDIDOS</span>
+                </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[50px] font-black text-[#1A1D20] tracking-tight leading-[1.15]">
-                A experiência de delivery que o seu restaurante merece.{' '}
-                <span className="text-[#FF5E1E]">Moderna para o cliente, simples para a sua equipe.</span>
-              </h1>
+                <h1 className="text-3xl sm:text-5xl lg:text-[50px] font-black text-[#1A1D20] tracking-tight leading-[1.15]">
+                  A experiência de delivery que o seu restaurante merece.{' '}
+                  <span className="text-[#FF5E1E]">Moderna para o cliente, simples para a sua equipe.</span>
+                </h1>
 
-              <p className="text-base sm:text-lg text-[#4A5568] font-medium max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                Um cardápio digital elegante que converte mais pedidos pelo celular, integrado a um painel de pedidos prático com alerta sonoro e impressão rápida. Tecnologia ágil com suporte humano e dedicado perto de você.
-              </p>
-
-              {/* CTA Principal com Hover Zoom e Ícone Oficial do WhatsApp */}
-              <div className="pt-2 flex flex-col items-center lg:items-start gap-2.5">
-                <a
-                  href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vim%20pela%20p%C3%A1gina%20principal%20do%20NumInstante%20e%20quero%20falar%20com%20um%20especialista%20sobre%20como%20implantar%20na%20minha%20loja."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-hover-zoom w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-base font-black shadow-xl shadow-[#FF5E1E]/30 flex items-center justify-center gap-2.5 group"
-                >
-                  <WhatsAppIcon className="w-5 h-5" />
-                  <span>Falar com um Especialista</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </a>
-
-                <p className="text-xs sm:text-sm text-[#6C757D] font-medium text-center lg:text-left">
-                  * Comece 100% Grátis (Fature até R$ 2.500 sem pagar nada)
+                <p className="text-base sm:text-lg text-[#4A5568] font-medium max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                  Um cardápio digital elegante que converte mais pedidos pelo celular, integrado a um painel de pedidos prático com alerta sonoro e impressão rápida. Tecnologia ágil com suporte humano e dedicado perto de você.
                 </p>
-              </div>
-            </div>
 
-            {/* Coluna Direita: Carrossel Interativo do Setor de Alimentação */}
-            <div className="reveal reveal-delay-2 lg:col-span-5 relative">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#1A1D20] aspect-[4/3.8] sm:aspect-[4/4.2]">
-                {HERO_SLIDES.map((slide, index) => {
-                  const isCurrent = currentSlide === index
-                  return (
-                    <div
-                      key={index}
-                      className={`hero-slide absolute inset-0 transition-opacity duration-700 ${
-                        isCurrent ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
-                      }`}
-                    >
-                      <img
-                        src={slide.image}
-                        alt={slide.tag}
-                        fetchPriority={index === 0 ? 'high' : 'auto'}
-                        loading={index === 0 ? 'eager' : 'lazy'}
-                        decoding="async"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6">
-                        <span className="inline-block w-fit px-2.5 py-1 rounded-lg bg-[#FF5E1E] text-white text-[10px] font-black uppercase tracking-wider mb-2">
-                          {slide.tag}
-                        </span>
-                        <h3 className="text-white text-base sm:text-xl font-black leading-snug">
-                          {slide.title}
-                        </h3>
-                      </div>
-                    </div>
-                  )
-                })}
+                {/* CTA Principal com Hover Zoom e Ícone Oficial do WhatsApp */}
+                <div className="pt-2 flex flex-col items-center lg:items-start gap-2.5">
+                  <a
+                    href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vim%20pela%20p%C3%A1gina%20principal%20do%20NumInstante%20e%20quero%20falar%20com%20um%20especialista%20sobre%20como%20implantar%20na%20minha%20loja."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-hover-zoom w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-base font-black shadow-xl shadow-[#FF5E1E]/30 flex items-center justify-center gap-2.5 group"
+                  >
+                    <WhatsAppIcon className="w-5 h-5" />
+                    <span>Falar com um Especialista</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </a>
 
-                {/* Indicadores do Carrossel */}
-                <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2.5 py-1.5 rounded-full z-20">
-                  {HERO_SLIDES.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentSlide(i)}
-                      aria-label={`Slide ${i + 1}`}
-                      className={`hero-dot transition-all ${
-                        currentSlide === i
-                          ? 'w-6 h-2 rounded-full bg-[#FF5E1E]'
-                          : 'w-2 h-2 rounded-full bg-white/60 hover:bg-white'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Card Flutuante 1: Notificação de Pedido no PDV (Visível no Mobile e Desktop) */}
-              <div className="flex animate-float absolute -left-2 sm:-left-6 top-3 sm:top-8 bg-white rounded-2xl p-2.5 sm:p-3.5 shadow-xl border border-[#E9ECEF] items-center gap-2 sm:gap-3 z-20">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/30">
-                  <BellRing className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] sm:text-xs font-black text-[#1A1D20]">Pedido no PDV #204</span>
-                    <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
-                      PIX Pago
-                    </span>
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-[#6C757D] font-semibold">2x Combo Brasa • R$ 74,90</p>
-                </div>
-              </div>
-
-              {/* Card Flutuante 2: Notificação de Pedido no Painel do Sistema (Visível no Mobile e Desktop) */}
-              <div className="flex animate-float-delayed absolute -right-2 sm:-right-6 bottom-36 sm:bottom-36 bg-white rounded-2xl p-2.5 sm:p-3.5 shadow-xl border border-[#E9ECEF] items-center gap-2 sm:gap-3 z-20">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#FF5E1E] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#FF5E1E]/30">
-                  <KanbanSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div>
-                  <p className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-[#FF5E1E]">
-                    Painel de Pedidos
+                  <p className="text-xs sm:text-sm text-[#6C757D] font-medium text-center lg:text-left">
+                    * Comece 100% Grátis (Fature até R$ 2.500 sem pagar nada)
                   </p>
-                  <p className="text-[11px] sm:text-xs font-black text-[#1A1D20]">🔔 &ldquo;Chegou um pedido novo!&rdquo;</p>
+                </div>
+              </div>
+
+              {/* Coluna Direita: Carrossel Interativo do Setor de Alimentação */}
+              <div className="reveal reveal-delay-2 lg:col-span-5 relative">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#1A1D20] aspect-[4/3.8] sm:aspect-[4/4.2]">
+                  {HERO_SLIDES.map((slide, index) => {
+                    const isCurrent = currentSlide === index
+                    return (
+                      <div
+                        key={index}
+                        className={`hero-slide absolute inset-0 transition-opacity duration-700 ${
+                          isCurrent ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'
+                        }`}
+                      >
+                        <img
+                          src={slide.image}
+                          alt={slide.tag}
+                          width="600"
+                          height="570"
+                          fetchPriority={index === 0 ? 'high' : 'auto'}
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                          decoding="async"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 sm:p-6">
+                          <span className="inline-block w-fit px-2.5 py-1 rounded-lg bg-[#FF5E1E] text-white text-[10px] font-black uppercase tracking-wider mb-2">
+                            {slide.tag}
+                          </span>
+                          <p className="text-white text-base sm:text-xl font-black leading-snug">
+                            {slide.title}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Indicadores do Carrossel (Touch Target >= 24px) */}
+                  <div className="absolute top-4 right-4 flex items-center bg-black/40 backdrop-blur-md px-1.5 py-1 rounded-full z-20">
+                    {HERO_SLIDES.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentSlide(i)}
+                        aria-label={`Ir para o slide ${i + 1}`}
+                        className="p-2 inline-flex items-center justify-center focus:outline-hidden"
+                      >
+                        <span
+                          className={`block transition-all ${
+                            currentSlide === i
+                              ? 'w-6 h-2 rounded-full bg-[#FF5E1E]'
+                              : 'w-2 h-2 rounded-full bg-white/60 hover:bg-white'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Card Flutuante 1: Notificação de Pedido no PDV (Visível no Mobile e Desktop) */}
+                <div className="flex animate-float absolute -left-2 sm:-left-6 top-3 sm:top-8 bg-white rounded-2xl p-2.5 sm:p-3.5 shadow-xl border border-[#E9ECEF] items-center gap-2 sm:gap-3 z-20">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/30">
+                    <BellRing className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] sm:text-xs font-black text-[#1A1D20]">Pedido no PDV #204</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">
+                        PIX Pago
+                      </span>
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-[#6C757D] font-semibold">2x Combo Brasa • R$ 74,90</p>
+                  </div>
+                </div>
+
+                {/* Card Flutuante 2: Notificação de Pedido no Painel do Sistema (Visível no Mobile e Desktop) */}
+                <div className="flex animate-float-delayed absolute -right-2 sm:-right-6 bottom-36 sm:bottom-36 bg-white rounded-2xl p-2.5 sm:p-3.5 shadow-xl border border-[#E9ECEF] items-center gap-2 sm:gap-3 z-20">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-[#FF5E1E] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#FF5E1E]/30">
+                    <KanbanSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-[#FF5E1E]">
+                      Painel de Pedidos
+                    </p>
+                    <p className="text-[11px] sm:text-xs font-black text-[#1A1D20]">🔔 &ldquo;Chegou um pedido novo!&rdquo;</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* =========================================================================
           3. SOBRE NÓS (HISTÓRIA REGIONAL: NOVA CRUZ -> TODO O RN)
@@ -1078,7 +1090,7 @@ export function HomePage() {
               href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20saber%20o%20valor%20da%20taxa%20fixa%20para%20voc%C3%AAs%20configurarem%20o%20meu%20card%C3%A1pio%20(online%20ou%20presencial)."
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-hover-zoom w-full lg:w-auto px-6 py-4 sm:py-3.5 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/20 flex items-center justify-center gap-2.5 shrink-0 whitespace-nowrap"
+              className="btn-hover-zoom w-full lg:w-auto px-6 py-4 sm:py-3.5 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-base sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/20 flex items-center justify-center gap-2.5 shrink-0 whitespace-nowrap"
             >
               <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
               <span>Contratar Configuração</span>
@@ -1086,6 +1098,7 @@ export function HomePage() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* =========================================================================
           6. FOOTER (RODAPÉ COMPLETO)
@@ -1099,6 +1112,8 @@ export function HomePage() {
                 <img
                   src="/brand/numinstante-logo.png"
                   alt="NumInstante"
+                  width="648"
+                  height="133"
                   className="h-9 sm:h-9 w-auto object-contain select-none"
                 />
               </div>
