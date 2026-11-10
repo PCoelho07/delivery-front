@@ -8,10 +8,11 @@ import {
   Trash2,
   CheckCircle2,
   Sparkles,
-  Package,
   Building2,
   TrendingUp,
   Tag,
+  MessageSquare,
+  RotateCcw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSuperAdminStore } from '../../../store/useSuperAdminStore'
@@ -19,8 +20,15 @@ import { formatCurrency } from '../../../lib/utils'
 import { PlanModal } from '../PlanModal'
 
 export function PlansManagementView() {
-  const { plans, companies, addPlan, updatePlan, togglePlanStatus, deletePlan } =
-    useSuperAdminStore()
+  const {
+    plans,
+    companies,
+    addPlan,
+    updatePlan,
+    togglePlanStatus,
+    deletePlan,
+    resetPlansToDefault,
+  } = useSuperAdminStore()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all') // all | active | inactive
@@ -122,21 +130,38 @@ export function PlansManagementView() {
         <div>
           <h2 className="text-xl font-extrabold text-[#1A1D20] flex items-center gap-2">
             <Layers className="w-5 h-5 text-[#FF5E1E]" />
-            <span>Planos & Preços da Plataforma</span>
+            <span>Planos, Cotas & Excedentes da Plataforma</span>
           </h2>
           <p className="text-xs text-[#6C757D] mt-0.5">
-            Cadastre os planos de assinatura do sistema, ajuste os valores e defina os limites de produtos
+            Gerencie planos comerciais (Start, Express, Turbo), tetos de faturamento, franquias de WhatsApp e taxas por pedido extra.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleCreateNew}
-          className="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Cadastrar Novo Plano</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('Deseja restaurar os planos oficiais (Start, Express e Turbo)?')) {
+                resetPlansToDefault()
+                toast.success('Planos restaurados com os valores oficiais da landing page!')
+              }
+            }}
+            className="px-3 py-2.5 rounded-xl border border-[#E9ECEF] hover:bg-[#F8F9FA] text-[#6C757D] hover:text-[#1A1D20] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            title="Recarrega as configurações padrão dos planos"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Restaurar Padrão</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCreateNew}
+            className="px-4 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs font-bold transition-all shadow-md shadow-[#FF5E1E]/20 flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Cadastrar Novo Plano</span>
+          </button>
+        </div>
       </div>
 
       {/* Cards de Métricas */}
@@ -292,7 +317,7 @@ export function PlansManagementView() {
                 </div>
 
                 {/* Bloco de Preço */}
-                <div className="pt-2 pb-1 border-y border-[#E9ECEF]/70">
+                <div className="pt-2 pb-2 border-y border-[#E9ECEF]/70 space-y-2.5">
                   <div className="flex items-baseline gap-1">
                     {isFree ? (
                       <span className="text-2xl font-black text-emerald-600">
@@ -310,18 +335,40 @@ export function PlansManagementView() {
                     )}
                   </div>
 
-                  {/* Informações de Trial & Limites */}
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    {plan.trialDays > 0 && (
-                      <span className="text-[10.5px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
-                        {plan.trialDays} dias de teste
+                  {/* Informações de Teto de Faturamento & WhatsApp */}
+                  <div className="space-y-1.5">
+                    <div className="p-2 rounded-xl bg-[#F8F9FA] border border-[#E9ECEF] flex items-center justify-between">
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider text-[#6C757D]">
+                        Teto Faturamento
                       </span>
-                    )}
+                      <span className="text-xs font-black text-[#1A1D20]">
+                        {plan.billingThreshold
+                          ? `Até ${formatCurrency(plan.billingThreshold)}`
+                          : 'Ilimitado (> R$ 6.000)'}
+                      </span>
+                    </div>
 
-                    <span className="text-[10.5px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
-                      <Package className="w-3 h-3 text-[#6C757D]" />
-                      {plan.maxProducts ? `Até ${plan.maxProducts} itens` : 'Itens Ilimitados'}
-                    </span>
+                    <div className="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-orange-50/80 border border-orange-100">
+                      <span className="text-[#6C757D] font-semibold flex items-center gap-1">
+                        <MessageSquare className="w-3 h-3 text-[#FF5E1E]" />
+                        Cota WhatsApp:
+                      </span>
+                      <span className="font-extrabold text-[#1A1D20]">
+                        {plan.includedOrders
+                          ? `${plan.includedOrders} pedidos/mês`
+                          : '2 msgs/pedido (na cota)'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-200/80">
+                      <span className="text-amber-900 font-semibold flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-amber-700" />
+                        Taxa Excedente:
+                      </span>
+                      <span className="font-black text-amber-900">
+                        +{formatCurrency(plan.extraOrderFee || 0)} / pedido
+                      </span>
+                    </div>
                   </div>
                 </div>
 

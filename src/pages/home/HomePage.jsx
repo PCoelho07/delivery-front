@@ -364,7 +364,7 @@ export function HomePage() {
                   </a>
 
                   <p className="text-xs sm:text-sm text-[#6C757D] font-medium text-center lg:text-left">
-                    * Comece 100% Grátis (Fature até R$ 2.500 sem pagar nada)
+                    * Comece 100% Grátis no Plano Start (Fature até R$ 2.500 sem pagar nada)
                   </p>
                 </div>
               </div>
@@ -845,12 +845,12 @@ export function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-            {/* Faixa 1: Até R$ 2.500 de Faturamento */}
+            {/* Plano Start: Até R$ 2.500 de Faturamento */}
             <div className="reveal reveal-delay-1 rounded-3xl border-2 border-emerald-500/40 bg-[#F8F9FA] p-6 sm:p-7 flex flex-col justify-between space-y-6 relative shadow-sm hover:shadow-xl transition-all duration-300">
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] sm:text-xs font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-3.5 py-1.5 rounded-full">
-                    Faixa 1 • Impulso Inicial
+                    Plano Start • Grátis
                   </span>
                 </div>
 
@@ -892,8 +892,8 @@ export function HomePage() {
                       novos pedidos
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Acompanhamento e
-                      avisos no WhatsApp
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Envio de
+                      mensagens automáticas no WhatsApp
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Taxas por bairro,
@@ -903,31 +903,35 @@ export function HomePage() {
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Zero comissão
                       sobre as suas vendas
                     </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Suporte ágil via
+                      WhatsApp
+                    </li>
                   </ul>
                 </div>
               </div>
 
               <a
-                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20come%C3%A7ar%20no%20NumInstante%20na%20Faixa%20Gr%C3%A1tis%20(faturamento%20at%C3%A9%20R%24%202.500%2Fm%C3%AAs)."
+                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20come%C3%A7ar%20no%20NumInstante%20com%20o%20Plano%20Start%20(faturamento%20at%C3%A9%20R%24%202.500%2Fm%C3%AAs)."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-hover-zoom w-full py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-sm font-black shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2.5"
               >
                 <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
-                <span>Começar 100% Grátis</span>
+                <span>Começar com Plano Start</span>
               </a>
             </div>
 
-            {/* Faixa 2: De R$ 2.501 até R$ 6.000 de Faturamento */}
+            {/* Plano Express: De R$ 2.501 até R$ 6.000 de Faturamento */}
             <div className="reveal reveal-delay-2 rounded-3xl border-2 border-[#FF5E1E] bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-xl shadow-[#FF5E1E]/15 relative">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#FF5E1E] text-white text-[11px] sm:text-[10px] font-black uppercase tracking-wider shadow-sm whitespace-nowrap">
-                ⭐ Faixa Mais Escolhida
+                ⭐ Mais Escolhido
               </div>
 
               <div className="space-y-4 pt-1">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] sm:text-xs font-extrabold uppercase tracking-wider text-[#FF5E1E] bg-[#FFF4EE] px-3.5 py-1.5 rounded-full">
-                    Faixa 2 • Crescimento
+                    Plano Express • Crescimento
                   </span>
                 </div>
 
@@ -970,38 +974,42 @@ export function HomePage() {
                       novos pedidos
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Acompanhamento e
-                      avisos no WhatsApp
+                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Envio de
+                      mensagens automáticas no WhatsApp
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Taxas por bairro,
                       cupons e métricas
                     </li>
                     <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Zero comissão
+                      sobre as suas vendas
+                    </li>
+                    <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Suporte ágil e
-                      humano via WhatsApp
+                      prioritário via WhatsApp
                     </li>
                   </ul>
                 </div>
               </div>
 
               <a
-                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20falar%20com%20um%20consultor%20sobre%20a%20Faixa%20de%20R%24%202.501%20a%20R%24%206.000%20(R%24%2049%2C90%2Fm%C3%AAs)%20do%20NumInstante!"
+                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Quero%20falar%20com%20um%20consultor%20sobre%20o%20Plano%20Express%20(R%24%2049%2C90%2Fm%C3%AAs)%20do%20NumInstante!"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-hover-zoom w-full py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/25 flex items-center justify-center gap-2.5"
               >
                 <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
-                <span>Escolher Faixa Crescimento</span>
+                <span>Escolher Plano Express</span>
               </a>
             </div>
 
-            {/* Faixa 3: Acima de R$ 6.000 de Faturamento */}
+            {/* Plano Turbo: Acima de R$ 6.000 de Faturamento */}
             <div className="reveal reveal-delay-3 rounded-3xl border border-[#E9ECEF] bg-white p-6 sm:p-7 flex flex-col justify-between space-y-6 shadow-sm hover:shadow-xl transition-all duration-300">
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[13px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-900 bg-slate-100 px-3.5 py-1.5 rounded-full">
-                    Faixa 3 • Alta Escala
+                    Plano Turbo • Alta Escala
                   </span>
                 </div>
 
@@ -1044,29 +1052,33 @@ export function HomePage() {
                       novos pedidos
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Acompanhamento e
-                      avisos no WhatsApp
+                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Envio de
+                      mensagens automáticas no WhatsApp
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Taxas por bairro,
                       cupons e métricas
                     </li>
                     <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Zero comissão
+                      sobre as suas vendas
+                    </li>
+                    <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#FF5E1E] shrink-0" /> Atendimento
-                      prioritário e consultoria
+                      prioritário e consultoria VIP
                     </li>
                   </ul>
                 </div>
               </div>
 
               <a
-                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Meu%20delivery%20fatura%20acima%20de%20R%24%206.000%20e%20quero%20implantar%20o%20NumInstante%20(R%24%2089%2C90%2Fm%C3%AAs)."
+                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Meu%20delivery%20quer%20acelerar%20com%20o%20Plano%20Turbo%20(R%24%2089%2C90%2Fm%C3%AAs)%20do%20NumInstante!"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-hover-zoom w-full py-4 sm:py-3.5 rounded-2xl sm:rounded-xl bg-[#1A1D20] hover:bg-[#FF5E1E] text-white text-sm sm:text-sm font-black flex items-center justify-center gap-2.5"
               >
                 <WhatsAppIcon className="w-5 h-5 sm:w-4 sm:h-4" />
-                <span>Escolher Faixa Alta Escala</span>
+                <span>Escolher Plano Turbo</span>
               </a>
             </div>
           </div>
