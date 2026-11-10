@@ -10,9 +10,17 @@ import {
 import { toast } from 'sonner'
 import { useSuperAdminStore } from '../../../store/useSuperAdminStore'
 import { CompanyRegisterModal } from '../CompanyRegisterModal'
+import { SYSTEM_PLANS, calculateCompanyPlanUsage } from '../../../utils/planRules'
+import { formatCurrency } from '../../../lib/utils'
 
 export function CompaniesView() {
-  const { companies, toggleCompanyStatus, startSupportMode, fetchCompaniesFromApi } = useSuperAdminStore()
+  const {
+    companies,
+    toggleCompanyStatus,
+    changeCompanyPlan,
+    startSupportMode,
+    fetchCompaniesFromApi,
+  } = useSuperAdminStore()
 
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -57,10 +65,25 @@ export function CompaniesView() {
 
   const handleWhatsAppContact = (company) => {
     const cleanPhone = company.phone.replace(/\D/g, '')
-    const msg = encodeURIComponent(
-      `Olá ${company.owner}! Aqui é da equipe NumInstante Delivery. Como podemos te ajudar hoje com o restaurante ${company.name}?`
+    const usage = calculateCompanyPlanUsage({
+      planId: company.planId,
+      currentBilling: company.currentBilling,
+      currentOrdersCount: company.currentOrdersCount,
+      exceededOrdersCount: company.exceededOrdersCount,
+    })
+
+    let messageText = `Olá ${company.owner}! Aqui é da equipe NumInstante Delivery. Como podemos te ajudar hoje com o restaurante ${company.name}?`
+
+    if (usage.isExceeded) {
+      messageText = `Olá ${company.owner}! Aqui é da equipe NumInstante Delivery. Vimos que o restaurante ${company.name} atingiu a cota do plano ${usage.plan.name} neste mês. Gostaríamos de conversar sobre as opções para o fechamento mensal ou migração de plano.`
+    } else if (usage.isWarning) {
+      messageText = `Olá ${company.owner}! Aqui é da equipe NumInstante Delivery. Notamos que o restaurante ${company.name} está bem próximo de atingir a cota do plano ${usage.plan.name} (${usage.metricType === 'orders' ? `${usage.currentValue} de 600 pedidos` : `${formatCurrency(usage.currentValue)} de ${formatCurrency(usage.limitValue)}`}). Queremos te apoiar caso deseje fazer um upgrade!`
+    }
+
+    window.open(
+      `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(messageText)}`,
+      '_blank'
     )
-    window.open(`https://wa.me/55${cleanPhone}?text=${msg}`, '_blank')
   }
 
   return (
@@ -197,6 +220,13 @@ export function CompaniesView() {
             const isSuspended = c.status === 'inactive'
             const isTrial = c.status === 'trial'
 
+            const usage = calculateCompanyPlanUsage({
+              planId: c.planId,
+              currentBilling: c.currentBilling,
+              currentOrdersCount: c.currentOrdersCount,
+              exceededOrdersCount: c.exceededOrdersCount,
+            })
+
             return (
               <div
                 key={c.id}
@@ -219,7 +249,17 @@ export function CompaniesView() {
                     </div>
 
                     {/* Badge de Status */}
-                    <div className="shrink-0">
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      {usage.isExceeded ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                          ● Cota Excedida
+                        </span>
+                      ) : usage.isWarning ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                          ● Perto do Teto
+                        </span>
+                      ) : null}
+
                       {isSuspended ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
                           ● Desativada
@@ -236,8 +276,8 @@ export function CompaniesView() {
                     </div>
                   </div>
 
-                  {/* Informações da Empresa */}
-                  <div className="bg-[#F8F9FA] rounded-xl p-3 border border-[#E9ECEF] space-y-1.5 text-xs">
+                  {/* Informações da Empresa & Seletor de Plano */}
+                  <div className="bg-[#F8F9FA] rounded-xl p-3 border border-[#E9ECEF] space-y-2 text-xs">
                     <div className="flex items-center justify-between text-[#6C757D]">
                       <span>CNPJ:</span>
                       <span className="font-bold text-[#1A1D20]">{c.cnpj}</span>
@@ -250,9 +290,75 @@ export function CompaniesView() {
                       <span>WhatsApp:</span>
                       <span className="font-bold text-[#1A1D20]">{c.phone}</span>
                     </div>
-                    <div className="flex items-center justify-between text-[#6C757D] pt-1 border-t border-[#E9ECEF]">
-                      <span>Plano Atual:</span>
-                      <span className="font-extrabold text-[#FF5E1E]">{c.planName}</span>
+
+                    {/* Seletor de Plano Ativo */}
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#E9ECEF]">
+                      <span className="text-[#6C757D] font-bold">Plano:</span>
+                      <select
+                        value={c.planId || 'free'}
+                        onChange={(e) => {
+                          changeCompanyPlan(c.id, e.target.value)
+                          toast.success(`Plano da loja "${c.name}" alterado para ${e.target.value}!`)
+                        }}
+                        className="text-xs font-black bg-white border border-[#E9ECEF] rounded-lg px-2 py-1 text-[#FF5E1E] outline-none focus:border-[#FF5E1E] cursor-pointer shadow-2xs"
+                      >
+                        {SYSTEM_PLANS.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({formatCurrency(p.price)}/mês)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Monitoramento de Franquia & Cálculo Automático de Excedente */}
+                  <div className="bg-[#FFF8F5] rounded-xl p-3 border border-orange-100 space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-[#4A5568]">
+                        {usage.metricType === 'orders' ? 'Pedidos WhatsApp no Mês' : 'Faturamento no Mês'}
+                      </span>
+                      <span className="font-black text-[#1A1D20]">
+                        {usage.metricType === 'orders'
+                          ? `${usage.currentValue} de ${usage.limitValue} ped.`
+                          : `${formatCurrency(usage.currentValue)} de ${formatCurrency(usage.limitValue)}`}
+                      </span>
+                    </div>
+
+                    <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          usage.isExceeded
+                            ? 'bg-rose-500'
+                            : usage.isWarning
+                            ? 'bg-amber-500'
+                            : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${usage.percentage}%` }}
+                      />
+                    </div>
+
+                    {/* Resumo da Cobrança Mensal */}
+                    <div className="pt-1.5 border-t border-orange-200/60 flex items-center justify-between text-[11px]">
+                      <div className="space-y-0.5">
+                        <span className="text-[#6C757D] block">
+                          Base: {formatCurrency(usage.basePrice)}
+                          {usage.extraOrders > 0 && ` + ${usage.extraOrders} ext. (${formatCurrency(usage.extraAmount)})`}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500">
+                          {usage.isExceeded
+                            ? '● Excedente cobrado'
+                            : usage.isWarning
+                            ? '● Perto do limite'
+                            : '● Consumo normal'}
+                        </span>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-[10px] text-[#6C757D] block uppercase font-bold">Total a Cobrar</span>
+                        <span className={`text-xs font-black ${usage.isExceeded ? 'text-rose-600' : 'text-[#1A1D20]'}`}>
+                          {formatCurrency(usage.totalAmount)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

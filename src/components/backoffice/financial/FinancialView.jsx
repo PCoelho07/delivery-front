@@ -13,11 +13,14 @@ import {
   Calendar,
   CalendarDays,
   X,
+  Sparkles,
+  MessageCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency } from '../../../lib/utils'
 import { CustomSelect } from '../../common/CustomSelect'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
+import { calculateCompanyPlanUsage } from '../../../utils/planRules'
 
 const MONTH_NAMES = [
   'Janeiro',
@@ -340,6 +343,20 @@ export function FinancialView() {
     )
   }, [dateBr, selectedPeriod, availableMonths, consolidatedCount])
 
+  const planUsage = useMemo(() => {
+    return calculateCompanyPlanUsage({
+      planId: storeInfo?.planId || 'free',
+      currentBilling: Number(storeInfo?.currentMonthBilling || 2420),
+      currentOrdersCount: Number(storeInfo?.currentMonthOrders || 68),
+      exceededOrdersCount: Number(storeInfo?.exceededOrdersCount || 0),
+    })
+  }, [
+    storeInfo?.planId,
+    storeInfo?.currentMonthBilling,
+    storeInfo?.currentMonthOrders,
+    storeInfo?.exceededOrdersCount,
+  ])
+
   const isMonthDropdownActive =
     !dateBr && !['today', 'week'].includes(selectedPeriod)
 
@@ -450,6 +467,98 @@ export function FinancialView() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Card Informativo do Plano & Cota Mensal */}
+      <div className="bg-white rounded-2xl border border-[#E9ECEF] p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-orange-50 text-[#FF5E1E] flex items-center justify-center font-black">
+              <Sparkles className="w-5 h-5 text-[#FF5E1E]" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm text-[#1A1D20]">
+                  Meu Plano: {planUsage.plan.name}
+                </h3>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-orange-100 text-[#FF5E1E]">
+                  {planUsage.plan.badge}
+                </span>
+              </div>
+              <p className="text-xs text-[#6C757D] mt-0.5">
+                Mensalidade base: <strong>{formatCurrency(planUsage.basePrice)}</strong>
+                {planUsage.metricType === 'orders'
+                  ? ' • Franquia de até 600 pedidos no WhatsApp inclusos'
+                  : ` • Teto de faturamento até ${formatCurrency(planUsage.limitValue)}/mês`}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const text = `Olá! Sou da loja ${storeInfo?.name || 'parceira'} e gostaria de falar sobre o meu plano ${planUsage.plan.name} no NumInstante.`
+              window.open(`https://wa.me/5584994334789?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
+            }}
+            className="px-3.5 py-2 rounded-xl border border-[#E9ECEF] hover:border-[#FF5E1E] text-xs font-bold text-[#1A1D20] hover:text-[#FF5E1E] transition-all flex items-center justify-center gap-1.5 cursor-pointer self-start sm:self-auto shrink-0"
+          >
+            <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Tirar Dúvidas no WhatsApp</span>
+          </button>
+        </div>
+
+        {/* Barra de Progresso do Consumo */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-[#6C757D]">
+              {planUsage.metricType === 'orders' ? 'Consumo de Pedidos (WhatsApp)' : 'Consumo da Cota de Faturamento'}
+            </span>
+            <span className="font-extrabold text-[#1A1D20]">
+              {planUsage.metricType === 'orders'
+                ? `${planUsage.currentValue} de ${planUsage.limitValue} pedidos (${planUsage.percentage}%)`
+                : `${formatCurrency(planUsage.currentValue)} de ${formatCurrency(planUsage.limitValue)} (${planUsage.percentage}%)`}
+            </span>
+          </div>
+
+          <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                planUsage.isExceeded
+                  ? 'bg-rose-500'
+                  : planUsage.isWarning
+                  ? 'bg-amber-500'
+                  : 'bg-emerald-500'
+              }`}
+              style={{ width: `${planUsage.percentage}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-[11px] pt-0.5">
+            <span className="text-[#6C757D]">
+              {planUsage.isExceeded
+                ? 'Limite da franquia ultrapassado'
+                : `Restam ${planUsage.metricType === 'orders' ? `${planUsage.remainingValue} pedidos` : formatCurrency(planUsage.remainingValue)}`}
+            </span>
+
+            {planUsage.isExceeded && (
+              <span className="font-bold text-rose-600">
+                + {planUsage.extraOrders} pedidos extras ({formatCurrency(planUsage.extraAmount)})
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Resumo se houver excedente */}
+        {planUsage.isExceeded && (
+          <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <span className="text-rose-950 font-medium">
+              Pedidos excedentes são faturados a <strong>{formatCurrency(planUsage.plan.extraOrderFee)}</strong> cada no fechamento mensal.
+            </span>
+            <span className="font-black text-rose-700 whitespace-nowrap">
+              Total estimado do mês: {formatCurrency(planUsage.totalAmount)}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 4 Cards de Métricas Principais (KPIs) */}

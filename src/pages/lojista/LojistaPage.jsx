@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BackofficeSidebar } from '../../components/backoffice/BackofficeSidebar'
 import { BackofficeTopbar } from '../../components/backoffice/BackofficeTopbar'
+import { PlanLimitBanner } from '../../components/backoffice/common/PlanLimitBanner'
 import { MenuVitrineView } from '../../components/backoffice/menu/MenuVitrineView'
 import { ScheduleView } from '../../components/backoffice/schedule/ScheduleView'
 import { DeliveryView } from '../../components/backoffice/delivery/DeliveryView'
@@ -42,6 +43,9 @@ export function LojistaPage() {
 
         {/* Área de Trabalho Dinâmica da Aba Selecionada */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#F8F9FA]">
+          {/* Alerta de Cota do Plano e Excedentes (Rolagem fluida com a página) */}
+          <PlanLimitBanner />
+
           {(activeTab === 'cardapio' || activeTab === 'templates') && <MenuVitrineView />}
 
           {activeTab === 'cupons' && <CouponsView />}

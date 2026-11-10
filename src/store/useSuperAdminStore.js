@@ -1,83 +1,146 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { superadminService } from '../services/superadminService'
+import { getPlanById } from '../utils/planRules'
 
 export const INITIAL_PLANS = [
   {
-    id: 'trial',
-    name: 'Trial Grátis',
+    id: 'free',
+    name: 'Plano Start',
+    shortName: 'Start',
     price: 0,
-    billingPeriod: '7 dias',
-    trialDays: 7,
-    maxProducts: 15,
-    description: 'Degustação completa para novos restaurantes conhecerem todas as funções.',
-    badge: 'Experimente',
+    billingPeriod: 'mês',
+    billingThreshold: 2500, // R$ 2.500/mês
+    extraOrderFee: 1.0, // R$ 1,00 por pedido extra
+    includedOrders: null,
+    warningMargin: 100,
     status: 'active',
+    badge: 'Grátis',
+    description: 'Comece 100% grátis com faturamento até R$ 2.500/mês e automações no WhatsApp.',
     features: [
-      '7 dias de teste completo',
-      'Até 15 produtos cadastrados',
-      'Cardápio digital com QR Code',
-      'Pedidos direto no WhatsApp',
-      'Painel de pedidos em tempo real',
-      'Suporte básico por chat',
+      'Faturamento até R$ 2.500,00/mês',
+      '2 mensagens automáticas por pedido no WhatsApp',
+      'Cardápio digital mobile first completo',
+      'PDV em tempo real e impressão térmica',
+      'Taxa de excedente: R$ 1,00 por pedido extra',
     ],
   },
   {
-    id: 'basico',
-    name: 'Plano Básico',
-    price: 49.0,
+    id: 'crescimento',
+    name: 'Plano Express',
+    shortName: 'Express',
+    price: 49.9,
     billingPeriod: 'mês',
-    trialDays: 0,
-    maxProducts: 30,
-    description: 'Perfeito para lanchonetes e operações enxutas no delivery próprio.',
-    badge: null,
+    billingThreshold: 6000, // R$ 6.000/mês
+    extraOrderFee: 0.5, // R$ 0,50 por pedido extra
+    includedOrders: null,
+    warningMargin: 100,
     status: 'active',
+    badge: 'Mais Escolhido',
+    description: 'Para lojas em ritmo de crescimento que já vendem todos os dias.',
     features: [
-      'Até 30 produtos cadastrados',
-      'Cardápio digital mobile first',
-      'Gestão de bairros e taxas de entrega',
-      'Alerta sonoro e impressão de pedidos',
-      'Pagamentos PIX e na entrega',
-      'Suporte via WhatsApp em horário comercial',
+      'Faturamento de R$ 2.501 até R$ 6.000,00/mês',
+      '2 mensagens automáticas por pedido no WhatsApp',
+      'Todos os recursos de cardápio e gestão liberados',
+      'Alerta automático de cota no painel',
+      'Taxa de excedente: R$ 0,50 por pedido extra',
     ],
   },
   {
-    id: 'pro',
-    name: 'Plano Pro',
-    price: 99.0,
+    id: 'escala',
+    name: 'Plano Turbo',
+    shortName: 'Turbo',
+    price: 89.9,
     billingPeriod: 'mês',
-    trialDays: 0,
-    maxProducts: 100,
-    description: 'O mais escolhido por hamburguerias, pizzarias e restaurantes consolidados.',
-    badge: 'Mais Popular',
+    billingThreshold: null, // Ilimitado em faturamento
+    extraOrderFee: 0.32, // R$ 0,32 por pedido extra
+    includedOrders: 600, // Franquia de até 600 pedidos/mês no WhatsApp
+    warningMarginOrders: 50,
     status: 'active',
+    badge: 'Alta Escala',
+    description: 'Para operações consolidadas. Faturamento ilimitado com pacote de 600 pedidos no WhatsApp inclusos.',
     features: [
-      'Até 100 produtos cadastrados',
-      'Grupos de complementos ilimitados',
-      'Sistema de cupons de desconto',
-      'Relatórios financeiros e exportação',
-      'Links personalizados e domínio próprio',
-      'Suporte prioritário 7 dias por semana',
+      'Faturamento ilimitado (acima de R$ 6.000,00/mês)',
+      'Franquia de até 600 pedidos/mês inclusos no WhatsApp',
+      'Taxa de excedente: R$ 0,32 por pedido extra acima de 600',
+      '2 mensagens automáticas por pedido (confirmação + saiu pra entrega)',
+      'Suporte prioritário e consultoria',
     ],
   },
+]
+
+export const INITIAL_COMPANIES = [
   {
-    id: 'enterprise',
-    name: 'Plano Ilimitado',
-    price: 199.0,
-    billingPeriod: 'mês',
-    trialDays: 0,
-    maxProducts: null, // Ilimitado
-    description: 'Operação de alta escala sem qualquer trava ou limite de produtos.',
-    badge: 'Sem Limites',
+    id: 'comp-1',
+    name: 'Brasa Burger',
+    slug: 'brasa-burger',
+    cnpj: '45.123.456/0001-89',
+    owner: 'Lucas Silva',
+    phone: '(84) 99433-4789',
+    planId: 'free',
+    planName: 'Plano Start',
+    price: 0,
     status: 'active',
-    features: [
-      'Produtos e categorias ilimitados',
-      'Múltiplos operadores simultâneos',
-      'Integração com API e Webhooks',
-      'Taxa zero sobre pedidos',
-      'Atendimento VIP com gerente de contas',
-      'Backup diário e SLA 99.9%',
-    ],
+    currentBilling: 2420.0,
+    currentOrdersCount: 68,
+    exceededOrdersCount: 0,
+    daysLeft: 22,
+    nextBilling: '01/12/2026',
+    isPaid: true,
+  },
+  {
+    id: 'comp-2',
+    name: 'Bella Pizza Forneria',
+    slug: 'bella-pizza',
+    cnpj: '38.987.654/0001-12',
+    owner: 'Juliana Costa',
+    phone: '(84) 98877-6655',
+    planId: 'crescimento',
+    planName: 'Plano Express',
+    price: 49.9,
+    status: 'active',
+    currentBilling: 6350.0,
+    currentOrdersCount: 175,
+    exceededOrdersCount: 14,
+    daysLeft: 18,
+    nextBilling: '27/11/2026',
+    isPaid: true,
+  },
+  {
+    id: 'comp-3',
+    name: 'Sushizeira Premium',
+    slug: 'sushizeira',
+    cnpj: '51.222.333/0001-44',
+    owner: 'Renato Takahashi',
+    phone: '(84) 99111-2233',
+    planId: 'escala',
+    planName: 'Plano Turbo',
+    price: 89.9,
+    status: 'active',
+    currentBilling: 28400.0,
+    currentOrdersCount: 565,
+    exceededOrdersCount: 0,
+    daysLeft: 25,
+    nextBilling: '04/12/2026',
+    isPaid: true,
+  },
+  {
+    id: 'comp-4',
+    name: 'Mega Açaí & Sorvetes',
+    slug: 'mega-acai',
+    cnpj: '19.444.555/0001-09',
+    owner: 'Carlos Eduardo',
+    phone: '(84) 99666-5544',
+    planId: 'escala',
+    planName: 'Plano Turbo',
+    price: 89.9,
+    status: 'active',
+    currentBilling: 34200.0,
+    currentOrdersCount: 642,
+    exceededOrdersCount: 42,
+    daysLeft: 12,
+    nextBilling: '21/11/2026',
+    isPaid: true,
   },
 ]
 
@@ -90,8 +153,8 @@ export const useSuperAdminStore = create(
       supportActiveTab: 'cardapio', // cardapio | horarios | entregas | pagamentos | loja
       isMobileSidebarOpen: false,
 
-      // Base de empresas zerada para que apenas empresas cadastradas apareçam
-      companies: [],
+      // Base inicial com cenários representativos de planos e consumo
+      companies: INITIAL_COMPANIES,
       plans: INITIAL_PLANS,
 
       adminProfile: {
@@ -173,6 +236,30 @@ export const useSuperAdminStore = create(
           }),
         })),
 
+      changeCompanyPlan: (companyId, newPlanId) =>
+        set((state) => ({
+          companies: state.companies.map((c) => {
+            if (c.id !== companyId) return c
+            const plan = getPlanById(newPlanId)
+            return {
+              ...c,
+              planId: plan.id,
+              planName: plan.name,
+            }
+          }),
+        })),
+
+      updateCompanyMetrics: (companyId, partialMetrics) =>
+        set((state) => ({
+          companies: state.companies.map((c) => {
+            if (c.id !== companyId) return c
+            return {
+              ...c,
+              ...partialMetrics,
+            }
+          }),
+        })),
+
       markSubscriptionPaid: (id) =>
         set((state) => ({
           companies: state.companies.map((c) => {
@@ -227,7 +314,18 @@ export const useSuperAdminStore = create(
         }),
     }),
     {
-      name: 'delivery_superadmin_store_v3',
+      name: 'delivery_superadmin_store_v5',
+      version: 5,
+      migrate: (persistedState, version) => {
+        if (!persistedState || version < 5 || !persistedState.plans || !persistedState.plans.some((p) => p.id === 'escala')) {
+          return {
+            ...persistedState,
+            plans: INITIAL_PLANS,
+            companies: INITIAL_COMPANIES,
+          }
+        }
+        return persistedState
+      },
       partialize: (state) => ({
         companies: state.companies,
         plans: state.plans,

@@ -23,15 +23,31 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
   const isEditing = Boolean(planToEdit)
 
   const [name, setName] = useState(() => planToEdit?.name || '')
-  const [price, setPrice] = useState(() => String(planToEdit?.price ?? (isEditing ? '0' : '49')))
+  const [price, setPrice] = useState(() => String(planToEdit?.price ?? (isEditing ? '0' : '49.90')))
   const [billingPeriod, setBillingPeriod] = useState(() => planToEdit?.billingPeriod || 'mês')
   const [trialDays, setTrialDays] = useState(() => String(planToEdit?.trialDays ?? '0'))
-  const [isUnlimitedProducts, setIsUnlimitedProducts] = useState(
-    () => planToEdit?.maxProducts === null || planToEdit?.maxProducts === undefined ? isEditing : false
+
+  // Teto de faturamento mensal (null = ilimitado)
+  const [isUnlimitedBilling, setIsUnlimitedBilling] = useState(
+    () => planToEdit?.billingThreshold === null || planToEdit?.billingThreshold === undefined ? (isEditing ? !planToEdit?.billingThreshold : false) : false
   )
-  const [maxProducts, setMaxProducts] = useState(
-    () => planToEdit?.maxProducts ? String(planToEdit.maxProducts) : '50'
+  const [billingThreshold, setBillingThreshold] = useState(
+    () => planToEdit?.billingThreshold ? String(planToEdit.billingThreshold) : '2500'
   )
+
+  // Cota de pedidos WhatsApp inclusos (ex: 600 no Turbo)
+  const [isOrderQuotaUnlimited, setIsOrderQuotaUnlimited] = useState(
+    () => !planToEdit?.includedOrders
+  )
+  const [includedOrders, setIncludedOrders] = useState(
+    () => planToEdit?.includedOrders ? String(planToEdit.includedOrders) : '600'
+  )
+
+  // Taxa por pedido extra excedente (R$/pedido)
+  const [extraOrderFee, setExtraOrderFee] = useState(
+    () => String(planToEdit?.extraOrderFee ?? '0.50')
+  )
+
   const [description, setDescription] = useState(
     () => planToEdit?.description || 'Plano sob medida para o crescimento do seu delivery.'
   )
@@ -40,9 +56,9 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
     Array.isArray(planToEdit?.features)
       ? [...planToEdit.features]
       : [
-          'Cardápio digital mobile first',
-          'Pedidos direto no WhatsApp',
-          'Painel em tempo real',
+          '2 mensagens automáticas por pedido no WhatsApp',
+          'Cardápio digital mobile first completo',
+          'PDV em tempo real e impressão térmica',
           'Suporte via WhatsApp',
         ]
   )
@@ -80,7 +96,13 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
     }
 
     const numTrial = parseInt(trialDays, 10) || 0
-    const numMaxProducts = isUnlimitedProducts ? null : parseInt(maxProducts, 10) || 30
+    const numBillingThreshold = isUnlimitedBilling
+      ? null
+      : parseFloat(billingThreshold.replace(',', '.')) || null
+    const numIncludedOrders = isOrderQuotaUnlimited
+      ? null
+      : parseInt(includedOrders, 10) || null
+    const numExtraOrderFee = parseFloat(extraOrderFee.replace(',', '.')) || 0
 
     const planData = {
       id: isEditing
@@ -89,8 +111,10 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
       name: name.trim(),
       price: numPrice,
       billingPeriod,
+      billingThreshold: numBillingThreshold,
+      includedOrders: numIncludedOrders,
+      extraOrderFee: numExtraOrderFee,
       trialDays: numTrial,
-      maxProducts: numMaxProducts,
       description: description.trim(),
       badge: badge.trim() || null,
       features: features.length > 0 ? features : ['Acesso completo ao cardápio e gestão de pedidos'],
@@ -217,38 +241,110 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
           </div>
         </div>
 
-        {/* Limite de Produtos */}
-        <div className="p-3 bg-[#F8F9FA] rounded-xl border border-[#E9ECEF] space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-[#1A1D20]">
-              Limite de Produtos no Cardápio
-            </label>
-            <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-[#FF5E1E]">
-              <input
-                type="checkbox"
-                checked={isUnlimitedProducts}
-                onChange={(e) => setIsUnlimitedProducts(e.target.checked)}
-                className="w-4 h-4 text-[#FF5E1E] rounded accent-[#FF5E1E] cursor-pointer"
-              />
-              <span>Produtos Ilimitados</span>
-            </label>
+        {/* Limites de Faturamento, Cotas WhatsApp & Excedentes */}
+        <div className="p-3.5 bg-[#F8F9FA] rounded-2xl border border-[#E9ECEF] space-y-3.5">
+          <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#FF5E1E]">
+            ⚙️ Regras de Limite & Cobrança de Excedente
+          </p>
+
+          {/* 1. Teto de Faturamento */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#1A1D20]">
+                Teto de Faturamento Mensal (R$)
+              </label>
+              <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-[#FF5E1E]">
+                <input
+                  type="checkbox"
+                  checked={isUnlimitedBilling}
+                  onChange={(e) => setIsUnlimitedBilling(e.target.checked)}
+                  className="w-4 h-4 text-[#FF5E1E] rounded accent-[#FF5E1E] cursor-pointer"
+                />
+                <span>Faturamento Ilimitado</span>
+              </label>
+            </div>
+
+            {!isUnlimitedBilling && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#6C757D]">Até R$</span>
+                <input
+                  type="number"
+                  step="100"
+                  min="0"
+                  value={billingThreshold}
+                  onChange={(e) => setBillingThreshold(e.target.value)}
+                  placeholder="2500"
+                  className="w-36 px-3 py-1.5 text-xs bg-white rounded-xl border border-[#E9ECEF] text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E]"
+                />
+                <span className="text-[11px] text-[#6C757D]">
+                  /mês de vendas no cardápio
+                </span>
+              </div>
+            )}
           </div>
 
-          {!isUnlimitedProducts && (
-            <div className="flex items-center gap-3">
-              <input
-                type="number"
-                min="1"
-                value={maxProducts}
-                onChange={(e) => setMaxProducts(e.target.value)}
-                placeholder="Ex: 50"
-                className="w-36 px-3.5 py-2 text-xs bg-white rounded-xl border border-[#E9ECEF] text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E]"
-              />
-              <span className="text-[11.5px] text-[#6C757D]">
-                Quantidade máxima de itens ativos que o restaurante pode cadastrar.
-              </span>
+          {/* 2. Cota de Pedidos WhatsApp */}
+          <div className="space-y-1.5 pt-2 border-t border-[#E9ECEF]/80">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-[#1A1D20]">
+                Franquia de Pedidos Inclusos no WhatsApp
+              </label>
+              <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-[#FF5E1E]">
+                <input
+                  type="checkbox"
+                  checked={isOrderQuotaUnlimited}
+                  onChange={(e) => setIsOrderQuotaUnlimited(e.target.checked)}
+                  className="w-4 h-4 text-[#FF5E1E] rounded accent-[#FF5E1E] cursor-pointer"
+                />
+                <span>Incluso até o Faturamento</span>
+              </label>
             </div>
-          )}
+
+            {!isOrderQuotaUnlimited && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="50"
+                  step="50"
+                  value={includedOrders}
+                  onChange={(e) => setIncludedOrders(e.target.value)}
+                  placeholder="600"
+                  className="w-28 px-3 py-1.5 text-xs bg-white rounded-xl border border-[#E9ECEF] text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E]"
+                />
+                <span className="text-[11px] text-[#6C757D]">
+                  pedidos/mês inclusos (~{Number(includedOrders || 0) * 2} mensagens automáticas)
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Taxa por Pedido Excedente */}
+          <div className="pt-2 border-t border-[#E9ECEF]/80">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <label className="block text-xs font-bold text-[#1A1D20]">
+                  Taxa por Pedido Excedente (R$)
+                </label>
+                <span className="text-[11px] text-[#6C757D]">
+                  Cobrado por cada pedido extra após ultrapassar o teto
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-xs font-bold text-[#6C757D]">R$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={extraOrderFee}
+                  onChange={(e) => setExtraOrderFee(e.target.value)}
+                  placeholder="0.50"
+                  className="w-24 px-3 py-1.5 text-xs bg-white rounded-xl border border-[#E9ECEF] text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E] text-right"
+                />
+                <span className="text-xs text-[#6C757D] font-medium">/pedido</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Descrição */}
