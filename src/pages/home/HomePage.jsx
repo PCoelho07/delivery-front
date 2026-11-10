@@ -1108,15 +1108,19 @@ export function HomePage() {
           <div className="reveal grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 sm:gap-10">
             {/* Coluna 1: Marca e Posicionamento Regional */}
             <div className="lg:col-span-4 space-y-4">
-              <div className="bg-white inline-block px-4 py-2.5 rounded-2xl">
+              <a
+                href="#inicio"
+                onClick={(e) => scrollToSection(e, 'inicio')}
+                className="inline-block group focus:outline-hidden"
+              >
                 <img
-                  src="/brand/numinstante-logo.png"
+                  src="/brand/numinstante-logo-footer.png"
                   alt="NumInstante"
-                  width="648"
-                  height="133"
-                  className="h-9 sm:h-9 w-auto object-contain select-none"
+                  width="670"
+                  height="155"
+                  className="h-10 sm:h-11 w-auto object-contain select-none transition-transform duration-300 group-hover:scale-[1.02]"
                 />
-              </div>
+              </a>
               <p className="text-sm sm:text-base font-extrabold text-white max-w-sm leading-snug">
                 &ldquo;Transformando a velocidade do seu atendimento em lucro real num instante.&rdquo;
               </p>

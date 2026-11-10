@@ -1027,13 +1027,19 @@
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10 reveal">
           <!-- Coluna 1: Marca e Frase de Impacto -->
           <div class="md:col-span-5 space-y-4">
-            <div class="bg-white inline-block px-3.5 py-2 rounded-2xl">
+            <a
+              href="#inicio"
+              onclick="scrollToSection(event, 'inicio')"
+              class="inline-block focus:outline-hidden"
+            >
               <img
-                src="brand/numinstante-logo.png"
+                src="brand/numinstante-logo-footer.png"
                 alt="NumInstante"
-                class="h-8 sm:h-9 w-auto object-contain select-none"
+                width="670"
+                height="155"
+                class="h-9 sm:h-10 w-auto object-contain select-none transition-transform duration-300 hover:scale-[1.02]"
               />
-            </div>
+            </a>
             <p class="text-sm sm:text-base font-extrabold text-white max-w-sm leading-snug">
               "Transformando a velocidade do seu atendimento em lucro real num instante."
             </p>
