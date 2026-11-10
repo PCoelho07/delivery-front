@@ -1309,17 +1309,21 @@
         target.classList.add('revealed');
         target.querySelectorAll('.reveal').forEach((el) => el.classList.add('revealed'));
 
+        const isDesktop = window.innerWidth >= 768;
         const previewBarHeight = document.getElementById('preview-bar')?.offsetHeight || 37;
         const headerBar = document.getElementById('main-header')?.querySelector('.max-w-7xl');
-        const headerHeight = headerBar?.offsetHeight || (window.innerWidth >= 640 ? 80 : 64);
+        const headerHeight = headerBar?.offsetHeight || (isDesktop ? 80 : 64);
         const stickyOffset = previewBarHeight + headerHeight;
 
         const targetRect = target.getBoundingClientRect();
         const targetAbsoluteTop = targetRect.top + window.scrollY;
 
-        // Rola diretamente para o início da seção (título visível com margem confortável)
+        // No desktop, compensação suave para centralizar o bloco (título + cards) com respiro visual equilibrado
+        const desktopOffset = 30;
+        const scrollOffset = isDesktop ? stickyOffset - desktopOffset : stickyOffset + 12;
+
         window.scrollTo({
-          top: Math.max(0, targetAbsoluteTop - stickyOffset - 12),
+          top: Math.max(0, Math.round(targetAbsoluteTop - scrollOffset)),
           behavior: 'smooth',
         });
 

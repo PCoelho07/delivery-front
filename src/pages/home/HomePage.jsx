@@ -159,17 +159,21 @@ export function HomePage() {
       target.querySelectorAll('.reveal').forEach((el) => el.classList.add('revealed'))
 
       // Altura da barra superior fixa fechada (sem o menu mobile aberto)
+      const isDesktop = window.innerWidth >= 768
       const headerBar = container.querySelector('header .max-w-7xl')
-      const headerHeight = headerBar?.offsetHeight || (window.innerWidth >= 640 ? 80 : 64)
+      const headerHeight = headerBar?.offsetHeight || (isDesktop ? 80 : 64)
 
       // Posição absoluta exata do topo da seção dentro do container
       const containerRect = container.getBoundingClientRect()
       const targetRect = target.getBoundingClientRect()
       const targetAbsoluteTop = targetRect.top - containerRect.top + container.scrollTop
 
-      // Rola diretamente para o início da seção (título visível com margem confortável)
+      // No desktop, compensação suave para centralizar o bloco (título + cards) com respiro visual equilibrado
+      const desktopOffset = 30
+      const scrollOffset = isDesktop ? headerHeight - desktopOffset : headerHeight + 12
+
       container.scrollTo({
-        top: Math.max(0, targetAbsoluteTop - headerHeight - 12),
+        top: Math.max(0, Math.round(targetAbsoluteTop - scrollOffset)),
         behavior: 'smooth',
       })
 

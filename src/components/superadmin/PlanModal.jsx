@@ -56,7 +56,7 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
     Array.isArray(planToEdit?.features)
       ? [...planToEdit.features]
       : [
-          '2 mensagens automáticas por pedido no WhatsApp',
+          '2 mensagens automáticas por pedido no WhatsApp (infos do pedido e saiu p/ entrega)',
           'Cardápio digital mobile first completo',
           'PDV em tempo real e impressão térmica',
           'Suporte via WhatsApp',
@@ -300,21 +300,30 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
               </label>
             </div>
 
-            {!isOrderQuotaUnlimited && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="50"
-                  step="50"
-                  value={includedOrders}
-                  onChange={(e) => setIncludedOrders(e.target.value)}
-                  placeholder="600"
-                  className="w-28 px-3 py-1.5 text-xs bg-white rounded-xl border border-[#E9ECEF] text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E]"
-                />
-                <span className="text-[11px] text-[#6C757D]">
-                  pedidos/mês inclusos (~{Number(includedOrders || 0) * 2} mensagens automáticas)
-                </span>
+            {!isOrderQuotaUnlimited ? (
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="50"
+                    step="50"
+                    value={includedOrders}
+                    onChange={(e) => setIncludedOrders(e.target.value)}
+                    placeholder="600"
+                    className="w-28 px-3 py-1.5 text-xs bg-white rounded-xl border border-[#E9ECEF] text-[#1A1D20] font-bold focus:outline-none focus:border-[#FF5E1E]"
+                  />
+                  <span className="text-[11px] text-[#6C757D]">
+                    pedidos/mês inclusos (~{Number(includedOrders || 0) * 2} mensagens a 2 msgs/pedido)
+                  </span>
+                </div>
+                <p className="text-[10.5px] text-[#6C757D] leading-tight">
+                  💡 No plano de R$ 89,90, o preço é viável até 600 pedidos. Para lojas de 1.000+ pedidos, a taxa excedente equilibra os custos da API.
+                </p>
               </div>
+            ) : (
+              <p className="text-[10.5px] text-[#6C757D]">
+                Disparo padrão de 2 mensagens por pedido (Infos do pedido e Saiu para entrega) dentro do teto de faturamento.
+              </p>
             )}
           </div>
 
@@ -326,7 +335,7 @@ function PlanModalForm({ planToEdit, onSave, onClose }) {
                   Taxa por Pedido Excedente (R$)
                 </label>
                 <span className="text-[11px] text-[#6C757D]">
-                  Cobrado por cada pedido extra após ultrapassar o teto
+                  Cobrado por cada pedido extra após ultrapassar a franquia (parâmetro editável para estudo)
                 </span>
               </div>
 
