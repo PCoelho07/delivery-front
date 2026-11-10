@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   CheckCircle2,
@@ -244,16 +245,13 @@ export function HomePage() {
               <span>Falar no WhatsApp</span>
             </a>
 
-            {/* Botão Login que direciona ao WhatsApp de atendimento/lead */}
-            <a
-              href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20NumInstante%20para%20minha%20loja."
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to="/login"
               className="btn-hover-zoom inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#FF5E1E]/25"
             >
               <LogIn className="w-4 h-4" />
               <span>Login</span>
-            </a>
+            </Link>
 
             {/* Botão Menu Hamburger Mobile */}
             <button
@@ -303,15 +301,13 @@ export function HomePage() {
             </a>
 
             <div className="pt-2 border-t border-[#E9ECEF] flex flex-col gap-2.5">
-              <a
-                href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20NumInstante%20para%20minha%20loja."
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/login"
                 className="w-full py-3.5 px-5 rounded-2xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-sm font-black flex items-center justify-center gap-2.5 shadow-md"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Acessar Painel (Login)</span>
-              </a>
+              </Link>
               <a
                 href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20NumInstante%20no%20celular%20e%20quero%20falar%20com%20um%20consultor."
                 target="_blank"
@@ -1242,15 +1238,13 @@ export function HomePage() {
                   </button>
                 </li>
                 <li>
-                  <a
-                    href="https://wa.me/5584994334789?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20NumInstante%20para%20minha%20loja."
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    to="/login"
                     className="hover:text-[#FF5E1E] transition-colors inline-flex items-center gap-2 py-0.5"
                   >
                     <LogIn className="w-4 h-4 text-[#FF5E1E] shrink-0" />
                     <span>Acessar Painel (Login)</span>
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
