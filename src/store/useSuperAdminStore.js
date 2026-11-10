@@ -16,10 +16,10 @@ export const INITIAL_PLANS = [
     warningMargin: 100,
     status: 'active',
     badge: 'Grátis',
-    description: 'Comece 100% grátis com faturamento até R$ 2.500/mês e automações no WhatsApp.',
+    description: 'Comece 100% grátis com faturamento até R$ 2.500/mês e 2 mensagens por pedido no WhatsApp.',
     features: [
       'Faturamento até R$ 2.500,00/mês',
-      '2 mensagens automáticas por pedido no WhatsApp',
+      '2 mensagens automáticas por pedido no WhatsApp (infos do pedido e saiu p/ entrega)',
       'Cardápio digital mobile first completo',
       'PDV em tempo real e impressão térmica',
       'Taxa de excedente: R$ 1,00 por pedido extra',
@@ -37,10 +37,10 @@ export const INITIAL_PLANS = [
     warningMargin: 100,
     status: 'active',
     badge: 'Mais Escolhido',
-    description: 'Para lojas em ritmo de crescimento que já vendem todos os dias.',
+    description: 'Para lojas em crescimento com faturamento entre R$ 2.501 e R$ 6.000/mês e 2 msgs por pedido no WhatsApp.',
     features: [
       'Faturamento de R$ 2.501 até R$ 6.000,00/mês',
-      '2 mensagens automáticas por pedido no WhatsApp',
+      '2 mensagens automáticas por pedido no WhatsApp (infos do pedido e saiu p/ entrega)',
       'Todos os recursos de cardápio e gestão liberados',
       'Alerta automático de cota no painel',
       'Taxa de excedente: R$ 0,50 por pedido extra',
@@ -54,16 +54,16 @@ export const INITIAL_PLANS = [
     billingPeriod: 'mês',
     billingThreshold: null, // Ilimitado em faturamento
     extraOrderFee: 0.32, // R$ 0,32 por pedido extra
-    includedOrders: 600, // Franquia de até 600 pedidos/mês no WhatsApp
+    includedOrders: 600, // Franquia viável de até 600 pedidos/mês (~1.200 msgs)
     warningMarginOrders: 50,
     status: 'active',
     badge: 'Alta Escala',
-    description: 'Para operações consolidadas. Faturamento ilimitado com pacote de 600 pedidos no WhatsApp inclusos.',
+    description: 'Faturamento ilimitado. Viável até 600 pedidos/mês; acima disso taxa extra equilibra alto volume (ex: 1.000 pedidos).',
     features: [
       'Faturamento ilimitado (acima de R$ 6.000,00/mês)',
-      'Franquia de até 600 pedidos/mês inclusos no WhatsApp',
-      'Taxa de excedente: R$ 0,32 por pedido extra acima de 600',
-      '2 mensagens automáticas por pedido (confirmação + saiu pra entrega)',
+      '2 mensagens automáticas por pedido no WhatsApp (infos do pedido e saiu p/ entrega)',
+      'Franquia base viável de até 600 pedidos/mês (~1.200 msgs inclusas)',
+      'Taxa de excedente: R$ 0,32 por pedido extra acima de 600 (para operações de 1.000+ pedidos)',
       'Suporte prioritário e consultoria',
     ],
   },

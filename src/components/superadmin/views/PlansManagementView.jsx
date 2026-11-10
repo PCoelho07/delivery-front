@@ -13,6 +13,7 @@ import {
   Tag,
   MessageSquare,
   RotateCcw,
+  Info,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSuperAdminStore } from '../../../store/useSuperAdminStore'
@@ -209,6 +210,65 @@ export function PlansManagementView() {
         </div>
       </div>
 
+      {/* Banner Informativo Interno: Regra de Negócio SuperAdmin */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-orange-50/90 via-amber-50/60 to-white border border-orange-200/80 shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-orange-200/60 pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="p-1.5 rounded-lg bg-[#FF5E1E] text-white">
+              <Info className="w-4 h-4" />
+            </span>
+            <div>
+              <h3 className="text-xs sm:text-sm font-black text-[#1A1D20] flex items-center gap-2">
+                <span>Regra de Mensageria WhatsApp & Viabilidade do Plano Turbo</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FF5E1E]/10 text-[#FF5E1E] uppercase tracking-wider">
+                  Uso Interno
+                </span>
+              </h3>
+            </div>
+          </div>
+          <span className="text-[11px] font-semibold text-[#6C757D]">
+            Parâmetros dinâmicos para estudo contínuo de custos
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          {/* Item 1: Padrão Unificado */}
+          <div className="p-3 rounded-xl bg-white/95 border border-orange-100 shadow-2xs space-y-1">
+            <p className="font-extrabold text-[#1A1D20] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#FF5E1E]" />
+              Padrão: 2 Mensagens por Pedido
+            </p>
+            <p className="text-[11.5px] text-[#4A5568] leading-relaxed">
+              Todos os planos incluem por padrão <strong>2 mensagens automáticas</strong> no WhatsApp para cada pedido: 
+              1ª com os detalhes/confirmação do pedido e 2ª avisando que o pedido saiu para entrega.
+            </p>
+          </div>
+
+          {/* Item 2: Racional dos 600 pedidos */}
+          <div className="p-3 rounded-xl bg-white/95 border border-orange-100 shadow-2xs space-y-1">
+            <p className="font-extrabold text-[#1A1D20] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              Viabilidade Turbo (600 Pedidos)
+            </p>
+            <p className="text-[11.5px] text-[#4A5568] leading-relaxed">
+              O valor fixo de <strong>R$ 89,90/mês</strong> é viável para a plataforma até <strong>600 pedidos</strong> (~1.200 msgs). 
+              Lojas com 1.000+ pedidos gastam o dobro de infraestrutura e não compensa pagar o mesmo flat rate sem taxa extra.
+            </p>
+          </div>
+
+          {/* Item 3: Taxa Excedente Flexível */}
+          <div className="p-3 rounded-xl bg-white/95 border border-orange-100 shadow-2xs space-y-1">
+            <p className="font-extrabold text-[#1A1D20] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              Taxa Excedente & Flexibilidade
+            </p>
+            <p className="text-[11.5px] text-[#4A5568] leading-relaxed">
+              A taxa excedente (+R$ 0,32/pedido extra) cobre o alto volume. Todos os valores, franquias e taxas são estimativas internas que podem ser ajustadas a qualquer momento em <strong>Editar</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Barra de Busca e Filtros */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-[#E9ECEF] shadow-2xs">
         <div className="relative flex-1">
@@ -348,16 +408,23 @@ export function PlansManagementView() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-orange-50/80 border border-orange-100">
-                      <span className="text-[#6C757D] font-semibold flex items-center gap-1">
-                        <MessageSquare className="w-3 h-3 text-[#FF5E1E]" />
-                        Cota WhatsApp:
-                      </span>
-                      <span className="font-extrabold text-[#1A1D20]">
+                    <div className="p-2 rounded-xl bg-orange-50/80 border border-orange-100 space-y-1">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-[#6C757D] font-semibold flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3 text-[#FF5E1E]" />
+                          Cota WhatsApp:
+                        </span>
+                        <span className="font-extrabold text-[#1A1D20]">
+                          {plan.includedOrders
+                            ? `${plan.includedOrders} pedidos/mês`
+                            : '2 msgs/pedido (na cota)'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[#6C757D] leading-tight">
                         {plan.includedOrders
-                          ? `${plan.includedOrders} pedidos/mês`
-                          : '2 msgs/pedido (na cota)'}
-                      </span>
+                          ? `Compensa até ${plan.includedOrders} ped. (~${plan.includedOrders * 2} msgs a 2 msgs/ped). Acima incide taxa extra.`
+                          : 'Padrão: 2 msgs por pedido (Infos do pedido + Saiu para entrega)'}
+                      </p>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-200/80">

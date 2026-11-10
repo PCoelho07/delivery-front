@@ -135,5 +135,18 @@ describe('Regras de Planos e Excedentes (planRules)', () => {
       expect(usage.extraAmount).toBe(16.0) // 50 * 0.32
       expect(usage.totalAmount).toBe(105.9) // 89.90 + 16.00
     })
+
+    it('deve equilibrar os custos para operação de alto volume com 1.000 pedidos/mês', () => {
+      const usage = calculateCompanyPlanUsage({
+        planId: 'escala',
+        currentBilling: 55000,
+        currentOrdersCount: 1000, // 400 pedidos excedentes
+      })
+
+      expect(usage.isExceeded).toBe(true)
+      expect(usage.extraOrders).toBe(400)
+      expect(usage.extraAmount).toBe(128.0) // 400 * 0.32
+      expect(usage.totalAmount).toBe(217.9) // 89.90 + 128.00
+    })
   })
 })

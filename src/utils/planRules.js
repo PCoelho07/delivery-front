@@ -1,11 +1,19 @@
 /**
  * Regras de Planos, Limites e Cobrança de Excedentes — NumInstante Delivery
  *
- * Modelo de Negócio:
- * - Impulso Inicial (Free): R$ 0,00 até R$ 2.500/mês. Excedente: R$ 1,00 por pedido extra.
- * - Crescimento: R$ 49,90 até R$ 6.000/mês. Excedente: R$ 0,50 por pedido extra.
- * - Alta Escala: R$ 89,90 com faturamento ilimitado. Cota de WhatsApp: 600 pedidos/mês (~1.200 msgs).
- *   Excedente: R$ 0,32 por pedido extra acima de 600.
+ * Modelo Operacional & Mensageria WhatsApp (Regra Interna SuperAdmin):
+ * - Padrão em todos os planos: 2 mensagens automáticas por pedido no WhatsApp:
+ *   1. Informações do pedido (detalhes / confirmação para o cliente)
+ *   2. Saiu para entrega (notificação do motoboy a caminho)
+ *
+ * Viabilidade e Racional do Plano Turbo (R$ 89,90):
+ * - O valor fixo de R$ 89,90/mês é sustentável economicamente para a plataforma até 600 pedidos/mês (~1.200 msgs).
+ * - Se uma loja fizer 1.000 pedidos/mês, ela consumiria ~2.000 msgs. Sem a taxa de excedente,
+ *   ela pagaria exatamente o mesmo que uma loja de 600 pedidos, desequilibrando os custos
+ *   de infraestrutura e API do WhatsApp.
+ * - Por isso, acima de 600 pedidos incide a taxa de excedente (R$ 0,32/pedido extra).
+ * - Obs: Todos os valores, cotas e taxas são parâmetros dinâmicos que podem ser estudados
+ *   e ajustados pelo SuperAdmin a qualquer momento conforme análise de margem e custos.
  */
 
 export const SYSTEM_PLANS = [
@@ -18,7 +26,7 @@ export const SYSTEM_PLANS = [
     extraOrderFee: 1.0, // R$ 1,00 por pedido extra
     includedOrders: null,
     warningMargin: 100, // Alerta quando faltar R$ 100
-    description: '100% liberado até R$ 2.500 de faturamento no mês com 2 msgs automáticas no WhatsApp.',
+    description: '100% liberado até R$ 2.500 de faturamento no mês com 2 msgs automáticas no WhatsApp (infos + saiu p/ entrega).',
     badge: 'Grátis',
   },
   {
@@ -30,7 +38,7 @@ export const SYSTEM_PLANS = [
     extraOrderFee: 0.5, // R$ 0,50 por pedido extra
     includedOrders: null,
     warningMargin: 100, // Alerta quando faltar R$ 100
-    description: 'Para operações com faturamento entre R$ 2.501 e R$ 6.000/mês no ritmo do seu delivery.',
+    description: 'Para operações entre R$ 2.501 e R$ 6.000/mês com 2 msgs automáticas no WhatsApp (infos + saiu p/ entrega).',
     badge: 'Popular',
   },
   {
@@ -40,9 +48,9 @@ export const SYSTEM_PLANS = [
     price: 89.9,
     billingThreshold: null, // Ilimitado em faturamento
     extraOrderFee: 0.32, // R$ 0,32 por pedido extra
-    includedOrders: 600, // Franquia de 600 pedidos/mês no WhatsApp
+    includedOrders: 600, // Viável até 600 pedidos/mês (2 msgs/pedido = ~1.200 msgs)
     warningMarginOrders: 50, // Alerta a partir de 550 pedidos (faltando 50)
-    description: 'Potência máxima e faturamento ilimitado com pacote de até 600 pedidos no WhatsApp inclusos.',
+    description: 'Faturamento ilimitado. Viável até 600 pedidos/mês com 2 msgs por pedido (infos + saiu p/ entrega). Acima de 600, taxa excedente equilibra alto volume (ex: 1.000 pedidos).',
     badge: 'Sem Limite de Vendas',
   },
 ]
