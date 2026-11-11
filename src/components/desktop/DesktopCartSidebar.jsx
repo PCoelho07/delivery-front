@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import {
-  ArrowRight,
   ChevronRight,
   Minus,
   Plus,
@@ -20,6 +19,7 @@ import { evaluateCoupon } from '../../utils/couponCalculator'
 export function DesktopCartSidebar({
   store,
   onOpenCart,
+  onContinueToDelivery,
 }) {
   const items = useCartStore((state) => state.items)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -107,7 +107,11 @@ export function DesktopCartSidebar({
       })
       return
     }
-    onOpenCart?.()
+    if (onContinueToDelivery) {
+      onContinueToDelivery()
+    } else {
+      onOpenCart?.()
+    }
   }
 
   return (
@@ -375,14 +379,13 @@ export function DesktopCartSidebar({
                   type="button"
                   disabled={isBelowMin || store?.isOpen === false || store?.statusMode === 'paused'}
                   onClick={handleCheckout}
-                  className={`w-full py-3.5 rounded-2xl text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer ${
+                  className={`w-full py-3.5 rounded-2xl text-white text-sm font-bold flex items-center justify-center shadow-sm transition-all cursor-pointer ${
                     isBelowMin || store?.isOpen === false || store?.statusMode === 'paused'
                       ? 'bg-gray-300 cursor-not-allowed'
                       : 'bg-[#FF5E1E] hover:bg-[#E64E12] active:scale-[0.99]'
                   }`}
                 >
-                  <span>Continuar para Entrega</span>
-                  <ArrowRight className="w-4 h-4" />
+                  Ver sacola
                 </button>
 
                 <button

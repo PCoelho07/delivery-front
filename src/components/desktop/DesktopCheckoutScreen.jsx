@@ -23,6 +23,7 @@ import { useCartStore } from '../../store/useCartStore'
 import { useCustomerStore } from '../../store/useCustomerStore'
 import { evaluateCoupon } from '../../utils/couponCalculator'
 import { ordersWebSocket } from '../../services/ordersWebSocket'
+import { CustomSelect } from '../common/CustomSelect'
 
 export function DesktopCheckoutScreen({
   store,
@@ -74,6 +75,26 @@ export function DesktopCheckoutScreen({
     () => activeNeighborhoods.find((n) => n.id === neighborhoodId) || activeNeighborhoods[0] || null,
     [activeNeighborhoods, neighborhoodId]
   )
+
+  const neighborhoodOptions = useMemo(() => {
+    if (activeNeighborhoods.length === 0) {
+      return [
+        {
+          value: '',
+          label: 'Centro',
+          badge: `+ ${formatCurrency(4.0)}`,
+          icon: <MapPin className="w-3.5 h-3.5 text-[#FF5E1E]" />,
+        },
+      ]
+    }
+
+    return activeNeighborhoods.map((n) => ({
+      value: n.id,
+      label: n.name,
+      badge: `+ ${formatCurrency(n.fee ?? 4.0)}`,
+      icon: <MapPin className="w-3.5 h-3.5 text-[#FF5E1E]" />,
+    }))
+  }, [activeNeighborhoods])
 
   // 4. Forma de Pagamento
   const [paymentMethod, setPaymentMethod] = useState('pix') // 'pix' | 'card' | 'money'
@@ -438,21 +459,14 @@ export function DesktopCheckoutScreen({
                     <label className="block text-xs font-semibold text-[#1A1D20] mb-1">
                       Bairro *
                     </label>
-                    <select
+                    <CustomSelect
                       value={neighborhoodId}
-                      onChange={(e) => setNeighborhoodId(e.target.value)}
-                      className="w-full bg-[#F8F9FA] border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] focus:outline-none focus:border-[#FF5E1E] transition-colors"
-                    >
-                      {activeNeighborhoods.length > 0 ? (
-                        activeNeighborhoods.map((n) => (
-                          <option key={n.id} value={n.id}>
-                            {n.name} (+ {formatCurrency(n.fee ?? 4.0)})
-                          </option>
-                        ))
-                      ) : (
-                        <option value="">Centro (+ R$ 4,00)</option>
-                      )}
-                    </select>
+                      onChange={(val) => setNeighborhoodId(val)}
+                      options={neighborhoodOptions}
+                      placeholder="Selecione o bairro..."
+                      icon={<MapPin className="w-3.5 h-3.5 text-[#FF5E1E]" />}
+                      triggerClassName="!bg-[#F8F9FA] !border-gray-200 hover:!border-[#FF5E1E] !text-[#1A1D20] !font-medium !text-xs !py-2.5 !rounded-xl"
+                    />
                   </div>
 
                   <div className="sm:col-span-2">

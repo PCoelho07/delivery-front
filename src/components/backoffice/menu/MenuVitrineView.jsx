@@ -34,6 +34,7 @@ export function MenuVitrineView() {
     toggleProductAvailability,
     toggleProductUpsell,
     reorderProduct,
+    loadSampleData,
   } = useStoreAdmin()
 
   // Modal de Categoria
@@ -177,6 +178,18 @@ export function MenuVitrineView() {
         {/* Botões de Ação */}
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           <button
+            onClick={() => {
+              loadSampleData()
+              toast.success('Cardápio completo de exemplo carregado para testes!')
+            }}
+            title="Carregar ou restaurar cardápio completo de exemplo para testes"
+            className="px-3.5 py-2.5 rounded-xl bg-orange-50/80 border border-orange-200 hover:bg-orange-100 text-[#FF5E1E] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#FF5E1E]" />
+            <span className="hidden sm:inline">Exemplos de Teste</span>
+          </button>
+
+          <button
             onClick={handleOpenNewCategory}
             className="px-4 py-2.5 rounded-xl bg-white border border-[#E9ECEF] hover:border-[#FF5E1E] text-[#1A1D20] hover:text-[#FF5E1E] text-xs font-bold transition-all shadow-xs flex items-center gap-2 cursor-pointer"
           >
@@ -277,13 +290,25 @@ export function MenuVitrineView() {
               Comece cadastrando a primeira categoria da sua vitrine (ex: Lanches, Pizzas, Bebidas, Novidades) para então adicionar seus produtos com fotos compactadas.
             </p>
           </div>
-          <button
-            onClick={handleOpenNewCategory}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all cursor-pointer"
-          >
-            <FolderPlus className="w-4 h-4" />
-            <span>Cadastrar Primeira Categoria</span>
-          </button>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button
+              onClick={handleOpenNewCategory}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white font-bold text-xs shadow-md shadow-[#FF5E1E]/20 transition-all cursor-pointer"
+            >
+              <FolderPlus className="w-4 h-4" />
+              <span>Cadastrar Primeira Categoria</span>
+            </button>
+            <button
+              onClick={() => {
+                loadSampleData()
+                toast.success('Cardápio de exemplo carregado com sucesso!')
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-50 border border-orange-200 hover:bg-orange-100 text-[#FF5E1E] font-bold text-xs transition-all cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Carregar Cardápio de Exemplo</span>
+            </button>
+          </div>
         </div>
       ) : (
         /* Lista de Categorias com Produtos Agrupados */

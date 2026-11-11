@@ -95,7 +95,11 @@ export function CustomSelect({
         <div className="flex items-center gap-2 min-w-0">
           {icon && <span className="shrink-0">{icon}</span>}
           <span className="truncate">
-            {selectedOption ? selectedOption.label : placeholder}
+            {selectedOption
+              ? selectedOption.badge
+                ? `${selectedOption.label} (${selectedOption.badge})`
+                : selectedOption.label
+              : placeholder}
           </span>
         </div>
 
@@ -130,12 +134,18 @@ export function CustomSelect({
                             : 'text-[#1A1D20] hover:bg-[#F8F9FA] hover:text-[#FF5E1E] font-medium'
                         }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
                           {subOpt.icon && (
                             <span className="shrink-0">{subOpt.icon}</span>
                           )}
                           <span className="truncate">{subOpt.label}</span>
                         </div>
+
+                        {subOpt.badge && (
+                          <span className="text-[10.5px] font-bold text-[#FF5E1E] bg-[#FFF3EE] border border-orange-200/60 px-2 py-0.5 rounded-lg shrink-0">
+                            {subOpt.badge}
+                          </span>
+                        )}
 
                         {isSelected && (
                           <div className="w-5 h-5 rounded-full bg-[#FF5E1E]/10 flex items-center justify-center shrink-0">
@@ -160,10 +170,16 @@ export function CustomSelect({
                     : 'text-[#1A1D20] hover:bg-[#F8F9FA] hover:text-[#FF5E1E] font-medium'
                 }`}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {opt.icon && <span className="shrink-0">{opt.icon}</span>}
                   <span className="truncate">{opt.label}</span>
                 </div>
+
+                {opt.badge && (
+                  <span className="text-[10.5px] font-bold text-[#FF5E1E] bg-[#FFF3EE] border border-orange-200/60 px-2 py-0.5 rounded-lg shrink-0">
+                    {opt.badge}
+                  </span>
+                )}
 
                 {isSelected && (
                   <div className="w-5 h-5 rounded-full bg-[#FF5E1E]/10 flex items-center justify-center shrink-0">

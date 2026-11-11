@@ -65,7 +65,32 @@ export const BRAZIL_TIMEZONES = [
   },
 ]
 
-export const DEFAULT_CATEGORIES = []
+export const DEFAULT_CATEGORIES = [
+  {
+    id: 'cat-hamburgueres',
+    name: 'Hambúrgueres Artesanais',
+    order: 1,
+    status: 'active',
+  },
+  {
+    id: 'cat-porcoes',
+    name: 'Porções & Acompanhamentos',
+    order: 2,
+    status: 'active',
+  },
+  {
+    id: 'cat-bebidas',
+    name: 'Bebidas Geladas',
+    order: 3,
+    status: 'active',
+  },
+  {
+    id: 'cat-sobremesas',
+    name: 'Sobremesas Deliciosas',
+    order: 4,
+    status: 'active',
+  },
+]
 
 export const DEFAULT_TEMPLATES = [
   {
@@ -74,31 +99,272 @@ export const DEFAULT_TEMPLATES = [
     desc: 'Sem adicionais, vai direto para a sacola',
     groups: [],
   },
+  {
+    id: 'tmpl-burger',
+    name: '🍔 Personalização de Hambúrguer',
+    desc: 'Ponto da carne e adicionais especiais',
+    groups: [
+      {
+        id: 'grp-ponto',
+        name: 'Ponto da Carne',
+        required: true,
+        min: 1,
+        max: 1,
+        items: [
+          { id: 'it-ponto-1', name: 'Ao Ponto (Suculento e rosado)', price: '0' },
+          { id: 'it-ponto-2', name: 'Bem Passado (Sem ponto rosado)', price: '0' },
+          { id: 'it-ponto-3', name: 'Ao Ponto para Mal (Centro vermelho)', price: '0' },
+        ],
+      },
+      {
+        id: 'grp-turbinar',
+        name: 'Turbine seu Burger',
+        required: false,
+        min: 0,
+        max: 5,
+        items: [
+          { id: 'it-add-1', name: 'Bacon Artesanal Crocante (+4 fatias)', price: '5.50' },
+          { id: 'it-add-2', name: 'Queijo Cheddar Cremoso Extra', price: '4.00' },
+          { id: 'it-add-3', name: 'Queijo Coalho Grelhado', price: '6.00' },
+          { id: 'it-add-4', name: 'Ovo Estalado com Gema Mole', price: '3.50' },
+          { id: 'it-add-5', name: 'Maionese Especial Defumada (Pote 50ml)', price: '3.00' },
+        ],
+      },
+    ],
+  },
 ]
 
-export const DEFAULT_PRODUCTS = []
+export const DEFAULT_PRODUCTS = [
+  // 1. Hambúrgueres Artesanais
+  {
+    id: 101,
+    name: 'X-Burger Artesanal Brasa',
+    categoryId: 'cat-hamburgueres',
+    templateId: 'tmpl-burger',
+    price: 29.90,
+    desc: 'Pão brioche tostado na manteiga, blend especial 160g na brasa, queijo cheddar derretido, cebola caramelizada e maionese defumada.',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 1,
+    badge: 'Mais Vendido',
+    isUpsell: false,
+  },
+  {
+    id: 102,
+    name: 'Smash Burger Duplo Bacon',
+    categoryId: 'cat-hamburgueres',
+    templateId: 'tmpl-burger',
+    price: 34.90,
+    desc: 'Dois blends smash prensados de 90g com crostinha crocante, queijo prato derretido duplo, muito bacon artesanal e molho especial.',
+    image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 2,
+    badge: 'Favorito',
+    isUpsell: false,
+  },
+  {
+    id: 103,
+    name: 'Chicken Crispy Supreme',
+    categoryId: 'cat-hamburgueres',
+    templateId: 'tmpl-burger',
+    price: 28.50,
+    desc: 'Sobrecoxa de frango empanada super crocante no tempero secreto, alface americana fresca, picles artesanal e maionese verde de ervas.',
+    image: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 3,
+    badge: 'Crocante',
+    isUpsell: false,
+  },
+  {
+    id: 104,
+    name: 'Monster Brasa Costela 200g',
+    categoryId: 'cat-hamburgueres',
+    templateId: 'tmpl-burger',
+    price: 42.00,
+    desc: 'Hambúrguer de costela bovina 200g, queijo monterey jack maçaricado, bacon crocante, barbecue de goiabada e anéis de cebola crispy.',
+    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 4,
+    badge: 'Premium',
+    isUpsell: false,
+  },
+
+  // 2. Porções & Acompanhamentos
+  {
+    id: 201,
+    name: 'Batata Rústica com Cheddar & Bacon',
+    categoryId: 'cat-porcoes',
+    templateId: 'tmpl-none',
+    price: 21.90,
+    desc: 'Batatas rústicas crocantes por fora e macias por dentro, cobertas com cheddar cremoso e farofa de bacon crocante.',
+    image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 1,
+    badge: 'Top Acompanhamento',
+    isUpsell: true,
+  },
+  {
+    id: 202,
+    name: 'Onion Rings Crocantes (12 un)',
+    categoryId: 'cat-porcoes',
+    templateId: 'tmpl-none',
+    price: 18.00,
+    desc: 'Anéis de cebola empanados e sequinhos, servidos com molho barbecue defumado.',
+    image: 'https://images.unsplash.com/photo-1639024471285-0af50858e475?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 2,
+    badge: null,
+    isUpsell: false,
+  },
+  {
+    id: 203,
+    name: 'Dadinhos de Tapioca com Geleia (10 un)',
+    categoryId: 'cat-porcoes',
+    templateId: 'tmpl-none',
+    price: 22.00,
+    desc: 'Dadinhos crocantes de queijo coalho e tapioca granulada, servidos com geleia de pimenta agridoce.',
+    image: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 3,
+    badge: 'Artesanal',
+    isUpsell: false,
+  },
+
+  // 3. Bebidas Geladas
+  {
+    id: 301,
+    name: 'Coca-Cola Original Lata 350ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 6.50,
+    desc: 'Lata 350ml estupidamente gelada para acompanhar seu lanche.',
+    image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 1,
+    badge: 'Geladinha',
+    isUpsell: true,
+  },
+  {
+    id: 302,
+    name: 'Coca-Cola Sem Açúcar Lata 350ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 6.50,
+    desc: 'Lata 350ml zero calorias bem gelada.',
+    image: 'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 2,
+    badge: null,
+    isUpsell: false,
+  },
+  {
+    id: 303,
+    name: 'Guaraná Antarctica Lata 350ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 6.00,
+    desc: 'O sabor autêntico do Brasil, lata 350ml trincando de gelada.',
+    image: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 3,
+    badge: null,
+    isUpsell: false,
+  },
+  {
+    id: 304,
+    name: 'Suco Natural de Laranja 500ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 9.90,
+    desc: 'Feito na hora com laranjas selecionadas, sem adição de água nem açúcar.',
+    image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 4,
+    badge: '100% Natural',
+    isUpsell: false,
+  },
+  {
+    id: 305,
+    name: 'Cerveja Heineken Long Neck 330ml',
+    categoryId: 'cat-bebidas',
+    templateId: 'tmpl-none',
+    price: 11.00,
+    desc: 'Cerveja puro malte Premium, 330ml bem gelada.',
+    image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 5,
+    badge: '+18',
+    isUpsell: false,
+  },
+
+  // 4. Sobremesas Deliciosas
+  {
+    id: 401,
+    name: 'Pudim de Leite Condensado da Vovó',
+    categoryId: 'cat-sobremesas',
+    templateId: 'tmpl-none',
+    price: 12.90,
+    desc: 'Textura aveludada e cremosa com calda de caramelo dourada brilhante. Porção individual de 140g.',
+    image: 'https://images.unsplash.com/photo-1517427294546-5aa121f68e8a?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 1,
+    badge: 'Sem Furinhos',
+    isUpsell: true,
+  },
+  {
+    id: 402,
+    name: 'Brownie Quente com Nutella & Nozes',
+    categoryId: 'cat-sobremesas',
+    templateId: 'tmpl-none',
+    price: 16.50,
+    desc: 'Brownie macio por dentro e com casquinha crocante, recheado com nozes e coberto com Nutella pura.',
+    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 2,
+    badge: 'Chocolate Belga',
+    isUpsell: false,
+  },
+  {
+    id: 403,
+    name: 'Milkshake de Morango com Chantilly 400ml',
+    categoryId: 'cat-sobremesas',
+    templateId: 'tmpl-none',
+    price: 19.90,
+    desc: 'Batido com sorvete artesanal de morango, pedaços de fruta fresca e generosa cobertura de chantilly.',
+    image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&auto=format&fit=crop&q=80',
+    available: true,
+    order: 3,
+    badge: 'Cremoso',
+    isUpsell: false,
+  },
+]
 
 export const DEFAULT_SCHEDULE = [
-  { id: 'seg', dayIndex: 1, day: 'Segunda-feira', short: 'Seg', open: false, start: '00:00', end: '00:00' },
-  { id: 'ter', dayIndex: 2, day: 'Terça-feira', short: 'Ter', open: false, start: '00:00', end: '00:00' },
-  { id: 'qua', dayIndex: 3, day: 'Quarta-feira', short: 'Qua', open: false, start: '00:00', end: '00:00' },
-  { id: 'qui', dayIndex: 4, day: 'Quinta-feira', short: 'Qui', open: false, start: '00:00', end: '00:00' },
-  { id: 'sex', dayIndex: 5, day: 'Sexta-feira', short: 'Sex', open: false, start: '00:00', end: '00:00' },
-  { id: 'sab', dayIndex: 6, day: 'Sábado', short: 'Sáb', open: false, start: '00:00', end: '00:00' },
-  { id: 'dom', dayIndex: 0, day: 'Domingo', short: 'Dom', open: false, start: '00:00', end: '00:00' },
+  { id: 'seg', dayIndex: 1, day: 'Segunda-feira', short: 'Seg', open: true, start: '11:00', end: '23:59' },
+  { id: 'ter', dayIndex: 2, day: 'Terça-feira', short: 'Ter', open: true, start: '11:00', end: '23:59' },
+  { id: 'qua', dayIndex: 3, day: 'Quarta-feira', short: 'Qua', open: true, start: '11:00', end: '23:59' },
+  { id: 'qui', dayIndex: 4, day: 'Quinta-feira', short: 'Qui', open: true, start: '11:00', end: '23:59' },
+  { id: 'sex', dayIndex: 5, day: 'Sexta-feira', short: 'Sex', open: true, start: '11:00', end: '23:59' },
+  { id: 'sab', dayIndex: 6, day: 'Sábado', short: 'Sáb', open: true, start: '11:00', end: '23:59' },
+  { id: 'dom', dayIndex: 0, day: 'Domingo', short: 'Dom', open: true, start: '11:00', end: '23:59' },
 ]
 
 export const DEFAULT_DELIVERY_CONFIG = {
   pricingMode: 'by_neighborhood', // 'fixed' | 'by_neighborhood'
   fixedFee: 0,
-  minOrder: 0,
-  estimatedDelivery: '40 - 50 min',
+  minOrder: 15.0,
+  estimatedDelivery: '30 - 45 min',
   estimatedPickup: '20 - 30 min',
-      createdAt: '2026-01-01T00:00:00.000Z',
+  createdAt: '2026-01-01T00:00:00.000Z',
   allowPickup: true,
 }
 
-export const DEFAULT_NEIGHBORHOODS = []
+export const DEFAULT_NEIGHBORHOODS = [
+  { id: 'bairro-1', name: 'Centro', fee: 4.0, estimatedTime: '25 - 35 min', active: true },
+  { id: 'bairro-2', name: 'Jardim América', fee: 6.0, estimatedTime: '30 - 45 min', active: true },
+  { id: 'bairro-3', name: 'Vila Nova', fee: 7.5, estimatedTime: '35 - 50 min', active: true },
+  { id: 'bairro-4', name: 'Bela Vista', fee: 5.0, estimatedTime: '30 - 40 min', active: true },
+]
 
 export const DEFAULT_PAYMENT_CONFIG = {
   methods: {
@@ -109,12 +375,29 @@ export const DEFAULT_PAYMENT_CONFIG = {
   },
   pix: {
     keyType: 'cnpj', // 'cnpj' | 'cpf' | 'phone' | 'email' | 'random'
-    key: '',
-    beneficiary: '',
+    key: '12.345.678/0001-90',
+    beneficiary: 'Brasa Burger Delivery Ltda',
   },
 }
 
-export const DEFAULT_COUPONS = []
+export const DEFAULT_COUPONS = [
+  {
+    id: 'cupom-primeira-compra',
+    code: 'BEMVINDO10',
+    discountPercent: 10,
+    targetType: 'all',
+    active: true,
+  },
+  {
+    id: 'cupom-burgers',
+    code: 'BURGER15',
+    discountPercent: 15,
+    targetType: 'category',
+    targetCategoryId: 'cat-hamburgueres',
+    targetCategoryName: 'Hambúrgueres Artesanais',
+    active: true,
+  },
+]
 
 /**
  * Converte string "HH:MM" em total de minutos desde 00:00
@@ -272,8 +555,13 @@ function normalizeStorePayload(parsed) {
       ...t,
       groups: Array.isArray(t.groups) ? t.groups : [],
     }))
+    const hasBurgerTmpl = next.templates.some((t) => t.id === 'tmpl-burger')
+    if (!hasBurgerTmpl) {
+      const burgerTmpl = DEFAULT_TEMPLATES.find((t) => t.id === 'tmpl-burger')
+      if (burgerTmpl) next.templates.push(burgerTmpl)
+    }
   }
-  if (!Array.isArray(next.schedule) || next.schedule.length === 0) {
+  if (!Array.isArray(next.schedule) || next.schedule.length === 0 || next.schedule.every((s) => !s.open)) {
     next.schedule = DEFAULT_SCHEDULE
   }
   if (!next.timezone) {
@@ -282,17 +570,17 @@ function normalizeStorePayload(parsed) {
   if (!next.storeStatusMode) {
     next.storeStatusMode = 'auto'
   }
-  if (!Array.isArray(next.neighborhoods)) {
-    next.neighborhoods = []
+  if (!Array.isArray(next.neighborhoods) || next.neighborhoods.length === 0) {
+    next.neighborhoods = DEFAULT_NEIGHBORHOODS
   }
-  if (!Array.isArray(next.categories)) {
-    next.categories = []
+  if (!Array.isArray(next.categories) || next.categories.length === 0) {
+    next.categories = DEFAULT_CATEGORIES
   }
-  if (!Array.isArray(next.products)) {
-    next.products = []
+  if (!Array.isArray(next.products) || next.products.length === 0) {
+    next.products = DEFAULT_PRODUCTS
   }
-  if (!Array.isArray(next.coupons)) {
-    next.coupons = []
+  if (!Array.isArray(next.coupons) || next.coupons.length === 0) {
+    next.coupons = DEFAULT_COUPONS
   }
   if (!next.deliveryConfig) {
     next.deliveryConfig = DEFAULT_DELIVERY_CONFIG
@@ -335,17 +623,17 @@ const loadInitialState = () => {
     storeInfo: {
       name: 'Brasa Burger',
       slug: 'brasa-burger',
-      corporateName: '',
-      cnpj: '',
+      corporateName: 'Brasa Burger Comércio de Alimentos Ltda',
+      cnpj: '12.345.678/0001-90',
       subtitle: 'Hambúrguer artesanal · Feito na brasa',
-      phone: '',
-      whatsapp: '',
-      instagram: '',
-      address: '',
+      phone: '(11) 98765-4321',
+      whatsapp: '5511987654321',
+      instagram: '@brasaburger',
+      address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
       logoUrl: '',
-      bannerUrl: '',
-      minOrder: 0,
-      estimatedDelivery: '40 - 50 min',
+      bannerUrl: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80',
+      minOrder: 15.0,
+      estimatedDelivery: '30 - 45 min',
       estimatedPickup: '20 - 30 min',
     },
     categories: DEFAULT_CATEGORIES,
@@ -712,6 +1000,10 @@ export const useStoreAdmin = create((set, get) => ({
         partial.isUpsell !== undefined
           ? Boolean(partial.isUpsell)
           : currentProd.isUpsell ?? false,
+      badge:
+        partial.badge !== undefined
+          ? (partial.badge?.trim() || null)
+          : (currentProd.badge || null),
     }
 
     const catProds = get()
@@ -1394,6 +1686,21 @@ export const useStoreAdmin = create((set, get) => ({
     } catch (e) {
       console.warn('Falha ao recarregar dados do localStorage:', e)
     }
+  },
+
+  loadSampleData: () => {
+    set({
+      categories: DEFAULT_CATEGORIES,
+      products: DEFAULT_PRODUCTS,
+      templates: DEFAULT_TEMPLATES,
+      neighborhoods: DEFAULT_NEIGHBORHOODS,
+      coupons: DEFAULT_COUPONS,
+      schedule: DEFAULT_SCHEDULE,
+      storeStatusMode: 'auto',
+      isStoreOpen: true,
+      updatedAt: Date.now(),
+    })
+    get().persist()
   },
 }))
 

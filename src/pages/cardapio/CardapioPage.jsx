@@ -576,29 +576,8 @@ export function CardapioPage() {
     toast.success(`${cartPayload.product.name} adicionado à sacola!`)
   }
 
-  // Mobile: Da Tela 4 (Sua sacola) avança para a Tela 5 (Finalizar pedido) com interceptação de Upsell
-  const handleContinueToDelivery = () => {
-    if (storeData.statusMode === 'paused') {
-      toast.error('O estabelecimento pausou os pedidos temporariamente. Não é possível concluir o pedido agora.')
-      return
-    }
-    if (storeData.isOpen === false) {
-      toast.error('O estabelecimento está fechado no momento. Verifique os horários de funcionamento.')
-      return
-    }
-    setIsCartOpen(false)
-
-    // Se ainda não visualizou o modal de upsell e há produtos recomendados:
-    if (!hasSeenUpsellEffective && upsellRecommendations.length > 0) {
-      setHasSeenUpsell(true)
-      setIsUpsellOpen(true)
-    } else {
-      setIsCheckoutOpen(true)
-    }
-  }
-
-  // Desktop: Da sacola avança para o checkout com interceptação de Upsell
-  const handleDesktopContinueToCheckout = () => {
+  // Mobile: Clique no botão "Ver sacola" da barra fixa do cardápio
+  const handleMobileTriggerCheckout = () => {
     if (storeData.statusMode === 'paused') {
       toast.error('O estabelecimento pausou os pedidos temporariamente.')
       return
@@ -610,26 +589,58 @@ export function CardapioPage() {
     if (!hasSeenUpsellEffective && upsellRecommendations.length > 0) {
       setHasSeenUpsell(true)
       setIsUpsellOpen(true)
-    } else {
-      setDesktopView('checkout')
+      return
     }
+    setIsCartOpen(true)
+  }
+
+  // Desktop: Clique no botão "Ver sacola" da sacola lateral do cardápio
+  const handleDesktopTriggerCheckout = () => {
+    if (storeData.statusMode === 'paused') {
+      toast.error('O estabelecimento pausou os pedidos temporariamente.')
+      return
+    }
+    if (storeData.isOpen === false) {
+      toast.error('O estabelecimento está fechado no momento.')
+      return
+    }
+    if (!hasSeenUpsellEffective && upsellRecommendations.length > 0) {
+      setHasSeenUpsell(true)
+      setIsUpsellOpen(true)
+      return
+    }
+    setDesktopView('cart')
+  }
+
+  // Mobile: Da Tela 4 (Sua sacola) avança direto para a Tela 5 (Finalizar pedido / Checkout)
+  const handleContinueToDelivery = () => {
+    if (storeData.statusMode === 'paused') {
+      toast.error('O estabelecimento pausou os pedidos temporariamente. Não é possível concluir o pedido agora.')
+      return
+    }
+    if (storeData.isOpen === false) {
+      toast.error('O estabelecimento está fechado no momento. Verifique os horários de funcionamento.')
+      return
+    }
+    setIsCartOpen(false)
+    setIsCheckoutOpen(true)
   }
 
   const handleDismissUpsell = () => {
     setIsUpsellOpen(false)
     if (window.innerWidth >= 768) {
-      setDesktopView('checkout')
+      setDesktopView('cart')
     } else {
-      setIsCheckoutOpen(true)
+      setIsCartOpen(true)
     }
   }
 
   const handleProceedFromUpsell = () => {
     setIsUpsellOpen(false)
     if (window.innerWidth >= 768) {
-      setDesktopView('checkout')
+      setDesktopView('cart')
     } else {
-      setIsCheckoutOpen(true)
+      setIsCartOpen(true)
     }
   }
 
@@ -780,7 +791,7 @@ export function CardapioPage() {
         <CartBottomBar
           totalAmount={cartTotalAmount}
           totalCount={cartTotalCount}
-          onOpenCart={() => setIsCartOpen(true)}
+          onOpenCart={handleMobileTriggerCheckout}
         />
 
         {/* Modais Mobile */}
@@ -973,6 +984,7 @@ export function CardapioPage() {
                 <DesktopCartSidebar
                   store={storeData}
                   onOpenCart={() => setDesktopView('cart')}
+                  onContinueToDelivery={handleDesktopTriggerCheckout}
                 />
               </div>
             </div>
@@ -984,7 +996,7 @@ export function CardapioPage() {
           <DesktopCartScreen
             store={storeData}
             onBackToMenu={() => setDesktopView('menu')}
-            onContinueToCheckout={handleDesktopContinueToCheckout}
+            onContinueToCheckout={() => setDesktopView('checkout')}
           />
         )}
 

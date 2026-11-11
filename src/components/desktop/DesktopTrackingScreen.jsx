@@ -538,7 +538,7 @@ export function DesktopTrackingScreen({
               <p className="text-[11.5px] text-[#6C757D] leading-relaxed">
                 {order.review
                   ? 'Você já avaliou este pedido. Obrigado pelo seu feedback!'
-                  : 'Avalie com os 3 critérios (entrega, qualidade e atendimento) após a chegada do seu lanche!'}
+                  : 'Avalie sua experiência após a chegada do seu lanche!'}
               </p>
 
               <button

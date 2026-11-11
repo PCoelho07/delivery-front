@@ -12,6 +12,7 @@ import {
   Pencil,
   Sliders,
   Images,
+  Tag,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
@@ -58,6 +59,7 @@ export function ProductModal({
   const [isUpsell, setIsUpsell] = useState(
     Boolean(productToEdit?.isUpsell)
   )
+  const [badge, setBadge] = useState(productToEdit?.badge || '')
 
   // Configuração selecionada: por padrão 'tmpl-none' (Sem Adicional)
   const [selectedTemplateId, setSelectedTemplateId] = useState(
@@ -225,6 +227,7 @@ export function ProductModal({
       order: Number(order) || 1,
       available: isAvailable,
       isUpsell,
+      badge: badge.trim() || null,
       image:
         imagePreview ||
         'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
@@ -290,6 +293,11 @@ export function ProductModal({
                           alt="Prévia do Produto"
                           className="w-full h-full object-cover"
                         />
+                        {badge.trim() && (
+                          <div className="absolute top-1.5 left-1.5 bg-black/80 text-white text-[8.5px] font-black uppercase px-1.5 py-0.5 rounded shadow-xs tracking-wider max-w-[85%] truncate pointer-events-none">
+                            {badge.trim()}
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={handleRemoveImage}
@@ -496,6 +504,61 @@ export function ProductModal({
                   placeholder="Ex: Pão artesanal selado na manteiga, 180g de blend suculento, queijo cheddar inglês e molho especial."
                   className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl p-3 text-xs text-[#1A1D20] placeholder:font-normal placeholder:text-slate-400 outline-none transition-all resize-none"
                 />
+              </div>
+
+              {/* Seção 6: Selo em Destaque / Badge (Mais Vendido, Favorito, etc.) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-[#1A1D20] flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-[#FF5E1E]" />
+                    <span>Selo em Destaque na Foto (Badge Opcional)</span>
+                  </label>
+                  {badge && (
+                    <button
+                      type="button"
+                      onClick={() => setBadge('')}
+                      className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
+                    >
+                      Remover selo
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    maxLength={25}
+                    value={badge}
+                    onChange={(e) => setBadge(e.target.value)}
+                    placeholder="Ex: Mais Vendido, Favorito, Novidade, Crocante, 100% Artesanal..."
+                    className="w-full bg-[#F8F9FA] border border-[#E9ECEF] focus:border-[#FF5E1E] focus:bg-white rounded-xl px-3.5 py-2.5 text-xs text-[#1A1D20] font-bold placeholder:font-normal placeholder:text-slate-400 outline-none transition-all"
+                  />
+
+                  {/* Sugestões rápidas de selos */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] text-[#6C757D] font-medium mr-1">
+                      Sugestões:
+                    </span>
+                    {['Mais Vendido', 'Favorito', 'Novidade', 'Crocante', 'Premium', 'Top Acompanhamento', 'Sem Furinhos'].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setBadge(preset)}
+                        className={`text-[10.5px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                          badge === preset
+                            ? 'bg-[#FF5E1E] text-white border-[#FF5E1E] shadow-2xs'
+                            : 'bg-white border-[#E9ECEF] text-[#4A5568] hover:border-orange-200 hover:text-[#FF5E1E]'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+
+                  <p className="text-[11px] text-[#6C757D]">
+                    Essa etiqueta aparece sobreposta à foto do produto no cardápio para chamar a atenção dos clientes.
+                  </p>
+                </div>
               </div>
 
               {/* ============================================================ */}

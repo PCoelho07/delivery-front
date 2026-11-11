@@ -219,7 +219,7 @@ export function DesktopOrdersScreen({
                         className="px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-[#FF5E1E] text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer border border-orange-200"
                       >
                         <Star className="w-3.5 h-3.5 fill-[#FF5E1E]" />
-                        <span>Avaliar Pedido (3 critérios)</span>
+                        <span>Avaliar Pedido</span>
                       </button>
                     )}
 

@@ -142,42 +142,31 @@ export function OrderUpsellModal({
           })}
         </div>
 
-        {/* Rodapé com as Duas Ações */}
+        {/* Rodapé com Ação Direta */}
         <div className="p-4 sm:p-5 border-t border-[#E9ECEF] bg-[#F8F9FA] space-y-2.5">
           {hasAddedAny ? (
             <button
               type="button"
               onClick={onProceedToDelivery}
-              className="btn-hover-zoom w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 cursor-pointer"
+              className="btn-hover-zoom w-full py-3.5 px-4 rounded-xl bg-[#FF5E1E] hover:bg-[#E64E12] text-white text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-lg shadow-[#FF5E1E]/25 cursor-pointer"
             >
-              <span>Continuar com itens adicionados ({formatCurrency(cartTotalAmount)})</span>
+              <span>Continuar para a Sacola ({formatCurrency(cartTotalAmount)})</span>
               <ArrowRight className="w-4 h-4 stroke-[2.5]" />
             </button>
           ) : (
-            <div className="flex flex-col-reverse sm:flex-row items-center gap-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-full sm:flex-1 py-3 px-3 rounded-xl border border-[#E9ECEF] hover:bg-white text-[#6C757D] hover:text-[#1A1D20] text-xs font-extrabold transition-colors cursor-pointer text-center"
-              >
-                Não quero, ir para a entrega
-              </button>
-
-              <button
-                type="button"
-                onClick={onProceedToDelivery}
-                className="btn-hover-zoom w-full sm:flex-1 py-3 px-3 rounded-xl bg-[#FF5E1E] hover:bg-[#D9460F] text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-[#FF5E1E]/20 cursor-pointer text-center"
-              >
-                <span>Avançar para a entrega</span>
-                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-hover-zoom w-full py-3.5 px-4 rounded-xl bg-[#1A1D20] hover:bg-black active:scale-[0.99] text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-md shadow-black/20 transition-all cursor-pointer"
+            >
+              <span>Não quero!</span>
+            </button>
           )}
 
           <p className="text-[10.5px] text-center text-[#9CA3AF]">
             {hasAddedAny
-              ? '✅ Os itens adicionados já foram somados à sua sacola.'
-              : 'Você pode adicionar quantos itens quiser ou prosseguir diretamente.'}
+              ? '✅ Item incluso! Clique acima para prosseguir para a sacola.'
+              : 'Dica: Adicione itens acima ou clique em "Não quero" para avançar à sacola.'}
           </p>
         </div>
       </div>
