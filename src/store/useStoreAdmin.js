@@ -665,6 +665,7 @@ export const useStoreAdmin = create((set, get) => ({
       available: productData.available ?? true,
       order: requestedOrder,
       badge: productData.badge || null,
+      isUpsell: Boolean(productData.isUpsell),
     }
 
     // Insere na posição desejada (empurra os itens posteriores para a próxima posição)
@@ -707,6 +708,10 @@ export const useStoreAdmin = create((set, get) => ({
           : currentProd.name,
       price:
         partial.price !== undefined ? Number(partial.price) : currentProd.price,
+      isUpsell:
+        partial.isUpsell !== undefined
+          ? Boolean(partial.isUpsell)
+          : currentProd.isUpsell ?? false,
     }
 
     const catProds = get()
@@ -795,6 +800,28 @@ export const useStoreAdmin = create((set, get) => ({
         // safe fallback
       }
     }
+  },
+
+  toggleProductUpsell: (id) => {
+    let updated = null
+    set((state) => ({
+      products: state.products.map((p) => {
+        if (String(p.id) === String(id)) {
+          updated = { ...p, isUpsell: !p.isUpsell }
+          return updated
+        }
+        return p
+      }),
+    }))
+    get().persist()
+    if (updated) {
+      try {
+        ordersWebSocket?.broadcastMenuItemUpdated?.(updated)
+      } catch {
+        // safe fallback
+      }
+    }
+    return updated
   },
 
   reorderProduct: (id, direction) => {

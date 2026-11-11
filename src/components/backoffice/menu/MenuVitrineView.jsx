@@ -32,6 +32,7 @@ export function MenuVitrineView() {
     reorderCategory,
     deleteProduct,
     toggleProductAvailability,
+    toggleProductUpsell,
     reorderProduct,
   } = useStoreAdmin()
 
@@ -520,6 +521,12 @@ export function MenuVitrineView() {
                                       {prod.badge}
                                     </span>
                                   )}
+                                  {prod.isUpsell && (
+                                    <span className="text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1 shadow-2xs">
+                                      <Sparkles className="w-2.5 h-2.5 text-amber-600" />
+                                      <span>Sugestão Checkout</span>
+                                    </span>
+                                  )}
                                 </div>
 
                                 {prod.desc && (
@@ -594,6 +601,34 @@ export function MenuVitrineView() {
                                   }`}
                                 >
                                   {prod.available ? 'Disponível' : 'Esgotado'}
+                                </span>
+                              </button>
+
+                              {/* Botão Rápido de Sugerir no Checkout */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = toggleProductUpsell(prod.id)
+                                  if (updated?.isUpsell) {
+                                    toast.success(`"${prod.name}" agora é sugerido no checkout!`)
+                                  } else {
+                                    toast.info(`"${prod.name}" removido das sugestões de checkout.`)
+                                  }
+                                }}
+                                title={
+                                  prod.isUpsell
+                                    ? 'Produto configurado para sugerir no checkout (clique para desmarcar)'
+                                    : 'Clique para sugerir este produto no checkout do cliente'
+                                }
+                                className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                  prod.isUpsell
+                                    ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-2xs'
+                                    : 'border-[#E9ECEF] text-[#6C757D] hover:text-[#1A1D20] hover:border-slate-300 bg-white'
+                                }`}
+                              >
+                                <Sparkles className={`w-3.5 h-3.5 ${prod.isUpsell ? 'text-amber-600' : 'text-slate-400'}`} />
+                                <span className="hidden lg:inline">
+                                  {prod.isUpsell ? 'Sugerido no Checkout' : 'Sugerir Checkout'}
                                 </span>
                               </button>
 

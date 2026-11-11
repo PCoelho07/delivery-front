@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { CartBottomBar } from '../../components/cart/CartBottomBar'
 import { CartModal } from '../../components/cart/CartModal'
+import { OrderUpsellModal } from '../../components/cart/OrderUpsellModal'
 import { CheckoutModal } from '../../components/checkout/CheckoutModal'
 import { OrderConfirmationModal } from '../../components/checkout/OrderConfirmationModal'
 import { OrderReviewModal } from '../../components/checkout/OrderReviewModal'
@@ -33,6 +34,7 @@ import {
   STORAGE_KEY,
 } from '../../store/useStoreAdmin'
 import { useCustomerOrdersRealtime } from '../../hooks/useCustomerOrdersRealtime'
+import { getUpsellRecommendations } from '../../utils/upsellRecommender'
 
 export function CardapioPage() {
   const { businessName } = useParams()
@@ -90,6 +92,8 @@ export function CardapioPage() {
   // Estados Mobile
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [isUpsellOpen, setIsUpsellOpen] = useState(false)
+  const [hasSeenUpsell, setHasSeenUpsell] = useState(false)
   const [confirmedOrder, setConfirmedOrder] = useState(null)
   const [isCustomerHubOpen, setIsCustomerHubOpen] = useState(false)
   const [isStoreInfoOpen, setIsStoreInfoOpen] = useState(false)
@@ -253,6 +257,7 @@ export function CardapioPage() {
             badge: p.badge || null,
             available: p.available !== false,
             order: p.order || 0,
+            isUpsell: Boolean(p.isUpsell),
             addons,
             preferences,
             maxAddons: 5,
@@ -392,6 +397,31 @@ export function CardapioPage() {
       })
       .filter((cat) => cat.items.length > 0)
   }, [storeData.categories, searchQuery])
+
+  // Todos os produtos do cardápio para o algoritmo de recomendação
+  const allStoreProducts = useMemo(() => {
+    const list = []
+    ;(storeData.categories || []).forEach((cat) => {
+      ;(cat.items || []).forEach((item) => {
+        list.push(item)
+      })
+    })
+    return list
+  }, [storeData.categories])
+
+  // Algoritmo Híbrido de Recomendações de Checkout (Aumento de Ticket Médio)
+  const upsellRecommendations = useMemo(() => {
+    return getUpsellRecommendations({
+      allProducts: allStoreProducts,
+      categories: storeData.categories || [],
+      cartItems,
+      orders,
+      maxSuggestions: 3,
+    })
+  }, [allStoreProducts, storeData.categories, cartItems, orders])
+
+  // Recomendações só são suprimidas se o usuário já viu nesta sessão da sacola com itens
+  const hasSeenUpsellEffective = cartItems.length > 0 && hasSeenUpsell
 
   // Clique em uma categoria na versão mobile: marca de laranja e rola suavemente até o tópico
   const handleCategoryClick = (categoryId) => {
@@ -546,7 +576,7 @@ export function CardapioPage() {
     toast.success(`${cartPayload.product.name} adicionado à sacola!`)
   }
 
-  // Mobile: Da Tela 4 (Sua sacola) avança para a Tela 5 (Finalizar pedido)
+  // Mobile: Da Tela 4 (Sua sacola) avança para a Tela 5 (Finalizar pedido) com interceptação de Upsell
   const handleContinueToDelivery = () => {
     if (storeData.statusMode === 'paused') {
       toast.error('O estabelecimento pausou os pedidos temporariamente. Não é possível concluir o pedido agora.')
@@ -557,12 +587,67 @@ export function CardapioPage() {
       return
     }
     setIsCartOpen(false)
-    setIsCheckoutOpen(true)
+
+    // Se ainda não visualizou o modal de upsell e há produtos recomendados:
+    if (!hasSeenUpsellEffective && upsellRecommendations.length > 0) {
+      setHasSeenUpsell(true)
+      setIsUpsellOpen(true)
+    } else {
+      setIsCheckoutOpen(true)
+    }
+  }
+
+  // Desktop: Da sacola avança para o checkout com interceptação de Upsell
+  const handleDesktopContinueToCheckout = () => {
+    if (storeData.statusMode === 'paused') {
+      toast.error('O estabelecimento pausou os pedidos temporariamente.')
+      return
+    }
+    if (storeData.isOpen === false) {
+      toast.error('O estabelecimento está fechado no momento.')
+      return
+    }
+    if (!hasSeenUpsellEffective && upsellRecommendations.length > 0) {
+      setHasSeenUpsell(true)
+      setIsUpsellOpen(true)
+    } else {
+      setDesktopView('checkout')
+    }
+  }
+
+  const handleDismissUpsell = () => {
+    setIsUpsellOpen(false)
+    if (window.innerWidth >= 768) {
+      setDesktopView('checkout')
+    } else {
+      setIsCheckoutOpen(true)
+    }
+  }
+
+  const handleProceedFromUpsell = () => {
+    setIsUpsellOpen(false)
+    if (window.innerWidth >= 768) {
+      setDesktopView('checkout')
+    } else {
+      setIsCheckoutOpen(true)
+    }
+  }
+
+  const handleAddUpsellProduct = (product) => {
+    addItemToCart({
+      product,
+      quantity: 1,
+      addons: [],
+      preferences: [],
+      observation: '',
+    })
   }
 
   // Mobile: Da Tela 5 (Finalizar pedido) avança para a Tela 6 (Confirmação, PIX, WhatsApp e Histórico)
   const handleOrderConfirmed = (newOrder) => {
     setIsCheckoutOpen(false)
+    setIsUpsellOpen(false)
+    setHasSeenUpsell(false)
     setConfirmedOrder(newOrder)
     setIsCustomerHubOpen(true)
     setActiveDesktopOrder(newOrder)
@@ -714,6 +799,18 @@ export function CardapioPage() {
             store={storeData}
             onClose={() => setIsCartOpen(false)}
             onContinueToDelivery={handleContinueToDelivery}
+          />
+        )}
+
+        {/* MODAL DE SUGESTÃO / UPSELL PARA AUMENTAR TICKET MÉDIO (MOBILE) */}
+        {isUpsellOpen && (
+          <OrderUpsellModal
+            isOpen={isUpsellOpen}
+            onClose={handleDismissUpsell}
+            onProceedToDelivery={handleProceedFromUpsell}
+            recommendations={upsellRecommendations}
+            onAddToCart={handleAddUpsellProduct}
+            cartTotalAmount={cartTotalAmount}
           />
         )}
 
@@ -887,7 +984,7 @@ export function CardapioPage() {
           <DesktopCartScreen
             store={storeData}
             onBackToMenu={() => setDesktopView('menu')}
-            onContinueToCheckout={() => setDesktopView('checkout')}
+            onContinueToCheckout={handleDesktopContinueToCheckout}
           />
         )}
 
@@ -978,6 +1075,18 @@ export function CardapioPage() {
             isOpen={isStoreInfoOpen}
             onClose={() => setIsStoreInfoOpen(false)}
             store={storeData}
+          />
+        )}
+
+        {/* MODAL DE SUGESTÃO / UPSELL PARA AUMENTAR TICKET MÉDIO (DESKTOP) */}
+        {isUpsellOpen && (
+          <OrderUpsellModal
+            isOpen={isUpsellOpen}
+            onClose={handleDismissUpsell}
+            onProceedToDelivery={handleProceedFromUpsell}
+            recommendations={upsellRecommendations}
+            onAddToCart={handleAddUpsellProduct}
+            cartTotalAmount={cartTotalAmount}
           />
         )}
       </div>

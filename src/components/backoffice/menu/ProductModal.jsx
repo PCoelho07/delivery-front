@@ -55,6 +55,9 @@ export function ProductModal({
   const [isAvailable, setIsAvailable] = useState(
     productToEdit?.available ?? true
   )
+  const [isUpsell, setIsUpsell] = useState(
+    Boolean(productToEdit?.isUpsell)
+  )
 
   // Configuração selecionada: por padrão 'tmpl-none' (Sem Adicional)
   const [selectedTemplateId, setSelectedTemplateId] = useState(
@@ -221,6 +224,7 @@ export function ProductModal({
       price: numericPrice,
       order: Number(order) || 1,
       available: isAvailable,
+      isUpsell,
       image:
         imagePreview ||
         'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
@@ -610,6 +614,58 @@ export function ProductModal({
                   <span
                     className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
                       isAvailable ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Seção 8: Sugestão no Checkout (Aumentar Ticket Médio) */}
+              <div
+                onClick={() => setIsUpsell(!isUpsell)}
+                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                  isUpsell
+                    ? 'bg-orange-50/70 border-orange-300 hover:bg-orange-50 ring-1 ring-orange-200'
+                    : 'bg-white border-[#E9ECEF] hover:bg-[#F8F9FA]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className={`w-4 h-4 ${isUpsell ? 'text-[#FF5E1E]' : 'text-slate-400'}`} />
+                    <span
+                      className={`text-xs font-extrabold ${
+                        isUpsell ? 'text-[#1A1D20]' : 'text-[#4A5568]'
+                      }`}
+                    >
+                      Sugerir no Checkout (Aumentar Ticket)
+                    </span>
+                    {isUpsell && (
+                      <span className="text-[10px] font-black bg-[#FF5E1E] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        Ativo
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#6C757D] mt-0.5">
+                    {isUpsell
+                      ? 'Este item terá prioridade no modal de sugestões extras antes de o cliente concluir a sacola.'
+                      : 'Marque para sugerir este item (bebida, sobremesa, porção) antes do pagamento.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isUpsell}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsUpsell(!isUpsell)
+                  }}
+                  className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                    isUpsell ? 'bg-[#FF5E1E]' : 'bg-slate-300'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
+                      isUpsell ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />
                 </button>
