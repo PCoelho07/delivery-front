@@ -137,6 +137,19 @@ export const useBusinessStore = create((set, get) => ({
   },
 
   /**
+   * Busca os complementos e opcionais de um produto via GET /products/{id}/complement-groups
+   */
+  fetchProductComplements: async (productId) => {
+    if (!productId) return []
+    try {
+      const groups = await productService.getComplementGroups(productId)
+      return groups
+    } catch {
+      return []
+    }
+  },
+
+  /**
    * Seleciona o estabelecimento atual com base nos dados carregados
    */
   /**

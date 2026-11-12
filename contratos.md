@@ -80,11 +80,12 @@ O front precisa renderizar os produtos associados a categorias e com seus respec
 
 | Ação | Método | Rota | Descrição |
 | :--- | :--- | :--- | :--- |
+| **Listar Produtos da Loja** | `GET` | `/business/{id}/products` | Lista de produtos (com `price_cents` inteiro). |
+| **Buscar Produto Individual** | `GET` | `/products/{id}` | Retorna detalhes de um produto específico. |
+| **Listar Grupos de Complementos** | `GET` | `/products/{id}/complement-groups` | Grupos de adicionais vinculados ao produto (`min`, `max`, `complements`). |
 | **Listar Categorias** | `GET` | `/api/v1/business/{id}/categories` | Lista de abas/categorias do cardápio. |
 | **Criar/Editar Categoria** | `POST` / `PUT` | `/api/v1/business/{id}/categories` | Cadastro e ordenação de categorias. |
-| **Listar Produtos** | `GET` | `/api/v1/business/{id}/products` | Lista de produtos ativos ou inativos. |
-| **Criar/Editar Produto** | `POST` / `PUT` | `/api/v1/business/{id}/products` | Cadastro com complementos acoplados. |
-| **Listar/Salvar Templates** | `GET` / `POST` | `/api/v1/business/{id}/templates` | Grupos reutilizáveis de complementos. |
+| **Criar/Editar Produto** | `POST` / `PUT` | `/api/v1/business/{id}/products` | Cadastro de produto com foto e valores. |
 
 **Contrato de Categoria (`Category`):**
 ```json

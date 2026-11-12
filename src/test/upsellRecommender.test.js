@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
+import { describe, it, assert } from 'vitest'
 import { getUpsellRecommendations } from '../utils/upsellRecommender.js'
 
 describe('Algoritmo de Upsell e Cross-sell (upsellRecommender)', () => {
