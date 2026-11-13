@@ -258,6 +258,7 @@ export function CardapioPage() {
             available: p.available !== false,
             order: p.order || 0,
             isUpsell: Boolean(p.isUpsell),
+            optionGroups: tmpl && Array.isArray(tmpl.groups) ? tmpl.groups : [],
             addons,
             preferences,
             maxAddons: 5,
