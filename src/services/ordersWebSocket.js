@@ -439,7 +439,15 @@ class OrdersWebSocketService {
 
     this.send('CREATE_ORDER', normalizedOrder)
     this.broadcastLocal('ORDER_CREATED', normalizedOrder)
+    this.emit('ORDER_CREATED', normalizedOrder)
     return true
+  }
+
+  /**
+   * Alias de conveniência para createOrder
+   */
+  sendNewOrder(order) {
+    return this.createOrder(order)
   }
 
   /**

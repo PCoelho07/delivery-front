@@ -10,6 +10,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { formatCurrency } from '../../../lib/utils'
+import { calculateOrderElapsedTime } from '../../../utils/orderSorting'
 
 export function OrdersTableView({
   orders,
@@ -123,6 +124,20 @@ export function OrdersTableView({
               const itemsCount = (order.items || []).reduce((acc, it) => acc + (it.quantity || 1), 0)
               const firstItem = order.items?.[0]
 
+              const elapsed = calculateOrderElapsedTime(order)
+              const rawTime = order.timeFormatted || order.createdAt || order.elapsedTime || ''
+              let displayTime = rawTime
+              if (typeof rawTime === 'string') {
+                if (rawTime.includes('às')) {
+                  displayTime = rawTime.split('às')[1].trim()
+                } else if (rawTime.includes('T')) {
+                  const d = new Date(rawTime)
+                  if (!isNaN(d.getTime())) {
+                    displayTime = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                  }
+                }
+              }
+
               return (
                 <tr key={order.orderId} className="hover:bg-slate-50/80 transition-colors">
                   {/* # Pedido e Horário */}
@@ -131,10 +146,21 @@ export function OrdersTableView({
                       <span className="font-black block">
                         {String(order.orderId).startsWith('#') ? order.orderId : `#${order.orderId}`}
                       </span>
-                      <span className="text-[10.5px] text-[#6C757D] font-normal flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3 text-[#6C757D]" />
-                        <span>{order.createdAt || order.elapsedTime}</span>
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10.5px] text-[#6C757D] font-normal flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-[#6C757D]" />
+                          <span>{displayTime}</span>
+                        </span>
+                        {order.status !== 'concluido' && order.status !== 'cancelado' && order.status !== 'recusado' && (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 rounded border shrink-0 ${elapsed.badgeClass}`}
+                            title={`Tempo na fila: ${elapsed.text}`}
+                          >
+                            <span className={`w-1 h-1 rounded-full ${elapsed.dotClass}`} />
+                            <span>{elapsed.text}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
 

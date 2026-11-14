@@ -16,6 +16,7 @@ import {
   Tag,
 } from 'lucide-react'
 import { formatCurrency } from '../../../lib/utils'
+import { calculateOrderElapsedTime } from '../../../utils/orderSorting'
 
 export function OrderCard({
   order,
@@ -28,14 +29,27 @@ export function OrderCard({
   const [isExpanded, setIsExpanded] = useState(false)
   const isDelivery = order.deliveryMethod === 'delivery'
 
+  // Tempo decorrido desde o momento da realização do pedido
+  const elapsedTime = useMemo(() => {
+    return calculateOrderElapsedTime(order)
+  }, [order])
+
   // Exibe apenas hora (HH:mm) para economizar espaço horizontal no card do Kanban
   const displayTime = useMemo(() => {
-    const raw = order.createdAt || order.elapsedTime || ''
-    if (raw.includes('às')) {
-      return raw.split('às')[1].trim()
+    const raw = order.timeFormatted || order.createdAt || order.elapsedTime || ''
+    if (typeof raw === 'string') {
+      if (raw.includes('às')) {
+        return raw.split('às')[1].trim()
+      }
+      if (raw.includes('T')) {
+        const d = new Date(raw)
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        }
+      }
     }
     return raw
-  }, [order.createdAt, order.elapsedTime])
+  }, [order.timeFormatted, order.createdAt, order.elapsedTime])
 
   // Configurações visuais por status
   const statusConfig = {
@@ -142,11 +156,20 @@ export function OrderCard({
   if (compact && !isExpanded) {
     return (
       <div className="bg-white rounded-xl p-2.5 border border-slate-200 hover:border-emerald-300 shadow-2xs flex items-center justify-between gap-2 text-xs transition-all">
-        <div className="min-w-0 flex items-center gap-1.5">
+        <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
           <span className="font-black text-[#1A1D20] shrink-0 text-[11px]">
             {String(order.orderId).startsWith('#') ? order.orderId : `#${order.orderId}`}
           </span>
           {renderPaymentBadge(true)}
+          {order.status !== 'concluido' && order.status !== 'cancelado' && order.status !== 'recusado' && (
+            <span
+              className={`inline-flex items-center gap-1 text-[9.5px] px-1.5 py-0.5 rounded border shrink-0 ${elapsedTime.badgeClass}`}
+              title={`Tempo de espera: ${elapsedTime.text}`}
+            >
+              <span className={`w-1 h-1 rounded-full shrink-0 ${elapsedTime.dotClass}`} />
+              <span>{elapsedTime.shortText}</span>
+            </span>
+          )}
           {order.customer?.name && (
             <span
               className="font-medium text-[#475569] truncate max-w-[85px] text-[11px]"
@@ -186,19 +209,30 @@ export function OrderCard({
     <div
       className={`bg-white rounded-2xl p-3.5 border shadow-xs space-y-2.5 transition-all overflow-hidden ${currentCfg.borderClass}`}
     >
-      {/* Linha 1: Número do Pedido, Horário e Pagamento */}
+      {/* Linha 1: Número do Pedido, Horário, Tempo de Espera e Pagamento */}
       <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-[#F1F3F5]">
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
           <span className="text-xs font-black text-[#1A1D20] shrink-0">
             {String(order.orderId).startsWith('#') ? order.orderId : `#${order.orderId}`}
           </span>
           <span
             className="text-[10.5px] text-[#6C757D] flex items-center gap-1 shrink-0"
-            title={order.createdAt || order.elapsedTime}
+            title={`Realizado às ${displayTime}`}
           >
             <Clock className="w-3 h-3 text-[#94A3B8]" />
             <span>{displayTime}</span>
           </span>
+
+          {/* Badge de Tempo Decorrido / Fila de Espera para pedidos não finalizados */}
+          {order.status !== 'concluido' && order.status !== 'cancelado' && order.status !== 'recusado' && (
+            <span
+              className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md border shrink-0 ${elapsedTime.badgeClass}`}
+              title={`Tempo de espera: ${elapsedTime.text}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${elapsedTime.dotClass}`} />
+              <span>{elapsedTime.text}</span>
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1 shrink-0">

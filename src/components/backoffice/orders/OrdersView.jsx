@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   ClipboardList,
   ShoppingBag,
@@ -19,14 +19,16 @@ import {
   Radio,
   RefreshCw,
   Ban,
+  ArrowUpDown,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCustomerStore, CUSTOMER_STORAGE_KEY } from '../../../store/useCustomerStore'
 import { useStoreAdmin } from '../../../store/useStoreAdmin'
 import { formatCurrency } from '../../../lib/utils'
-import { playOrderChime } from '../../../utils/audio'
+import { playOrderChime, unlockAudio } from '../../../utils/audio'
 import { useOrdersWebSocket } from '../../../hooks/useOrdersWebSocket'
 import { orderService } from '../../../services/orderService'
+import { sortOrders } from '../../../utils/orderSorting'
 import { OrderCard } from './OrderCard'
 import { OrdersTableView } from './OrdersTableView'
 import { ThermalReceiptModal } from './ThermalReceiptModal'
@@ -70,6 +72,9 @@ export function OrdersView() {
   // Modos de visualização: 'kanban' | 'list'
   const [viewMode, setViewMode] = useState('kanban')
 
+  // Modo de ordenação: 'kitchen' (Fila de Cozinha - mais antigos no topo) | 'newest' (Mais recentes primeiro)
+  const [sortMode, setSortMode] = useState('kitchen')
+
   // Filtro de busca textual (#ID, nome do cliente ou item)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -95,7 +100,53 @@ export function OrdersView() {
     isReconnecting: isWsReconnecting,
     reconnect: reconnectWs,
     updateOrderStatus: sendWsStatusUpdate,
-  } = useOrdersWebSocket()
+  } = useOrdersWebSocket({
+    onNewOrder: () => {
+      if (useStoreAdmin.getState().soundEnabled) {
+        unlockAudio()
+        playOrderChime()
+      }
+    },
+  })
+
+  // Detector de novos pedidos para tocar o alerta sonoro em tempo real
+  const knownOrderIdsRef = useRef(new Set(storeOrders.map((o) => o.orderId || o.id)))
+  const isInitialMount = useRef(true)
+
+  useEffect(() => {
+    if (isInitialMount.current) {
+      knownOrderIdsRef.current = new Set(storeOrders.map((o) => o.orderId || o.id))
+      isInitialMount.current = false
+      return
+    }
+
+    const currentKnown = knownOrderIdsRef.current
+    const newArrivals = storeOrders.filter((o) => {
+      const id = o.orderId || o.id
+      return id && !currentKnown.has(id)
+    })
+
+    if (newArrivals.length > 0) {
+      newArrivals.forEach((o) => currentKnown.add(o.orderId || o.id))
+
+      const hasPending = newArrivals.some(
+        (o) => o.status === 'novo' || o.status === 'aceito' || !o.status
+      )
+
+      if (hasPending) {
+        if (useStoreAdmin.getState().soundEnabled) {
+          unlockAudio()
+          playOrderChime()
+        }
+        const first = newArrivals[0]
+        const cleanId = String(first.orderId || first.id).replace(/^#/, '')
+        toast.success(`🔔 Novo pedido #${cleanId} recebido!`, {
+          description: `${first.customer?.name || 'Cliente'} • ${formatCurrency(first.total || 0)}`,
+          duration: 6000,
+        })
+      }
+    }
+  }, [storeOrders])
 
   // Todos os pedidos registrados
   const allOrders = storeOrders
@@ -146,12 +197,33 @@ export function OrdersView() {
     })
   }, [allOrders, searchQuery, deliveryFilter])
 
-  // Colunas do Kanban (alimentadas com os pedidos filtrados)
-  const newOrders = filteredOrders.filter((o) => o.status === 'aceito' || o.status === 'novo')
-  const inPrepOrders = filteredOrders.filter((o) => o.status === 'preparo')
-  const inDeliveryOrders = filteredOrders.filter((o) => o.status === 'entrega')
-  const completedOrders = filteredOrders.filter((o) => o.status === 'concluido')
-  const canceledOrders = allOrders.filter((o) => o.status === 'cancelado' || o.status === 'recusado')
+  // Colunas do Kanban (alimentadas com os pedidos filtrados e ordenadas conforme sortMode)
+  const newOrders = useMemo(
+    () => sortOrders(filteredOrders.filter((o) => o.status === 'aceito' || o.status === 'novo'), sortMode, 'novo'),
+    [filteredOrders, sortMode]
+  )
+  const inPrepOrders = useMemo(
+    () => sortOrders(filteredOrders.filter((o) => o.status === 'preparo'), sortMode, 'preparo'),
+    [filteredOrders, sortMode]
+  )
+  const inDeliveryOrders = useMemo(
+    () => sortOrders(filteredOrders.filter((o) => o.status === 'entrega'), sortMode, 'entrega'),
+    [filteredOrders, sortMode]
+  )
+  const completedOrders = useMemo(
+    () => sortOrders(filteredOrders.filter((o) => o.status === 'concluido'), sortMode, 'concluido'),
+    [filteredOrders, sortMode]
+  )
+  const canceledOrders = useMemo(
+    () => sortOrders(allOrders.filter((o) => o.status === 'cancelado' || o.status === 'recusado'), sortMode, 'cancelado'),
+    [allOrders, sortMode]
+  )
+
+  // Pedidos para a visão em tabela (respeitando a ordenação selecionada)
+  const sortedTableOrders = useMemo(
+    () => sortOrders(filteredOrders, sortMode),
+    [filteredOrders, sortMode]
+  )
 
   // Avançar Status
   const handleAdvance = (orderId, nextStatus) => {
@@ -192,13 +264,23 @@ export function OrdersView() {
 
   // Alternar Som de Notificação
   const handleToggleSound = () => {
+    const willBeEnabled = !soundEnabled
     toggleSound()
-    if (!soundEnabled) {
+    if (willBeEnabled) {
+      unlockAudio()
       playOrderChime()
       toast.info('Alerta sonoro ativado (som de teste reproduzido).')
     } else {
       toast.info('Alerta sonoro silenciado.')
     }
+  }
+
+  // Testar Som de Notificação
+  const handleTestSound = (e) => {
+    if (e) e.stopPropagation()
+    unlockAudio()
+    playOrderChime()
+    toast.info('🔔 Testando som de novo pedido!')
   }
 
   return (
@@ -250,6 +332,42 @@ export function OrdersView() {
 
         {/* Ações do Header */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Seletor de Ordem: Fila da Cozinha vs Mais Recentes */}
+          <div className="bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setSortMode('kitchen')
+                toast.info('Ordem de Produção ativada: Pedidos mais antigos no topo para a cozinha.')
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                sortMode === 'kitchen'
+                  ? 'bg-[#FF5E1E] text-white shadow-xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+              title="Fila da Cozinha: Pedidos que chegaram primeiro ficam no topo para produção prioritária"
+            >
+              <Timer className="w-3.5 h-3.5" />
+              <span>Fila da Cozinha</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSortMode('newest')
+                toast.info('Ordem por Mais Recentes ativada.')
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                sortMode === 'newest'
+                  ? 'bg-[#1A1D20] text-white shadow-xs'
+                  : 'text-[#6C757D] hover:text-[#1A1D20]'
+              }`}
+              title="Mais recentes no topo em todas as listas"
+            >
+              <ArrowUpDown className="w-3.5 h-3.5" />
+              <span>Mais Recentes</span>
+            </button>
+          </div>
+
           {/* Alternador de Visualização: Kanban vs Lista */}
           <div className="bg-[#F8F9FA] p-1 rounded-xl border border-[#E9ECEF] flex items-center gap-1 shrink-0">
             <button
@@ -278,20 +396,33 @@ export function OrdersView() {
             </button>
           </div>
 
-          {/* Som de Alerta */}
-          <button
-            type="button"
-            onClick={handleToggleSound}
-            className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-              soundEnabled
-                ? 'bg-orange-50 border-orange-200 text-[#FF5E1E] hover:bg-orange-100'
-                : 'bg-slate-50 border-[#E9ECEF] text-[#6C757D] hover:bg-slate-100'
-            }`}
-            title={soundEnabled ? 'Som ativado' : 'Som desativado'}
-          >
-            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            <span className="hidden md:inline">{soundEnabled ? 'Alerta Ativo' : 'Mudo'}</span>
-          </button>
+          {/* Som de Alerta & Teste */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                soundEnabled
+                  ? 'bg-orange-50 border-orange-200 text-[#FF5E1E] hover:bg-orange-100'
+                  : 'bg-slate-50 border-[#E9ECEF] text-[#6C757D] hover:bg-slate-100'
+              }`}
+              title={soundEnabled ? 'Alerta sonoro ativado. Clique para silenciar.' : 'Alerta sonoro silenciado. Clique para ativar.'}
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              <span className="hidden md:inline">{soundEnabled ? 'Alerta Ativo' : 'Mudo'}</span>
+            </button>
+
+            {soundEnabled && (
+              <button
+                type="button"
+                onClick={handleTestSound}
+                className="px-2.5 py-2 rounded-xl border border-orange-200 bg-white hover:bg-orange-50 text-[#FF5E1E] text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-2xs active:scale-95"
+                title="Tocar som de teste agora"
+              >
+                <span>Testar Som</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -473,7 +604,7 @@ export function OrdersView() {
         </div>
       ) : viewMode === 'list' ? (
         <OrdersTableView
-          orders={filteredOrders}
+          orders={sortedTableOrders}
           onAdvance={handleAdvance}
           onPrint={setOrderToPrint}
         />

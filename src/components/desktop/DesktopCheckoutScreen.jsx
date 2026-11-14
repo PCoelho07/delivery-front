@@ -23,6 +23,7 @@ import { useCartStore } from '../../store/useCartStore'
 import { useCustomerStore } from '../../store/useCustomerStore'
 import { evaluateCoupon } from '../../utils/couponCalculator'
 import { ordersWebSocket } from '../../services/ordersWebSocket'
+import { orderService } from '../../services/orderService'
 import { CustomSelect } from '../common/CustomSelect'
 
 export function DesktopCheckoutScreen({
@@ -234,6 +235,7 @@ export function DesktopCheckoutScreen({
     const newOrder = {
       orderId,
       createdAt: now.toISOString(),
+      createdAtTimestamp: now.getTime(),
       dateFormatted: now.toLocaleDateString('pt-BR'),
       timeFormatted: now.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -269,11 +271,12 @@ export function DesktopCheckoutScreen({
     // Persiste no store de pedidos do cliente
     addOrder(newOrder)
 
-    // Dispara via WebSocket caso o backend Go esteja conectado
+    // Transmite o novo pedido via REST (backend Go) e via WebSocket/BroadcastChannel para o Kanban
     try {
-      ordersWebSocket.sendNewOrder?.(newOrder)
+      orderService.createOrder({ ...newOrder, businessId: store?.id || 1 })
+      ordersWebSocket.createOrder(newOrder)
     } catch (err) {
-      console.warn('Falha silenciosa ao enviar WebSocket:', err)
+      console.warn('Falha silenciosa ao propagar novo pedido:', err)
     }
 
     // Limpa a sacola
